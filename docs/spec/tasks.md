@@ -7,8 +7,8 @@
 - [x] 1.2 Definir tooling (tsconfig estrito, lint, CI)
 
 ## 2. Confirmar dialeto do fork
-- [ ] 2.1 Inspecionar o fork `jrxml_web_designer`: identificar se o XML emitido é 6.x ou 7.x
-- [ ] 2.2 Registrar achado em nota de design (impacta quanto do serializer é reaproveitável)
+- [x] 2.1 Inspecionar o fork `jrxml_web_designer`: identificar se o XML emitido é 6.x ou 7.x → **6.x**
+- [x] 2.2 Registrar achado em nota de design (impacta quanto do serializer é reaproveitável) → `docs/design/nota-001-dialeto-fork-jrxml-web-designer.md`
 
 ## 3. Modelo de domínio (RFC-001 §3)
 - [ ] 3.1 Tipos: `ReportTemplate`, `BandSet`, `Band`, `Element` (subconjunto fatura/comprovante/form/etiqueta A4)
