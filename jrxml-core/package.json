@@ -18,11 +18,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.63.0",
     "vitest": "^3.2.4"
   }
 }

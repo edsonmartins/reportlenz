@@ -4,7 +4,7 @@
 
 ## 1. Setup do pacote
 - [x] 1.1 Scaffold `jrxml-core` (TS, build ESM, Vitest, sem deps de UI)
-- [ ] 1.2 Definir tooling (tsconfig estrito, lint, CI)
+- [x] 1.2 Definir tooling (tsconfig estrito, lint, CI)
 
 ## 2. Confirmar dialeto do fork
 - [ ] 2.1 Inspecionar o fork `jrxml_web_designer`: identificar se o XML emitido é 6.x ou 7.x

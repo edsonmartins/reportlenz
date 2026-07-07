@@ -1,0 +1,51 @@
+# CI do ReportLenz — valida o jrxml-core (tarefa phase-0/1.2).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  jrxml-core:
+    name: jrxml-core · lint + typecheck + test + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jrxml-core
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: jrxml-core/pnpm-lock.yaml
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Testes (Vitest)
+        run: pnpm test
+
+      - name: Build (ESM + d.ts)
+        run: pnpm build
+
+      # RFC-001 §8 / I-7: o bundle não pode conter dependência de framework de UI.
+      - name: Guardião headless (I-7)
+        run: |
+          if grep -RInE "from ['\"](react|vue|@vue/)" dist/; then
+            echo "::error::I-7 violado: import de framework de UI encontrado no bundle"
+            exit 1
+          fi
+          echo "OK: bundle sem imports de UI"
