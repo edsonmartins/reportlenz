@@ -12,3 +12,6 @@
 
 /** Versão do dialeto JRXML alvo do parser/serializer (ADR-002). */
 export const JRXML_DIALECT_TARGET = '7.0.7' as const;
+
+// Modelo de domínio (RFC-001 §3) — tarefa phase-0/3.1.
+export * from './model/index.js';

@@ -11,7 +11,7 @@
 - [x] 2.2 Registrar achado em nota de design (impacta quanto do serializer é reaproveitável) → `docs/design/nota-001-dialeto-fork-jrxml-web-designer.md`
 
 ## 3. Modelo de domínio (RFC-001 §3)
-- [ ] 3.1 Tipos: `ReportTemplate`, `BandSet`, `Band`, `Element` (subconjunto fatura/comprovante/form/etiqueta A4)
+- [x] 3.1 Tipos: `ReportTemplate`, `BandSet`, `Band`, `Element` (subconjunto fatura/comprovante/form/etiqueta A4)
 - [ ] 3.2 Tipos de contrato: `DataContract`, `FieldDecl`, `ParamDecl`, `VariableDecl`
 
 ## 4. Parser (JRXML 7 → modelo)
