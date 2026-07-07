@@ -23,4 +23,14 @@ export type {
   TextField,
 } from './elements.js';
 export type { Band, BandSet, Group } from './bands.js';
+export type {
+  DataContract,
+  FieldDecl,
+  FieldType,
+  ParamDecl,
+  ScalarType,
+  VariableCalculation,
+  VariableDecl,
+  VariableResetType,
+} from './contract.js';
 export type { ReportTemplate } from './report.js';

@@ -12,7 +12,7 @@
 
 ## 3. Modelo de domínio (RFC-001 §3)
 - [x] 3.1 Tipos: `ReportTemplate`, `BandSet`, `Band`, `Element` (subconjunto fatura/comprovante/form/etiqueta A4)
-- [ ] 3.2 Tipos de contrato: `DataContract`, `FieldDecl`, `ParamDecl`, `VariableDecl`
+- [x] 3.2 Tipos de contrato: `DataContract`, `FieldDecl`, `ParamDecl`, `VariableDecl`
 
 ## 4. Parser (JRXML 7 → modelo)
 - [ ] 4.1 Integrar parser XML; mapear bandas e elementos do subconjunto

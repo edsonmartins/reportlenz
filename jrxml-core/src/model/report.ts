@@ -6,6 +6,7 @@
  * `CONTRACT_PULL_FORBIDDEN` (tarefa 4.3).
  */
 import type { BandSet } from './bands.js';
+import type { DataContract } from './contract.js';
 import type { PageFormat } from './primitives.js';
 import type { Style } from './styles.js';
 
@@ -16,7 +17,7 @@ export interface ReportTemplate {
   /** Propriedades `<property>` do relatório (chave → valor). */
   properties: Record<string, string>;
   styles: Style[];
-  // TODO(phase-0/3.2): dataContract: DataContract — declarações de
-  // field/parameter/variable (contrato Push, RFC-002). Entra na tarefa 3.2.
+  /** O que o relatório espera do payload (Push) — nunca de onde vem (ADR-003). */
+  dataContract: DataContract;
   bands: BandSet;
 }

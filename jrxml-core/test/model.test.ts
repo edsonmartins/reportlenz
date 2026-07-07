@@ -34,6 +34,25 @@ describe('jrxml-core · modelo de domínio', () => {
       name: 'fatura',
       pageFormat: A4,
       properties: { 'reportlenz.template.tipo': 'fatura' },
+      dataContract: {
+        fields: [
+          { name: 'categoria', type: 'string', required: true },
+          {
+            name: 'itens',
+            type: 'collection',
+            required: true,
+            description: 'Itens da fatura (alimenta a tabela)',
+            itemFields: [
+              { name: 'descricao', type: 'string', required: true },
+              { name: 'valor', type: 'decimal', required: true },
+            ],
+          },
+        ],
+        parameters: [{ name: 'logo_url', type: 'string' }],
+        variables: [
+          { name: 'total_geral', type: 'decimal', calculation: 'Sum', expression: '$F{valor}', resetType: 'Report' },
+        ],
+      },
       styles: [
         {
           name: 'linha_zebrada',
@@ -91,6 +110,13 @@ describe('jrxml-core · modelo de domínio', () => {
     expect(fatura.bands.groups[0]?.expression).toBe('$F{categoria}');
     const tabela = fatura.bands.detail[0]?.elements[0];
     expect(tabela?.kind).toBe('table');
+
+    // Contrato (phase-0/3.2): coleção com itemFields alimenta a tabela;
+    // variável é derivada (Sum) e não representa dado do payload.
+    const itens = fatura.dataContract.fields.find((f) => f.name === 'itens');
+    expect(itens?.type).toBe('collection');
+    expect(itens?.itemFields?.map((f) => f.name)).toEqual(['descricao', 'valor']);
+    expect(fatura.dataContract.variables[0]?.calculation).toBe('Sum');
   });
 
   it('expressa uma etiqueta A4 multi-coluna com código de barras (ADR-011: laser, não térmica)', () => {
@@ -99,6 +125,14 @@ describe('jrxml-core · modelo de domínio', () => {
       pageFormat: { ...A4, columnCount: 3, columnWidth: 178, columnSpacing: 10 },
       properties: {},
       styles: [],
+      dataContract: {
+        fields: [
+          { name: 'produto_nome', type: 'string', required: true },
+          { name: 'ean', type: 'string', required: true },
+        ],
+        parameters: [],
+        variables: [],
+      },
       bands: {
         detail: [
           {
