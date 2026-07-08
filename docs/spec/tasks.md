@@ -19,8 +19,8 @@
   - [x] 4.1a Infra (fast-xml-parser, `Result`/`ParseError`), raiz/pageFormat/properties/styles + contrato (field/parameter/variable)
   - [x] 4.1b Bandas/grupos + elementos básicos (staticText, textField, line, rectangle, ellipse, image, frame)
   - [x] 4.1c Componentes (table, barcode) + subreport
-- [ ] 4.2 Rejeitar dialeto 6.x com erro `LEGACY_DIALECT`
-- [ ] 4.3 Rejeitar `<queryString>` com `CONTRACT_PULL_FORBIDDEN`
+- [x] 4.2 Rejeitar dialeto 6.x com erro `LEGACY_DIALECT`
+- [x] 4.3 Rejeitar `<queryString>` com `CONTRACT_PULL_FORBIDDEN` (+ `<query>` do dialeto 7 e `<connectionExpression>`)
 
 ## 5. Serializer (modelo → JRXML 7)
 - [ ] 5.1 Emitir XML na ordem de elementos/atributos aceita pela Library 7

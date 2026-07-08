@@ -6,14 +6,12 @@
  * `<element kind="...">`, contrato declarado em `<field>/<parameter>/<variable>`.
  *
  * Erros são acumulados com caminho estruturado (ReportChecker) e o parse é
- * best-effort: retorna `ok` somente sem nenhum erro.
- *
- * TODO(phase-0/4.2): rejeitar dialeto 6.x com LEGACY_DIALECT.
- * TODO(phase-0/4.3): rejeitar <query>/<queryString>/<connectionExpression>
- * com CONTRACT_PULL_FORBIDDEN.
+ * best-effort: retorna `ok` somente sem nenhum erro. Exceção: documentos de
+ * dialeto 6.x (LEGACY_DIALECT) ou com binding Pull (CONTRACT_PULL_FORBIDDEN)
+ * são recusados de imediato, sem produzir modelo (tarefas 4.2/4.3).
  */
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
-import type { ParseError, Result } from '../errors.js';
+import type { ErrorCode, ParseError, Result } from '../errors.js';
 import type { Band, BandSet, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl, ParamDecl, VariableCalculation, VariableDecl, VariableResetType } from '../model/contract.js';
 import type { BarcodeType, Element, StaticText, SubreportParameter, TableCell, TableColumn, TextField } from '../model/elements.js';
@@ -124,6 +122,77 @@ function oneOf<T extends string>(
 /** Espalha `{ [key]: value }` apenas quando definido (exactOptionalPropertyTypes). */
 function opt<K extends string, V>(key: K, value: V | undefined): Partial<Record<K, V>> {
   return value === undefined ? {} : ({ [key]: value } as Record<K, V>);
+}
+
+// ---------------------------------------------------------------------------
+// Gates de dialeto e anti-Pull (tarefas 4.2 e 4.3)
+
+/**
+ * Tags proibidas em qualquer profundidade do documento.
+ * Pull (ADR-003, I-3) tem precedência semântica sobre legado (nota 002).
+ */
+const FORBIDDEN_TAGS: Record<string, { code: ErrorCode; message: string }> = {
+  // Anti-Pull (4.3): as três formas de embutir fonte de dados no template.
+  query: {
+    code: 'CONTRACT_PULL_FORBIDDEN',
+    message: '<query> embute SQL no template — ReportLenz é contract-first/Push (ADR-003): declare o contrato em <field>/<parameter>',
+  },
+  queryString: {
+    code: 'CONTRACT_PULL_FORBIDDEN',
+    message: '<queryString> embute query no template (forma 6.x) — Pull é proibido (ADR-003)',
+  },
+  connectionExpression: {
+    code: 'CONTRACT_PULL_FORBIDDEN',
+    message: '<connectionExpression> passa conexão JDBC a subreport — Pull é proibido (ADR-003); use <dataSourceExpression> sobre campo-coleção',
+  },
+  // Dialeto 6.x (4.2): construções que não existem no JRXML 7 (nota 002).
+  reportElement: {
+    code: 'LEGACY_DIALECT',
+    message: '<reportElement> é o formato aninhado do JRXML 6.x — o dialeto 7 usa <element kind="..."> (ADR-002)',
+  },
+  reportFont: {
+    code: 'LEGACY_DIALECT',
+    message: '<reportFont> não existe no JRXML 7 (ADR-002)',
+  },
+  variableExpression: {
+    code: 'LEGACY_DIALECT',
+    message: '<variableExpression> é 6.x — no dialeto 7 a variável usa <expression> (ADR-002)',
+  },
+  groupExpression: {
+    code: 'LEGACY_DIALECT',
+    message: '<groupExpression> é 6.x — no dialeto 7 o grupo usa <expression> (ADR-002)',
+  },
+};
+
+/** Varre o documento por marcadores 6.x e Pull; erros aqui são recusa total. */
+function scanDialect(ctx: Ctx, root: XmlNode): void {
+  // O dialeto 7 não usa namespace nem schemaLocation na raiz (nota 002).
+  for (const key of Object.keys(root)) {
+    if (key === '@_xmlns' || key.startsWith('@_xmlns:') || key === '@_xsi:schemaLocation') {
+      err(
+        ctx,
+        'LEGACY_DIALECT',
+        `raiz <jasperReport> com "${key.slice(2)}" — o dialeto JRXML 7 não usa namespace/schemaLocation (ADR-002)`,
+        'jasperReport',
+      );
+    }
+  }
+  scanNode(ctx, root, 'jasperReport');
+}
+
+function scanNode(ctx: Ctx, node: XmlNode, path: string): void {
+  for (const [key, value] of Object.entries(node)) {
+    if (key.startsWith('@_') || key === '#text') continue;
+    const forbidden = FORBIDDEN_TAGS[key];
+    if (forbidden) {
+      err(ctx, forbidden.code, forbidden.message, `${path}/${key}`);
+      continue;
+    }
+    const nodes = Array.isArray(value) ? (value as XmlNode[]) : typeof value === 'object' && value !== null ? [value as XmlNode] : [];
+    for (const [i, childNode] of nodes.entries()) {
+      scanNode(ctx, childNode, nodes.length > 1 ? `${path}/${key}[${i}]` : `${path}/${key}`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -512,7 +581,7 @@ function parseTableCell(ctx: Ctx, node: XmlNode, path: string): TableCell {
 
 /**
  * Subreport em modo Push: template + datasource por expressão. O
- * `<connectionExpression>` (JDBC) é marcador Pull — rejeição na tarefa 4.3.
+ * `<connectionExpression>` (JDBC) é Pull e já foi recusado pelo scanDialect.
  */
 function parseSubreport(ctx: Ctx, node: XmlNode, path: string): Element | undefined {
   const templateExpression = text(child(node, 'expression'));
@@ -687,6 +756,10 @@ export function parseJrxml(xml: string): Result<ReportTemplate, ParseError[]> {
       errors: [{ code: 'XML_MALFORMED', message: 'documento não é um JRXML: raiz <jasperReport> ausente', path: '' }],
     };
   }
+
+  // Gates decisivos (4.2/4.3): dialeto 6.x ou Pull → recusa sem produzir modelo.
+  scanDialect(ctx, root);
+  if (ctx.errors.length > 0) return { ok: false, errors: ctx.errors };
 
   const name = attr(root, 'name');
   if (!name) {
