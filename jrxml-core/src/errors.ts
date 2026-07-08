@@ -28,7 +28,17 @@ export interface ParseError {
   message: string;
   /** Caminho do elemento no documento, para o ReportChecker apontar o local. */
   path: string;
+  /** Linha no XML de origem (1-based), quando determinável. */
+  line?: number;
+  /** Coluna no XML de origem (1-based), quando determinável. */
+  column?: number;
 }
 
 /** Resultado de operações que podem falhar com erros estruturados. */
 export type Result<T, E> = { ok: true; value: T } | { ok: false; errors: E };
+
+/** Resultado de validação (RFC-001 §4/§6): mensagens estruturadas p/ o ReportChecker. */
+export interface ValidationResult {
+  valid: boolean;
+  messages: ParseError[];
+}

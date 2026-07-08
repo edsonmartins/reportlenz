@@ -17,13 +17,17 @@ export const JRXML_DIALECT_TARGET = '7.0.7' as const;
 export * from './model/index.js';
 
 // Erros estruturados (RFC-001 §4/§6).
-export type { ErrorCode, ParseError, Result } from './errors.js';
+export type { ErrorCode, ParseError, Result, ValidationResult } from './errors.js';
 
 // Parser JRXML 7 → modelo (RFC-001 §4-§5) — tarefa phase-0/4.1.
 export { parseJrxml } from './parse/parseJrxml.js';
 
 // Serializer modelo → JRXML 7 (RFC-001 §4-§5) — tarefa phase-0/5.1.
 export { serializeJrxml } from './serialize/serializeJrxml.js';
+
+// Validação dupla (RFC-001 §6) — tarefas phase-0/6.1-6.3.
+export { validateSchema } from './validate/validateSchema.js';
+export { validateContract } from './validate/validateContract.js';
 
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export { REFERENCE_TEMPLATES, REFERENCIA_FATURA } from './reference/templates.js';

@@ -745,8 +745,10 @@ export function parseJrxml(xml: string): Result<ReportTemplate, ParseError[]> {
       errors: [
         {
           code: 'XML_MALFORMED',
-          message: `XML mal-formado: ${wellFormed.err.msg} (linha ${wellFormed.err.line})`,
+          message: `XML mal-formado: ${wellFormed.err.msg}`,
           path: '',
+          line: wellFormed.err.line,
+          column: wellFormed.err.col,
         },
       ],
     };

@@ -27,9 +27,9 @@
 - [x] 5.2 Validar output contra a Library 7.0.7 (harness Java no CI — ADR-013; não existe XSD oficial)
 
 ## 6. Validação
-- [ ] 6.1 `validateSchema` (validação estrutural do dialeto 7 — ADR-013)
-- [ ] 6.2 `validateContract` (expressões referenciam contrato; anti-Pull)
-- [ ] 6.3 Mensagens estruturadas (linha/elemento) p/ o ReportChecker
+- [x] 6.1 `validateSchema` (validação estrutural do dialeto 7 — ADR-013)
+- [x] 6.2 `validateContract` (expressões referenciam contrato; anti-Pull)
+- [x] 6.3 Mensagens estruturadas (linha/elemento) p/ o ReportChecker
 
 ## 7. Extração de contrato
 - [ ] 7.1 `extractContract(template) -> DataContract`
