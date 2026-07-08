@@ -24,3 +24,6 @@ export { parseJrxml } from './parse/parseJrxml.js';
 
 // Serializer modelo → JRXML 7 (RFC-001 §4-§5) — tarefa phase-0/5.1.
 export { serializeJrxml } from './serialize/serializeJrxml.js';
+
+// Templates de referência (fixtures do harness Java e exemplos p/ o designer).
+export { REFERENCE_TEMPLATES, REFERENCIA_FATURA } from './reference/templates.js';

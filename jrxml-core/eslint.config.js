@@ -34,4 +34,11 @@ export default tseslint.config(
     files: ['*.config.ts', '*.config.js'],
     extends: [tseslint.configs.disableTypeChecked],
   },
+  // Scripts Node utilitários (ESM puro, sem type-checking).
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly' },
+    },
+  },
 );

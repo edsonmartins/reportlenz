@@ -49,3 +49,37 @@ jobs:
             exit 1
           fi
           echo "OK: bundle sem imports de UI"
+
+  # Gate G1 (ADR-013): JRXML emitido deve ser aceito pela Library 7.0.7 real.
+  jr7-harness:
+    name: harness · load+compile na Library 7.0.7
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: jrxml-core/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build do jrxml-core e emissão dos fixtures
+        working-directory: jrxml-core
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          pnpm emit:fixtures
+
+      - name: Validar com a Library 7.0.7 (load + compile)
+        working-directory: tools/jr7-harness
+        run: mvn -q -B compile exec:java -Dexec.args="fixtures"

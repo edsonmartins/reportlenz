@@ -27,9 +27,12 @@
    `<conditionalStyle forecolor="#FF0000" bold="true"><conditionExpression>` — as propriedades
    condicionais são **atributos diretos** do `<conditionalStyle>` (no 6.x havia `<style>` aninhado).
    Herança via atributo `style="NomeDoPai"`.
-7. **Seções:** continuam nomeadas — `<title>`, `<pageHeader>`, `<detail>`, `<summary>`, ... contendo
-   `<band height="..">`; grupos: `<group name reprintHeaderOnEachPage><expression>` +
-   `<groupHeader>/<groupFooter>` com bandas.
+7. **Seções:** as de banda única (`<title>`, `<pageHeader>`, `<columnHeader>`, `<columnFooter>`,
+   `<pageFooter>`, `<summary>`, `<background>`, `<noData>`) **são a própria banda** — height/splitType
+   direto na tag (`<title height="60">`); `<band>` aninhado é rejeitado pelo load
+   (`UnrecognizedPropertyException: "band"`, confirmado pelo harness em 2026-07-08). Apenas `<detail>`
+   e `<groupHeader>/<groupFooter>` envelopam `<band height="..">`. Grupos:
+   `<group name><expression>` + header/footer.
 8. **Tabela:** `<element kind="component"><component kind="table"><datasetRun subDataset="..."><dataSourceExpression>` + `<column kind="single" width="..."><columnHeader .../><detailCell .../>`.
    No ReportLenz o `dataSourceExpression` referencia a coleção do contrato (Push) — nunca datasetRun
    com query no subDataset.

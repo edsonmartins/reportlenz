@@ -37,18 +37,16 @@ const FATURA_JRXML7 = `<?xml version="1.0" encoding="UTF-8"?>
 			</band>
 		</groupHeader>
 	</group>
-	<title>
-		<band height="60" splitType="Stretch">
-			<element kind="textField" x="0" y="0" width="300" height="30" style="titulo">
-				<expression><![CDATA[$P{titulo_relatorio}]]></expression>
-			</element>
-			<element kind="image" x="455" y="0" width="100" height="50" scaleImage="RetainShape">
-				<expression><![CDATA[$P{logo_url}]]></expression>
-			</element>
-			<element kind="line" x="0" y="55" width="555" height="1">
-				<pen lineWidth="0.5" lineColor="#000000"/>
-			</element>
-		</band>
+	<title height="60">
+		<element kind="textField" x="0" y="0" width="300" height="30" style="titulo">
+			<expression><![CDATA[$P{titulo_relatorio}]]></expression>
+		</element>
+		<element kind="image" x="455" y="0" width="100" height="50" scaleImage="RetainShape">
+			<expression><![CDATA[$P{logo_url}]]></expression>
+		</element>
+		<element kind="line" x="0" y="55" width="555" height="1">
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</element>
 	</title>
 	<detail>
 		<band height="18">
@@ -60,17 +58,15 @@ const FATURA_JRXML7 = `<?xml version="1.0" encoding="UTF-8"?>
 			</element>
 		</band>
 	</detail>
-	<summary>
-		<band height="30" splitType="Prevent">
-			<element kind="frame" x="300" y="0" width="255" height="24">
-				<element kind="staticText" x="0" y="0" width="80" height="20">
-					<text><![CDATA[Total:]]></text>
-				</element>
-				<element kind="textField" x="80" y="0" width="175" height="20" pattern="¤ #,##0.00">
-					<expression><![CDATA[$V{total_geral}]]></expression>
-				</element>
+	<summary height="30" splitType="Prevent">
+		<element kind="frame" x="300" y="0" width="255" height="24">
+			<element kind="staticText" x="0" y="0" width="80" height="20">
+				<text><![CDATA[Total:]]></text>
 			</element>
-		</band>
+			<element kind="textField" x="80" y="0" width="175" height="20" pattern="¤ #,##0.00">
+				<expression><![CDATA[$V{total_geral}]]></expression>
+			</element>
+		</element>
 	</summary>
 </jasperReport>
 `;

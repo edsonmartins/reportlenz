@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Harness de validação JRXML 7 (ADR-013, tarefa phase-0/5.2).
+
+  Gate G1: cada JRXML emitido pelo jrxml-core DEVE ser aceito pelo
+  load + compile da JasperReports Library 7.0.7 real. A Library é consumida
+  como dependência, sem modificação (fronteira LGPLv3 — ADR-006).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>dev.reportlenz</groupId>
+  <artifactId>jr7-harness</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+  <name>ReportLenz · harness de validação JRXML 7</name>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jasperreports.version>7.0.7</jasperreports.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Compilador de expressões (JDT) — necessário para compileReport. -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-jdt</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Componentes barcode4j (QRCode, EAN13, ...) usados pelos templates. -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-barcode4j</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <mainClass>dev.reportlenz.harness.Jr7Harness</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

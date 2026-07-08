@@ -638,16 +638,20 @@ function parseBand(ctx: Ctx, node: XmlNode, path: string): Band {
   };
 }
 
-/** Seção de banda única (`<title>`, `<pageHeader>`, ...). */
+/**
+ * Seção de banda única (`<title>`, `<pageHeader>`, ...). No dialeto 7 a seção
+ * É a banda: height/splitType ficam direto na tag (`<title height="60">`);
+ * `<band>` aninhado aqui é rejeitado pela Library (verificado pelo harness).
+ */
 function parseSingleBandSection(ctx: Ctx, root: XmlNode, tag: string): Band | undefined {
   const section = child(root, tag);
   if (!section) return undefined;
-  const bands = children(section, 'band');
-  if (bands.length === 0) return undefined;
-  if (bands.length > 1) {
-    err(ctx, 'UNSUPPORTED_ELEMENT', `seção <${tag}> com múltiplas bandas não é suportada`, `jasperReport/${tag}`);
+  const path = `jasperReport/${tag}`;
+  if (children(section, 'band').length > 0) {
+    err(ctx, 'INVALID_ATTRIBUTE', `<${tag}> não aceita <band> aninhado no dialeto 7 — os atributos da banda vão direto na seção`, path);
+    return undefined;
   }
-  return parseBand(ctx, bands[0] as XmlNode, `jasperReport/${tag}/band[0]`);
+  return parseBand(ctx, section, path);
 }
 
 function parseGroups(ctx: Ctx, root: XmlNode): Group[] {

@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "emit:fixtures": "node scripts/emit-fixtures.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

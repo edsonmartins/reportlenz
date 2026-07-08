@@ -3,3 +3,6 @@ dist/
 coverage/
 *.log
 .DS_Store
+target/
+# Gerados pelo emit:fixtures (fonte da verdade: src/reference/templates.ts)
+tools/jr7-harness/fixtures/

@@ -364,8 +364,15 @@ function writeShape(
 // ---------------------------------------------------------------------------
 // Bandas, seções e grupos
 
-function writeBand(w: Writer, band: Band): void {
-  const open = `<band${attrs([
+/**
+ * Emite uma banda usando `tag` como nome do elemento. No dialeto 7, seções de
+ * banda única (`<title>`, `<summary>`, ...) SÃO a banda — height/splitType
+ * ficam direto na tag da seção (verificado pelo harness: JRDesignBand não
+ * aceita `<band>` aninhado nessas posições). Apenas `<detail>` e
+ * `groupHeader/groupFooter` envelopam `<band>`.
+ */
+function writeBandAs(w: Writer, tag: string, band: Band): void {
+  const open = `<${tag}${attrs([
     ['height', band.height],
     ['splitType', band.splitType === 'Stretch' ? undefined : band.splitType],
   ])}`;
@@ -373,7 +380,7 @@ function writeBand(w: Writer, band: Band): void {
     w.line(`${open}/>`);
     return;
   }
-  w.block(`${open}>`, '</band>', () => {
+  w.block(`${open}>`, `</${tag}>`, () => {
     if (band.printWhenExpression !== undefined) {
       w.line(`<printWhenExpression>${cdata(band.printWhenExpression)}</printWhenExpression>`);
     }
@@ -383,16 +390,19 @@ function writeBand(w: Writer, band: Band): void {
 
 function writeBandSection(w: Writer, tag: string, band: Band | undefined): void {
   if (!band) return;
-  w.block(`<${tag}>`, `</${tag}>`, () => {
-    writeBand(w, band);
-  });
+  writeBandAs(w, tag, band);
 }
 
 function writeGroup(w: Writer, group: Group): void {
   w.block(`<group${attrs([['name', group.name], ['startNewPage', group.startNewPage]])}>`, '</group>', () => {
     w.line(`<expression>${cdata(group.expression)}</expression>`);
-    if (group.header) writeBandSection(w, 'groupHeader', group.header);
-    if (group.footer) writeBandSection(w, 'groupFooter', group.footer);
+    const { header, footer } = group;
+    if (header) {
+      w.block('<groupHeader>', '</groupHeader>', () => writeBandAs(w, 'band', header));
+    }
+    if (footer) {
+      w.block('<groupFooter>', '</groupFooter>', () => writeBandAs(w, 'band', footer));
+    }
   });
 }
 
@@ -434,7 +444,7 @@ export function serializeJrxml(t: ReportTemplate): string {
     writeBandSection(w, 'columnHeader', t.bands.columnHeader);
     if (t.bands.detail.length > 0) {
       w.block('<detail>', '</detail>', () => {
-        for (const band of t.bands.detail) writeBand(w, band);
+        for (const band of t.bands.detail) writeBandAs(w, 'band', band);
       });
     }
     writeBandSection(w, 'columnFooter', t.bands.columnFooter);
