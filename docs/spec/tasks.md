@@ -23,7 +23,7 @@
 - [x] 4.3 Rejeitar `<queryString>` com `CONTRACT_PULL_FORBIDDEN` (+ `<query>` do dialeto 7 e `<connectionExpression>`)
 
 ## 5. Serializer (modelo → JRXML 7)
-- [ ] 5.1 Emitir XML na ordem de elementos/atributos aceita pela Library 7
+- [x] 5.1 Emitir XML na ordem de elementos/atributos aceita pela Library 7 (ordem dos samples 7.0.7; prova final na 5.2)
 - [ ] 5.2 Validar output contra a Library 7.0.7 (harness Java no CI — ADR-013; não existe XSD oficial)
 
 ## 6. Validação

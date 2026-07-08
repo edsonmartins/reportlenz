@@ -21,3 +21,6 @@ export type { ErrorCode, ParseError, Result } from './errors.js';
 
 // Parser JRXML 7 → modelo (RFC-001 §4-§5) — tarefa phase-0/4.1.
 export { parseJrxml } from './parse/parseJrxml.js';
+
+// Serializer modelo → JRXML 7 (RFC-001 §4-§5) — tarefa phase-0/5.1.
+export { serializeJrxml } from './serialize/serializeJrxml.js';
