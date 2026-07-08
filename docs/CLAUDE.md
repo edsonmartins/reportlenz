@@ -143,7 +143,9 @@ começar (granularidade session-sized é um princípio, não sugestão).
 "**Pass 5 é a única autoridade sobre 'done'**" (I-5). Uma tarefa só está concluída quando:
 
 - [ ] Cobre os `#### Scenario:` relevantes do `spec.md` da capability.
-- [ ] **G1 — XSD 7:** JRXML válido contra `jasperreports.xsd` 7.0.7.
+- [ ] **G1 — Dialeto 7 aceito pela Library (ADR-013):** JRXML aceito pelo load da JasperReports Library
+  7.0.7 (harness Java no CI); a validação estrutural TS do `jrxml-core` é a aproximação de design-time.
+  (Não existe XSD oficial da 7.0.7 — ver ADR-013.)
 - [ ] **G2 — Anti-Pull:** sem `<queryString>` em nenhum caminho.
 - [ ] **G3 — Integridade de expressão:** toda `$F/$P/$V` referencia o contrato.
 - [ ] **G4 — Dialeto:** sem construções 6.x.

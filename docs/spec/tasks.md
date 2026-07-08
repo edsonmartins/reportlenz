@@ -21,10 +21,10 @@
 
 ## 5. Serializer (modelo → JRXML 7)
 - [ ] 5.1 Emitir XML na ordem de elementos/atributos aceita pela Library 7
-- [ ] 5.2 Validar output contra `jasperreports.xsd` 7.0.7
+- [ ] 5.2 Validar output contra a Library 7.0.7 (harness Java no CI — ADR-013; não existe XSD oficial)
 
 ## 6. Validação
-- [ ] 6.1 `validateSchema` (XSD 7)
+- [ ] 6.1 `validateSchema` (validação estrutural do dialeto 7 — ADR-013)
 - [ ] 6.2 `validateContract` (expressões referenciam contrato; anti-Pull)
 - [ ] 6.3 Mensagens estruturadas (linha/elemento) p/ o ReportChecker
 
