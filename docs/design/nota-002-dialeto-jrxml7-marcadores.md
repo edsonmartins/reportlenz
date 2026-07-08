@@ -49,5 +49,5 @@
   de `CONTRACT_PULL_FORBIDDEN` em dialeto 7 correto.
 - Os fixtures Push de referência (fatura/comprovante/formulário/etiqueta A4, tarefa 8.1) serão autorados
   por nós no dialeto 7, sem `<query>`.
-- Clones de consulta: fontes 7.0.7 em scratchpad (`jr7-src`); fork 6.x em
-  `~/desenvolvimento/jrxml_web_designer`.
+- Clones de consulta: fontes da JasperReports Library em `~/desenvolvimento/jasperreports`
+  (usar a tag `7.0.7`); fork 6.x em `~/desenvolvimento/jrxml_web_designer`.

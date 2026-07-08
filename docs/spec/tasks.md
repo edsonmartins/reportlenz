@@ -15,10 +15,10 @@
 - [x] 3.2 Tipos de contrato: `DataContract`, `FieldDecl`, `ParamDecl`, `VariableDecl`
 
 ## 4. Parser (JRXML 7 → modelo)
-- [ ] 4.1 Integrar parser XML; mapear bandas e elementos do subconjunto
+- [x] 4.1 Integrar parser XML; mapear bandas e elementos do subconjunto
   - [x] 4.1a Infra (fast-xml-parser, `Result`/`ParseError`), raiz/pageFormat/properties/styles + contrato (field/parameter/variable)
   - [x] 4.1b Bandas/grupos + elementos básicos (staticText, textField, line, rectangle, ellipse, image, frame)
-  - [ ] 4.1c Componentes (table, barcode) + subreport
+  - [x] 4.1c Componentes (table, barcode) + subreport
 - [ ] 4.2 Rejeitar dialeto 6.x com erro `LEGACY_DIALECT`
 - [ ] 4.3 Rejeitar `<queryString>` com `CONTRACT_PULL_FORBIDDEN`
 

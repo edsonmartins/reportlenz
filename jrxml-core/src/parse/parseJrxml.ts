@@ -11,13 +11,12 @@
  * TODO(phase-0/4.2): rejeitar dialeto 6.x com LEGACY_DIALECT.
  * TODO(phase-0/4.3): rejeitar <query>/<queryString>/<connectionExpression>
  * com CONTRACT_PULL_FORBIDDEN.
- * TODO(phase-0/4.1c): component (table, barcode) e subreport.
  */
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import type { ParseError, Result } from '../errors.js';
 import type { Band, BandSet, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl, ParamDecl, VariableCalculation, VariableDecl, VariableResetType } from '../model/contract.js';
-import type { Element, StaticText, TextField } from '../model/elements.js';
+import type { BarcodeType, Element, StaticText, SubreportParameter, TableCell, TableColumn, TextField } from '../model/elements.js';
 import type { Bounds, PageFormat, Pen } from '../model/primitives.js';
 import type { ReportTemplate } from '../model/report.js';
 import type { ConditionalStyle, Style, StyleProps } from '../model/styles.js';
@@ -37,6 +36,8 @@ const ARRAY_TAGS = new Set([
   'group',
   'band',
   'element',
+  'dataset',
+  'column',
 ]);
 
 const xmlParser = new XMLParser({
@@ -51,9 +52,13 @@ const xmlParser = new XMLParser({
 
 type XmlNode = Record<string, unknown>;
 
-/** Contexto de parse: acumulador de erros. */
+/** Contexto de parse: acumulador de erros + estado compartilhado do documento. */
 interface Ctx {
   errors: ParseError[];
+  /** Campos de cada `<dataset>` (subDataset) — viram `itemFields` da coleção. */
+  datasets: Map<string, FieldDecl[]>;
+  /** Fields do contrato, para ligar tabela → campo-coleção. */
+  contractFields: FieldDecl[];
 }
 
 function err(ctx: Ctx, code: ParseError['code'], message: string, path: string): void {
@@ -180,23 +185,46 @@ function parseConditionalStyle(ctx: Ctx, node: XmlNode, path: string): Condition
 const CALCULATIONS = ['Nothing', 'Count', 'DistinctCount', 'Sum', 'Average', 'Lowest', 'Highest', 'StandardDeviation', 'Variance', 'System', 'First'] as const;
 const RESET_TYPES = ['None', 'Report', 'Page', 'Column', 'Group'] as const;
 
+function parseFieldDecl(ctx: Ctx, node: XmlNode, path: string): FieldDecl | undefined {
+  const name = attr(node, 'name');
+  const javaClass = attr(node, 'class');
+  if (!name || !javaClass) {
+    err(ctx, 'INVALID_ATTRIBUTE', 'field exige atributos "name" e "class"', path);
+    return undefined;
+  }
+  const type = fieldTypeFromJavaClass(javaClass);
+  if (!type) {
+    err(ctx, 'UNSUPPORTED_TYPE', `classe Java sem mapeamento no contrato: "${javaClass}"`, path);
+    return undefined;
+  }
+  return { name, type, ...opt('description', text(child(node, 'description'))) };
+}
+
+/** `<dataset name>`: no ReportLenz declara os campos dos ITENS de uma coleção. */
+function parseDatasets(ctx: Ctx, root: XmlNode): void {
+  for (const [i, node] of children(root, 'dataset').entries()) {
+    const path = `jasperReport/dataset[${i}]`;
+    const name = attr(node, 'name');
+    if (!name) {
+      err(ctx, 'INVALID_ATTRIBUTE', 'dataset sem atributo "name"', path);
+      continue;
+    }
+    const fields: FieldDecl[] = [];
+    for (const [j, f] of children(node, 'field').entries()) {
+      const decl = parseFieldDecl(ctx, f, `${path}/field[${j}]`);
+      if (decl) fields.push(decl);
+    }
+    ctx.datasets.set(name, fields);
+  }
+}
+
 function parseContract(ctx: Ctx, root: XmlNode): DataContract {
   const fields: FieldDecl[] = [];
   for (const [i, node] of children(root, 'field').entries()) {
-    const path = `jasperReport/field[${i}]`;
-    const name = attr(node, 'name');
-    const javaClass = attr(node, 'class');
-    if (!name || !javaClass) {
-      err(ctx, 'INVALID_ATTRIBUTE', 'field exige atributos "name" e "class"', path);
-      continue;
-    }
-    const type = fieldTypeFromJavaClass(javaClass);
-    if (!type) {
-      err(ctx, 'UNSUPPORTED_TYPE', `classe Java sem mapeamento no contrato: "${javaClass}"`, path);
-      continue;
-    }
-    fields.push({ name, type, ...opt('description', text(child(node, 'description'))) });
+    const decl = parseFieldDecl(ctx, node, `jasperReport/field[${i}]`);
+    if (decl) fields.push(decl);
   }
+  ctx.contractFields = fields;
 
   const parameters: ParamDecl[] = [];
   for (const [i, node] of children(root, 'parameter').entries()) {
@@ -350,14 +378,168 @@ function parseElement(ctx: Ctx, node: XmlNode, path: string): Element | undefine
         ...parseElementBase(ctx, node, path),
         elements: parseElements(ctx, node, path),
       };
+    case 'component':
+      return parseComponent(ctx, node, path);
+    case 'subreport':
+      return parseSubreport(ctx, node, path);
     case undefined:
       err(ctx, 'INVALID_ATTRIBUTE', 'elemento sem atributo "kind"', path);
       return undefined;
     default:
-      // component (table/barcode) e subreport chegam na tarefa 4.1c.
       err(ctx, 'UNSUPPORTED_ELEMENT', `kind de elemento fora do subconjunto suportado: "${kind}"`, path);
       return undefined;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Componentes (table, barcode) e subreport — tarefa 4.1c
+
+/** Kinds barcode4j do dialeto 7 → subconjunto BarcodeType do modelo. */
+const BARCODE_KINDS: Record<string, BarcodeType> = {
+  'barcode4j:Code128': 'Code128',
+  'barcode4j:Code39': 'Code39',
+  'barcode4j:EAN13': 'EAN13',
+  'barcode4j:EAN8': 'EAN8',
+  'barcode4j:Interleaved2Of5': 'Interleaved2Of5',
+  'barcode4j:QRCode': 'QRCode',
+  'barcode4j:DataMatrix': 'DataMatrix',
+  'barcode4j:PDF417': 'PDF417',
+};
+
+function parseComponent(ctx: Ctx, node: XmlNode, path: string): Element | undefined {
+  const component = child(node, 'component');
+  const componentKind = component ? attr(component, 'kind') : undefined;
+  if (!component || !componentKind) {
+    err(ctx, 'INVALID_ATTRIBUTE', 'element kind="component" sem <component kind="...">', path);
+    return undefined;
+  }
+
+  const barcodeType = BARCODE_KINDS[componentKind];
+  if (barcodeType) {
+    const expression = text(child(component, 'codeExpression'));
+    if (expression === undefined) {
+      err(ctx, 'INVALID_ATTRIBUTE', `barcode sem <codeExpression>`, `${path}/component`);
+    }
+    return { kind: 'barcode', ...parseElementBase(ctx, node, path), barcodeType, expression: expression ?? '' };
+  }
+
+  if (componentKind === 'table') return parseTable(ctx, node, component, path);
+
+  err(ctx, 'UNSUPPORTED_ELEMENT', `component fora do subconjunto suportado: "${componentKind}"`, `${path}/component`);
+  return undefined;
+}
+
+/**
+ * Tabela em modo Push (ADR-003): o `<dataSourceExpression>` do datasetRun
+ * DEVE referenciar um campo-coleção do contrato (`$F{...}`); os campos do
+ * `<dataset>` referenciado viram `itemFields` desse campo.
+ */
+function parseTable(ctx: Ctx, node: XmlNode, component: XmlNode, path: string): Element | undefined {
+  const componentPath = `${path}/component`;
+  const datasetRun = child(component, 'datasetRun');
+  if (!datasetRun) {
+    err(ctx, 'INVALID_ATTRIBUTE', 'tabela sem <datasetRun>', componentPath);
+    return undefined;
+  }
+
+  const dataSourceExpression = text(child(datasetRun, 'dataSourceExpression'));
+  const fieldRef = dataSourceExpression ? /\$F\{([^}]+)\}/.exec(dataSourceExpression) : null;
+  if (!fieldRef?.[1]) {
+    err(
+      ctx,
+      'INVALID_ATTRIBUTE',
+      'tabela deve ser alimentada por campo-coleção do contrato via $F{...} no <dataSourceExpression> (Push, ADR-003)',
+      `${componentPath}/datasetRun`,
+    );
+    return undefined;
+  }
+  const datasetField = fieldRef[1];
+
+  // Liga os campos do subDataset como itemFields do campo-coleção do contrato.
+  const subDataset = attr(datasetRun, 'subDataset');
+  const contractField = ctx.contractFields.find((f) => f.name === datasetField);
+  if (subDataset !== undefined) {
+    const datasetFields = ctx.datasets.get(subDataset);
+    if (!datasetFields) {
+      err(ctx, 'INVALID_ATTRIBUTE', `datasetRun referencia dataset inexistente: "${subDataset}"`, `${componentPath}/datasetRun`);
+    } else if (contractField && contractField.type === 'collection' && datasetFields.length > 0) {
+      contractField.itemFields = datasetFields;
+    }
+  }
+
+  const columns: TableColumn[] = [];
+  for (const [i, col] of children(component, 'column').entries()) {
+    const colPath = `${componentPath}/column[${i}]`;
+    const colKind = attr(col, 'kind');
+    if (colKind !== 'single') {
+      err(ctx, 'UNSUPPORTED_ELEMENT', `coluna de tabela com kind "${colKind ?? '(ausente)'}" não suportada (apenas "single"; grupos de coluna chegam na Fase 3)`, colPath);
+      continue;
+    }
+    const width = numAttr(ctx, col, 'width', colPath);
+    if (width === undefined) {
+      err(ctx, 'INVALID_ATTRIBUTE', 'coluna de tabela sem atributo "width"', colPath);
+      continue;
+    }
+    const detailCell = child(col, 'detailCell');
+    if (!detailCell) {
+      err(ctx, 'INVALID_ATTRIBUTE', 'coluna de tabela sem <detailCell>', colPath);
+      continue;
+    }
+    const headerCell = child(col, 'columnHeader');
+    const footerCell = child(col, 'columnFooter');
+    columns.push({
+      width,
+      ...opt('header', headerCell ? parseTableCell(ctx, headerCell, `${colPath}/columnHeader`) : undefined),
+      detail: parseTableCell(ctx, detailCell, `${colPath}/detailCell`),
+      ...opt('footer', footerCell ? parseTableCell(ctx, footerCell, `${colPath}/columnFooter`) : undefined),
+    });
+  }
+
+  return { kind: 'table', ...parseElementBase(ctx, node, path), datasetField, columns };
+}
+
+function parseTableCell(ctx: Ctx, node: XmlNode, path: string): TableCell {
+  const height = numAttr(ctx, node, 'height', path);
+  if (height === undefined) {
+    err(ctx, 'INVALID_ATTRIBUTE', 'célula de tabela sem atributo "height"', path);
+  }
+  return {
+    height: height ?? 0,
+    ...opt('styleRef', attr(node, 'style')),
+    elements: parseElements(ctx, node, path),
+  };
+}
+
+/**
+ * Subreport em modo Push: template + datasource por expressão. O
+ * `<connectionExpression>` (JDBC) é marcador Pull — rejeição na tarefa 4.3.
+ */
+function parseSubreport(ctx: Ctx, node: XmlNode, path: string): Element | undefined {
+  const templateExpression = text(child(node, 'expression'));
+  if (templateExpression === undefined) {
+    err(ctx, 'INVALID_ATTRIBUTE', 'subreport sem <expression> (template)', path);
+  }
+  if (child(node, 'returnValue')) {
+    err(ctx, 'UNSUPPORTED_ELEMENT', 'subreport com <returnValue> não é suportado no subconjunto atual', path);
+  }
+  const parameters: SubreportParameter[] = [];
+  for (const [i, p] of children(node, 'parameter').entries()) {
+    const pPath = `${path}/parameter[${i}]`;
+    const name = attr(p, 'name');
+    const expression = text(child(p, 'expression'));
+    if (!name || expression === undefined) {
+      err(ctx, 'INVALID_ATTRIBUTE', 'parameter de subreport exige "name" e <expression>', pPath);
+      continue;
+    }
+    parameters.push({ name, expression });
+  }
+  return {
+    kind: 'subreport',
+    ...parseElementBase(ctx, node, path),
+    templateExpression: templateExpression ?? '',
+    ...opt('dataSourceExpression', text(child(node, 'dataSourceExpression'))),
+    parameters,
+  };
 }
 
 function parseElements(ctx: Ctx, parent: XmlNode, parentPath: string): Element[] {
@@ -481,7 +663,7 @@ function parseProperties(root: XmlNode): Record<string, string> {
  * Falha com a lista completa de erros estruturados encontrados.
  */
 export function parseJrxml(xml: string): Result<ReportTemplate, ParseError[]> {
-  const ctx: Ctx = { errors: [] };
+  const ctx: Ctx = { errors: [], datasets: new Map(), contractFields: [] };
 
   const wellFormed = XMLValidator.validate(xml);
   if (wellFormed !== true) {
@@ -516,6 +698,9 @@ export function parseJrxml(xml: string): Result<ReportTemplate, ParseError[]> {
     const style = parseStyle(ctx, node, `jasperReport/style[${i}]`);
     if (style) styles.push(style);
   }
+
+  // Datasets antes do contrato/bandas: tabelas ligam itemFields via datasetRun.
+  parseDatasets(ctx, root);
 
   const template: ReportTemplate = {
     name: name ?? '',
