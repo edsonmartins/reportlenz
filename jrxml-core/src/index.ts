@@ -29,5 +29,8 @@ export { serializeJrxml } from './serialize/serializeJrxml.js';
 export { validateSchema } from './validate/validateSchema.js';
 export { validateContract } from './validate/validateContract.js';
 
+// Extração de contrato (RFC-001 §4, alimenta a RFC-002) — tarefa phase-0/7.1.
+export { extractContract } from './extract/extractContract.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export { REFERENCE_TEMPLATES, REFERENCIA_FATURA } from './reference/templates.js';

@@ -32,7 +32,7 @@
 - [x] 6.3 Mensagens estruturadas (linha/elemento) p/ o ReportChecker
 
 ## 7. Extração de contrato
-- [ ] 7.1 `extractContract(template) -> DataContract`
+- [x] 7.1 `extractContract(template) -> DataContract`
 
 ## 8. Round-trip & testes
 - [ ] 8.1 Conjunto de JRXMLs 7 de referência (fatura, comprovante, form, etiqueta A4)
