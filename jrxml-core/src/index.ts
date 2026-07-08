@@ -15,3 +15,9 @@ export const JRXML_DIALECT_TARGET = '7.0.7' as const;
 
 // Modelo de domínio (RFC-001 §3) — tarefa phase-0/3.1.
 export * from './model/index.js';
+
+// Erros estruturados (RFC-001 §4/§6).
+export type { ErrorCode, ParseError, Result } from './errors.js';
+
+// Parser JRXML 7 → modelo (RFC-001 §4-§5) — tarefa phase-0/4.1.
+export { parseJrxml } from './parse/parseJrxml.js';

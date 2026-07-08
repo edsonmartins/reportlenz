@@ -49,7 +49,7 @@ export interface ParamDecl {
   defaultValueExpression?: string;
 }
 
-/** Cálculos de variável suportados pelo engine (subconjunto JRXML 7). */
+/** Cálculos de variável — enum completo do JRXML 7 (verificado nos samples 7.0.7). */
 export type VariableCalculation =
   | 'Nothing'
   | 'Count'
@@ -58,6 +58,9 @@ export type VariableCalculation =
   | 'Average'
   | 'Lowest'
   | 'Highest'
+  | 'StandardDeviation'
+  | 'Variance'
+  | 'System'
   | 'First';
 
 /** Escopo de reinicialização do acumulador da variável. */
