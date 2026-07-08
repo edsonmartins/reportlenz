@@ -16,6 +16,12 @@ A verificação empírica de 2026-07-08 mostrou que **esse XSD não existe**:
 - No JR7 (migração Digester→Jackson XML, ADR-002), a "validação de esquema" passou a ser o próprio
   load/desserialização Jackson da Library — não há mais artefato de esquema publicado. O
   `jasperreport.xsd` que existe online é o do trilho 6.x.
+- **Atenção à pegadinha:** `https://jasperreports.sourceforge.net/xsd/jasperreport.xsd` responde 200 e
+  parece "o XSD oficial", mas é o esquema **6.x**: declara `jr:reportFont`/`queryString`/`reportElement`,
+  não tem o atributo `kind`, e usa `targetNamespace` qualificado — enquanto o JRXML 7 não tem namespace.
+  Prova empírica (2026-07-08): `xmllint --schema` contra o `FirstJasper.jrxml` oficial da 7.0.7 falha com
+  *"No matching global declaration available for the validation root"*. Não usar esse XSD como referência
+  de validação do ReportLenz.
 
 Validar "contra o XSD 7" é, portanto, impossível ao pé da letra. A alternativa de autorar um XSD próprio
 foi descartada: caro, sujeito a drift em relação à Library e sem autoridade oficial.
