@@ -6,9 +6,9 @@
 - [x] 1.3 Pipeline compile→fill→export (PDF)
 
 ## 2. Preview (round-trip)
-- [ ] 2.1 `POST /render/preview` (JRXML + sampleData → PDF/PNG)
-- [ ] 2.2 Compile cache por `sha256(jrxml)` (Redis) — ADR-008
-- [ ] 2.3 400 se JRXML inválido/contém `<queryString>`
+- [x] 2.1 `POST /render/preview` (JRXML + sampleData → PDF/PNG)
+- [x] 2.2 Compile cache por `sha256(jrxml)` — ADR-008 (in-memory LRU atrás da interface `CacheDeCompilacao`; store Redis compartilhado entra com a infra do batch, 5.x — RFC-003 §3 sanciona "Redis/in-memory")
+- [x] 2.3 400 se JRXML inválido/contém `<queryString>`
 
 ## 3. Contrato de dados (RFC-002)
 - [ ] 3.1 `buildInputSchema(DataContract) -> JSON Schema` no `jrxml-core`

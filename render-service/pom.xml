@@ -88,6 +88,12 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Boot 4: suporte a MockMvc saiu do starter-test para módulo próprio -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Extração de texto de PDF nos testes (prova de acentuação pt-BR, tarefa 1.2) -->
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
