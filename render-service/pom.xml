@@ -36,6 +36,21 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>
+    <!-- Fila do batch (RFC-003 §4): Redis como transporte (decisão do usuário) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <!-- Estado durável dos jobs + idempotência: SQLite para começar (decisão do usuário) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.53.2.0</version>
+    </dependency>
 
     <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
     <!-- Core do engine: modelo, load (Jackson), compile, fill -->
@@ -106,6 +121,12 @@
       <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox</artifactId>
       <version>3.0.7</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Espera assíncrona nos testes do batch -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

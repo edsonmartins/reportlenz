@@ -92,6 +92,12 @@ jobs:
   render-service:
     name: render-service · build + testes
     runs-on: ubuntu-latest
+    services:
+      # Fila do batch (tarefas 5.x) — em dev usa o Redis local/da infra (REDIS_HOST)
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 

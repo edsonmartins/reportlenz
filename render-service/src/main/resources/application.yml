@@ -1,6 +1,31 @@
 spring:
   application:
     name: reportlenz-render
+  data:
+    redis:
+      # Infra do usuário via env (ex.: REDIS_HOST=192.168.1.110); localhost em dev/teste
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  datasource:
+    # SQLite para começar (decisão 2026-07-09); PostgreSQL quando o registro ADR-009 crescer
+    url: jdbc:sqlite:${REPORTLENZ_DB_PATH:data/reportlenz.db}
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      # SQLite: conexão única evita SQLITE_BUSY em escrita concorrente
+      maximum-pool-size: 1
+  sql:
+    init:
+      mode: always
 
 server:
   port: 8087
+
+reportlenz:
+  fila:
+    nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
+  storage:
+    # Padrão MEDIASTORE (integrall-commerce-api): LOCAL agora, MINIO na tarefa 5.4
+    provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}
+    local-path: ${REPORTLENZ_STORAGE_LOCAL_PATH:data/saidas}
+    public-base-url: ${REPORTLENZ_STORAGE_PUBLIC_URL:}

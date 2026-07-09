@@ -2,6 +2,7 @@ package dev.reportlenz.render;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /**
  * Serviço de render do ReportLenz (RFC-003): preview síncrono e batch
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * embutida nem acesso a fonte de dados na origem (I-2).
  */
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class RenderServiceApplication {
 
     public static void main(String[] args) {

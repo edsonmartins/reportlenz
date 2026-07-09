@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:target/test-reportlenz.db
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  sql:
+    init:
+      mode: always
+
+reportlenz:
+  fila:
+    nome: "reportlenz:render:fila:test"
+  storage:
+    provider: LOCAL
+    local-path: target/test-saidas
+    public-base-url: ""

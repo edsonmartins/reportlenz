@@ -21,10 +21,10 @@
 - [x] 4.2 422 com lista de violações quando inválido; sem render (verificado: compilador nunca é chamado)
 
 ## 5. Batch
-- [ ] 5.1 `POST /render/batch` (async) + fila + workers idempotentes
-- [ ] 5.2 Compile único + fill N (reuso do `.jasper` em cache)
-- [ ] 5.3 `GET /render/batch/{jobId}` (status + outputs)
-- [ ] 5.4 Saída para storage (S3/MinIO) + links
+- [x] 5.1 `POST /render/batch` (async) + fila Redis + worker idempotente (lote: UNIQUE idempotency_key em SQLite; item: PK job_id+idx)
+- [x] 5.2 Compile único + fill N (cache sha256 do pipeline; verificado com spy)
+- [x] 5.3 `GET /render/batch/{jobId}` (status + outputs + erros por item)
+- [ ] 5.4 Saída para storage (S3/MinIO) + links — padrão MEDIASTORE implantado com provider LOCAL (decisão: arquivos primeiro); ramo MINIO pendente
 
 ## 6. Observabilidade
 - [ ] 6.1 OTel: spans compile/fill/export separados; métricas (VictoriaMetrics), traces (Tempo), logs (Loki)
