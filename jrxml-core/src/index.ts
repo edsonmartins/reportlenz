@@ -42,6 +42,13 @@ export type { GenTypeScriptOptions } from './contract/genTypeScriptTypes.js';
 export { genJavaRecord } from './contract/genJavaRecord.js';
 export type { GenJavaRecordOptions } from './contract/genJavaRecord.js';
 
+// Hash (jrxml_hash — ADR-009/G6; mesma chave do compile cache, ADR-008).
+export { sha256 } from './hash/sha256.js';
+
+// Pacote de integração do Publish Wizard (RFC-002 §6) — tarefa phase-1/3.4.
+export { buildIntegrationPackage } from './publish/integrationPackage.js';
+export type { IntegrationPackage, IntegrationPackageOptions, VersionRecord } from './publish/integrationPackage.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export {
   REFERENCE_TEMPLATES,

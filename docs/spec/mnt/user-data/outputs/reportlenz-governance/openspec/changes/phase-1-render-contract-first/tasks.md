@@ -14,7 +14,7 @@
 - [x] 3.1 `buildInputSchema(DataContract) -> JSON Schema` no `jrxml-core`
 - [x] 3.2 Heurística de agrupamento (objeto aninhado por prefixo; array para detail/tabela)
 - [x] 3.3 Codegen: tipos TS + `record` Java (compilabilidade provada: compilador TS em memória no teste; javac no CI)
-- [ ] 3.4 Publish Wizard (esboço): gera pacote de integração (schema + snippet Java + registro)
+- [x] 3.4 Publish Wizard (esboço): gera pacote de integração (schema + snippet Java + registro) → `buildIntegrationPackage`
 
 ## 4. Validação de payload (run-time)
 - [ ] 4.1 Validar payload contra `inputSchema` da versão (Java json-schema-validator)
