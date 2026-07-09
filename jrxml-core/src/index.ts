@@ -33,4 +33,10 @@ export { validateContract } from './validate/validateContract.js';
 export { extractContract } from './extract/extractContract.js';
 
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
-export { REFERENCE_TEMPLATES, REFERENCIA_FATURA } from './reference/templates.js';
+export {
+  REFERENCE_TEMPLATES,
+  REFERENCIA_COMPROVANTE,
+  REFERENCIA_ETIQUETA_A4,
+  REFERENCIA_FATURA,
+  REFERENCIA_FORMULARIO,
+} from './reference/templates.js';

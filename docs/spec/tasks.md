@@ -35,9 +35,9 @@
 - [x] 7.1 `extractContract(template) -> DataContract`
 
 ## 8. Round-trip & testes
-- [ ] 8.1 Conjunto de JRXMLs 7 de referência (fatura, comprovante, form, etiqueta A4)
-- [ ] 8.2 `serialize(parse(x))` valida e é semanticamente equivalente
-- [ ] 8.3 Cobertura dos erros de validação (Pull, ref órfã, legado)
+- [x] 8.1 Conjunto de JRXMLs 7 de referência (fatura, comprovante, form, etiqueta A4) → `src/reference/templates.ts` + `pnpm emit:fixtures`
+- [x] 8.2 `serialize(parse(x))` valida e é semanticamente equivalente (+ idempotência byte a byte; 4/4 aceitos pela Library no harness)
+- [x] 8.3 Cobertura dos erros de validação (Pull, ref órfã, legado) → `roundtrip.test.ts` (resumo) + `parse-forbidden.test.ts`/`validate.test.ts` (exaustivo)
 
 ## 9. Aceite
 - [ ] 9.1 Critérios de aceite da RFC-001 §8 verdes
