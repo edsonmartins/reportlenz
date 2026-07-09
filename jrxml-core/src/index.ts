@@ -36,6 +36,12 @@ export { extractContract } from './extract/extractContract.js';
 export { buildInputSchema } from './contract/buildInputSchema.js';
 export type { BuildInputSchemaOptions, JsonSchema } from './contract/buildInputSchema.js';
 
+// Codegen (RFC-002 §4) — tarefa phase-1/3.3.
+export { genTypeScriptTypes } from './contract/genTypeScriptTypes.js';
+export type { GenTypeScriptOptions } from './contract/genTypeScriptTypes.js';
+export { genJavaRecord } from './contract/genJavaRecord.js';
+export type { GenJavaRecordOptions } from './contract/genJavaRecord.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export {
   REFERENCE_TEMPLATES,

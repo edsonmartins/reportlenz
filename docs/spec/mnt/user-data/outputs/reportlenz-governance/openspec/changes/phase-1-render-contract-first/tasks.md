@@ -13,7 +13,7 @@
 ## 3. Contrato de dados (RFC-002)
 - [x] 3.1 `buildInputSchema(DataContract) -> JSON Schema` no `jrxml-core`
 - [x] 3.2 Heurística de agrupamento (objeto aninhado por prefixo; array para detail/tabela)
-- [ ] 3.3 Codegen: tipos TS + `record` Java
+- [x] 3.3 Codegen: tipos TS + `record` Java (compilabilidade provada: compilador TS em memória no teste; javac no CI)
 - [ ] 3.4 Publish Wizard (esboço): gera pacote de integração (schema + snippet Java + registro)
 
 ## 4. Validação de payload (run-time)

@@ -6,3 +6,4 @@ coverage/
 target/
 # Gerados pelo emit:fixtures (fonte da verdade: src/reference/templates.ts)
 tools/jr7-harness/fixtures/
+tools/jr7-harness/fixtures-java/

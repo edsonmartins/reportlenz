@@ -84,6 +84,10 @@ jobs:
         working-directory: tools/jr7-harness
         run: mvn -q -B compile exec:java -Dexec.args="fixtures"
 
+      # RFC-002 §7: record(s) Java gerados do contrato devem compilar de verdade.
+      - name: Compilar records Java gerados (codegen 3.3)
+        run: javac -d /tmp/reportlenz-records tools/jr7-harness/fixtures-java/*.java
+
   # Serviço de render (RFC-003): build + testes (incl. smoke da matriz JR7, nota 004).
   render-service:
     name: render-service · build + testes
