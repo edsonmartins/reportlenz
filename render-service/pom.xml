@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ReportLenz · serviço de render (RFC-003, tarefa phase-1/1.1).
+
+  Embarca a JasperReports Library 7.0.7 como dependência, sem modificação
+  (fronteira LGPLv3 — ADR-006). Matriz modular do JR7 conforme ADR-007,
+  validada contra o Maven Central em 2026-07-09 (nota de design 004):
+  PDF e fontes NÃO vêm no core — declarar explicitamente.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.7</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>dev.reportlenz</groupId>
+  <artifactId>reportlenz-render-service</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+  <name>ReportLenz · serviço de render</name>
+  <description>Render JRXML contract-first (Push) com JasperReports Library 7.0.7 — preview e batch</description>
+
+  <properties>
+    <java.version>21</java.version>
+    <jasperreports.version>7.0.7</jasperreports.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+    <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
+    <!-- Core do engine: modelo, load (Jackson), compile, fill -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Exportação PDF — artefato separado no JR7 (essencial: fatura/comprovante) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-pdf</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Fontes DejaVu embarcadas — acentuação pt-BR correta (R$, ç, ã) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-fonts</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Funções de relatório usáveis em expressões -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-functions</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Metadata — introspecção do modelo (apoia inputSchema, RFC-002) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-metadata</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Compilador de expressões (JDT) — necessário para compileReport em runtime
+         (comprovado pelo harness da Fase 0; ausência quebra o compile) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-jdt</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Componentes barcode4j (QRCode, EAN-13, ...) usados pelo subconjunto ReportLenz -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-barcode4j</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- ===== fim da matriz JR7 ===== -->
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

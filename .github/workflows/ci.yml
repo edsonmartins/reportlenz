@@ -83,3 +83,20 @@ jobs:
       - name: Validar com a Library 7.0.7 (load + compile)
         working-directory: tools/jr7-harness
         run: mvn -q -B compile exec:java -Dexec.args="fixtures"
+
+  # Serviço de render (RFC-003): build + testes (incl. smoke da matriz JR7, nota 004).
+  render-service:
+    name: render-service · build + testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Testes (Spring + matriz JR7)
+        working-directory: render-service
+        run: mvn -q -B test

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: reportlenz-render
+
+server:
+  port: 8087

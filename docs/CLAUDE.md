@@ -161,16 +161,14 @@ Publish de template é **bloqueado** se qualquer gate falhar.
 
 ## 8. Verificações pendentes (faça ANTES de codar a parte afetada)
 
-Dois pontos não confirmados que mudam decisões de implementação:
+Ambas as verificações originais foram **resolvidas** — consultar as notas antes de mexer nas áreas:
 
-1. **Dialeto do fork `jrxml_web_designer`.** Inspecione o XML emitido: é 6.x ou 7.x? Se 6.x, o **serializer
-   é majoritariamente novo** (o parser pode aproveitar mais). Registre o achado numa nota de design antes de
-   reaproveitar código. (Tarefa 2 da Fase 0.)
-2. **Matriz Maven exata da 7.0.7.** Confirme os artefatos/nomes contra o BOM/POM oficial da 7.0.7 no momento
-   de configurar o `pom.xml`. Os nomes em ADR-007 refletem a modularização conhecida do trilho 7.0.x, mas a
-   lista precisa ser validada. (Fase 1.)
-
-Não prossiga na implementação dependente desses pontos sem resolvê-los primeiro.
+1. ~~Dialeto do fork `jrxml_web_designer`~~ → **resolvida (2026-07-07):** o fork emite **6.x**; parser E
+   serializer do core foram escritos do zero mirando o dialeto 7. Ver `docs/design/nota-001` (achado) e
+   `nota-002` (marcadores do dialeto 7 real, incl. seções de banda única sem `<band>` aninhado).
+2. ~~Matriz Maven exata da 7.0.7~~ → **resolvida (2026-07-09):** os 5 artefatos do ADR-007 confirmados no
+   Central **+ 2 adições necessárias** (`jasperreports-jdt` para compilar expressões e
+   `jasperreports-barcode4j` para o subconjunto). Ver `docs/design/nota-004`.
 
 ---
 
