@@ -88,6 +88,13 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Extração de texto de PDF nos testes (prova de acentuação pt-BR, tarefa 1.2) -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.7</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

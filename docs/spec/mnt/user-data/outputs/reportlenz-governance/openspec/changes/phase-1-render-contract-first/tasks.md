@@ -2,7 +2,7 @@
 
 ## 1. Serviço de render (Spring Boot)
 - [x] 1.1 Bootstrap do serviço; matriz Maven JR 7.0.7 (`jasperreports`, `-pdf`, `-fonts`, `-functions`, `-metadata` + `-jdt`, `-barcode4j`) — ADR-007 validado (nota 004)
-- [ ] 1.2 Fonte pt-BR embarcada e teste de acentuação (R$, ç, ã) no PDF
+- [x] 1.2 Fonte pt-BR embarcada e teste de acentuação (R$, ç, ã) no PDF
 - [ ] 1.3 Pipeline compile→fill→export (PDF)
 
 ## 2. Preview (round-trip)
