@@ -40,5 +40,5 @@
 - [x] 8.3 Cobertura dos erros de validação (Pull, ref órfã, legado) → `roundtrip.test.ts` (resumo) + `parse-forbidden.test.ts`/`validate.test.ts` (exaustivo)
 
 ## 9. Aceite
-- [ ] 9.1 Critérios de aceite da RFC-001 §8 verdes
-- [ ] 9.2 Zero dependência de framework de UI no bundle (verificado)
+- [x] 9.1 Critérios de aceite da RFC-001 §8 verdes → `docs/design/nota-003-aceite-fase-0.md`
+- [x] 9.2 Zero dependência de framework de UI no bundle (verificado: único import externo em dist/ é fast-xml-parser)

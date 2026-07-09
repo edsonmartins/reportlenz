@@ -76,7 +76,8 @@ core       render+    casca      features    IA +
 headless   contrato   React      pro         governança
 ```
 
-- **Estado atual: Fase 0 não iniciada.** Comece por `phase-0-extract-jrxml-core`.
+- **Estado atual: Fase 0 concluída em 2026-07-08** (aceite em `docs/design/nota-003-aceite-fase-0.md`).
+  Próxima: **Fase 1** (`phase-1-render-contract-first` — render + contrato).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").
 
