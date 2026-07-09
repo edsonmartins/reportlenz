@@ -2,6 +2,7 @@ package dev.reportlenz.render.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -103,6 +104,40 @@ class PreviewControllerTest {
                         .content(corpo(pull, "x", "pdf")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("CONTRACT_PULL_FORBIDDEN"));
+    }
+
+    @Test
+    void cenarioDoSpec_payloadForaDoContratoRetorna422SemRender() throws Exception {
+        String inputSchema = """
+                {"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
+                 "required":["nome"],"properties":{"nome":{"type":"string"}}}""";
+        String corpo = "{\"jrxml\":" + jsonString(JRXML_PUSH)
+                + ",\"sampleData\":{\"apelido\":\"sem o nome exigido\"}"
+                + ",\"inputSchema\":" + inputSchema
+                + ",\"format\":\"pdf\"}";
+
+        mvc.perform(post("/render/preview").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("PAYLOAD_FORA_DO_CONTRATO"))
+                .andExpect(jsonPath("$.violacoes").isNotEmpty());
+
+        // 'nenhum render é executado': o pipeline nem chegou a compilar.
+        verify(compilador, never()).compilar(anyString());
+    }
+
+    @Test
+    void previewComSchemaEPayloadValidoRenderiza200() throws Exception {
+        String inputSchema = """
+                {"$schema":"https://json-schema.org/draft/2020-12/schema","type":"object",
+                 "required":["nome"],"properties":{"nome":{"type":"string"}}}""";
+        String corpo = "{\"jrxml\":" + jsonString(JRXML_PUSH)
+                + ",\"sampleData\":{\"nome\":\"Edson\"}"
+                + ",\"inputSchema\":" + inputSchema
+                + ",\"format\":\"pdf\"}";
+
+        mvc.perform(post("/render/preview").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"));
     }
 
     @Test

@@ -83,6 +83,13 @@
     </dependency>
     <!-- ===== fim da matriz JR7 ===== -->
 
+    <!-- Validação de payload contra o inputSchema (RFC-002 §5) — 3.x usa Jackson 3, como o Boot 4 -->
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>3.0.6</version>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>

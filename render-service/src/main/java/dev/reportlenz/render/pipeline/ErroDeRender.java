@@ -35,4 +35,18 @@ public sealed class ErroDeRender extends RuntimeException {
             super(mensagem, causa);
         }
     }
+
+    /** Payload não satisfaz o `inputSchema` da versão — 422, sem render (RFC-002 §5). */
+    public static final class PayloadForaDoContrato extends ErroDeRender {
+        private final java.util.List<String> violacoes;
+
+        public PayloadForaDoContrato(java.util.List<String> violacoes) {
+            super("payload não satisfaz o contrato (inputSchema): " + violacoes.size() + " violação(ões)");
+            this.violacoes = java.util.List.copyOf(violacoes);
+        }
+
+        public java.util.List<String> violacoes() {
+            return violacoes;
+        }
+    }
 }

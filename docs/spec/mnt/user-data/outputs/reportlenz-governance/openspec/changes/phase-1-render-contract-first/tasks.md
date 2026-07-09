@@ -17,8 +17,8 @@
 - [x] 3.4 Publish Wizard (esboço): gera pacote de integração (schema + snippet Java + registro) → `buildIntegrationPackage`
 
 ## 4. Validação de payload (run-time)
-- [ ] 4.1 Validar payload contra `inputSchema` da versão (Java json-schema-validator)
-- [ ] 4.2 422 com lista de violações quando inválido; sem render
+- [x] 4.1 Validar payload contra `inputSchema` da versão (networknt json-schema-validator 3.x, Jackson 3)
+- [x] 4.2 422 com lista de violações quando inválido; sem render (verificado: compilador nunca é chamado)
 
 ## 5. Batch
 - [ ] 5.1 `POST /render/batch` (async) + fila + workers idempotentes

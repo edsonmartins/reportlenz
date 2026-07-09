@@ -36,4 +36,13 @@ public class TratadorDeErros {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErroResponse("FALHA_DE_RENDER", e.getMessage()));
     }
+
+    /** Corpo do 422: a lista de violações do inputSchema (RFC-002 §5). */
+    public record ErroValidacaoResponse(String codigo, String mensagem, java.util.List<String> violacoes) {}
+
+    @ExceptionHandler(ErroDeRender.PayloadForaDoContrato.class)
+    public ResponseEntity<ErroValidacaoResponse> payloadForaDoContrato(ErroDeRender.PayloadForaDoContrato e) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErroValidacaoResponse("PAYLOAD_FORA_DO_CONTRATO", e.getMessage(), e.violacoes()));
+    }
 }
