@@ -11,8 +11,8 @@
 - [x] 2.3 400 se JRXML inválido/contém `<queryString>`
 
 ## 3. Contrato de dados (RFC-002)
-- [ ] 3.1 `buildInputSchema(DataContract) -> JSON Schema` no `jrxml-core`
-- [ ] 3.2 Heurística de agrupamento (objeto aninhado por prefixo; array para detail/tabela)
+- [x] 3.1 `buildInputSchema(DataContract) -> JSON Schema` no `jrxml-core`
+- [x] 3.2 Heurística de agrupamento (objeto aninhado por prefixo; array para detail/tabela)
 - [ ] 3.3 Codegen: tipos TS + `record` Java
 - [ ] 3.4 Publish Wizard (esboço): gera pacote de integração (schema + snippet Java + registro)
 

@@ -32,6 +32,10 @@ export { validateContract } from './validate/validateContract.js';
 // Extração de contrato (RFC-001 §4, alimenta a RFC-002) — tarefa phase-0/7.1.
 export { extractContract } from './extract/extractContract.js';
 
+// inputSchema (RFC-002 §2-§3) — tarefas phase-1/3.1-3.2.
+export { buildInputSchema } from './contract/buildInputSchema.js';
+export type { BuildInputSchemaOptions, JsonSchema } from './contract/buildInputSchema.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export {
   REFERENCE_TEMPLATES,
