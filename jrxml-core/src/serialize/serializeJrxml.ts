@@ -443,6 +443,7 @@ export function serializeJrxml(t: ReportTemplate): string {
     ['orientation', pf.orientation === 'Portrait' ? undefined : pf.orientation],
     ['columnWidth', pf.columnWidth],
     ['columnSpacing', pf.columnSpacing === 0 ? undefined : pf.columnSpacing],
+    ['printOrder', pf.printOrder === 'Horizontal' ? 'Horizontal' : undefined],
     ['leftMargin', pf.leftMargin],
     ['rightMargin', pf.rightMargin],
     ['topMargin', pf.topMargin],

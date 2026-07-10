@@ -26,6 +26,11 @@ export interface PageFormat {
   columnCount: number;
   columnWidth: number;
   columnSpacing: number;
+  /**
+   * Ordem de preenchimento das colunas (grade de etiquetas A4, Fase 3):
+   * `Vertical` (default do engine) desce a coluna; `Horizontal` atravessa.
+   */
+  printOrder?: 'Vertical' | 'Horizontal';
 }
 
 /** Alinhamentos de texto (nomes do JRXML 7). */

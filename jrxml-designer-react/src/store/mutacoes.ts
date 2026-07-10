@@ -11,6 +11,7 @@ import type {
   DataContract,
   Element,
   FieldDecl,
+  PageFormat,
   ReportTemplate,
   Style,
   StyleProps,
@@ -314,6 +315,20 @@ export function distribuirElementos(caminhos: CaminhoDeElemento[], eixo: 'horizo
       }
       return { ...b, elements };
     });
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Página e colunas (Fase 3, bloco 7 — grade de etiquetas A4, ADR-011)
+
+/** Atualiza o PageFormat; `printOrder: undefined` remove (Vertical é o default). */
+export function atualizarPagina(patch: Partial<PageFormat>) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const pageFormat: PageFormat = { ...template.pageFormat, ...patch };
+    if (pageFormat.printOrder === undefined || pageFormat.printOrder === 'Vertical') {
+      delete pageFormat.printOrder;
+    }
+    return { ...template, pageFormat };
   };
 }
 

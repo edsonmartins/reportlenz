@@ -24,11 +24,11 @@
 - [x] 5.2 Subreports com contrato do filho: editor de parâmetros no painel (add/remove/editar expressões com autocomplete) + preset "Sub-relatório" no Inserir
 
 ## 6. Padrões pt-BR
-- [ ] 6.1 `pattern` R$, milhar com ponto, `dd/MM/yyyy`; `blankWhenNull`
-- [ ] 6.2 Validar acentuação no PDF (com `jasperreports-fonts`)
+- [x] 6.1 `pattern` R$, milhar com ponto, `dd/MM/yyyy`; `blankWhenNull`
+- [x] 6.2 Validar acentuação no PDF (com `jasperreports-fonts`) — evidência: `AcentuacaoPtBrTest` (Fase 1) extrai o texto do PDF gerado e confere ç/ã/é intactos
 
 ## 7. Etiquetas A4 multi-coluna
-- [ ] 7.1 Print order + columns para grade de etiquetas (laser; NÃO térmica — ADR-011)
+- [x] 7.1 Print order + columns para grade de etiquetas (laser; NÃO térmica — ADR-011)
 
 ## 8. Biblioteca de blocos
 - [ ] 8.1 Blocos reutilizáveis (cabeçalho timbrado, rodapé com totais, assinatura, QR de pedido)

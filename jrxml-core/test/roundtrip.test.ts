@@ -79,3 +79,17 @@ describe('jrxml-core · cobertura dos erros de validação (8.3)', () => {
     expect(r.messages.some((m) => m.code === 'EXPR_UNKNOWN_REF' && m.message.includes('orfao'))).toBe(true);
   });
 });
+
+describe('jrxml-core · printOrder (Fase 3, multi-coluna)', () => {
+  it('Horizontal sobrevive ao round-trip; Vertical (default) é omitido', () => {
+    const etiqueta = REFERENCE_TEMPLATES['etiqueta_a4']!;
+    const xml = serializeJrxml(etiqueta);
+    expect(xml).toContain('printOrder="Horizontal"');
+
+    const semOrdem = serializeJrxml({ ...etiqueta, pageFormat: { ...etiqueta.pageFormat, printOrder: 'Vertical' } });
+    expect(semOrdem).not.toContain('printOrder');
+
+    const reparsed = parseJrxml(xml);
+    expect(reparsed.ok && reparsed.value.pageFormat.printOrder).toBe('Horizontal');
+  });
+});

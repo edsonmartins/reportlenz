@@ -9,6 +9,7 @@
  */
 import {
   ActionIcon,
+  Autocomplete,
   Button,
   Checkbox,
   Divider,
@@ -29,6 +30,7 @@ import { ExpressionEditor } from '../expression/ExpressionEditor';
 import { EditorDeTabela } from './EditorDeTabela';
 import { GerenciadorDeEstilos } from './GerenciadorDeEstilos';
 import { GerenciadorDeGrupos } from './GerenciadorDeGrupos';
+import { PainelDaPagina } from './PainelDaPagina';
 import { escopoMaster } from '../expression/sugestoes';
 import { useDocumentoStore, obterBanda } from '../store/documentoStore';
 import { atualizarBoundsDoElemento, comElemento, definirEstiloDoElemento } from '../store/mutacoes';
@@ -105,6 +107,38 @@ function CampoTexto({
   );
 }
 
+/** Padrões pt-BR prontos (Fase 3, 6.1) — Autocomplete aceita texto livre. */
+const PATTERNS_PT_BR = [
+  '¤ #,##0.00',
+  '#,##0.00',
+  '#,##0.###',
+  '#,##0',
+  '0.00%',
+  'dd/MM/yyyy',
+  'dd/MM/yyyy HH:mm',
+  'HH:mm',
+];
+
+function CampoPattern({ valor, onCommit }: { valor: string; onCommit: (v: string) => void }) {
+  const [local, setLocal] = useState(valor);
+  useEffect(() => {
+    setLocal(valor);
+  }, [valor]);
+  return (
+    <Autocomplete
+      size="xs"
+      aria-label="Padrão (pattern)"
+      placeholder="¤ #,##0.00 · dd/MM/yyyy…"
+      data={PATTERNS_PT_BR}
+      value={local}
+      onChange={setLocal}
+      onOptionSubmit={(v) => onCommit(v)}
+      onBlur={() => local !== valor && onCommit(local)}
+      comboboxProps={{ transitionProps: { duration: 0 } }}
+    />
+  );
+}
+
 export function PainelDePropriedades() {
   const template = useDocumentoStore((s) => s.template);
   const selecao = useDocumentoStore((s) => s.selecao);
@@ -136,12 +170,16 @@ export function PainelDePropriedades() {
         <Tabs.List>
           <Tabs.Tab value="estilos">Estilos</Tabs.Tab>
           <Tabs.Tab value="grupos">Grupos</Tabs.Tab>
+          <Tabs.Tab value="pagina">Página</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="estilos" style={{ overflow: 'auto' }}>
           <GerenciadorDeEstilos />
         </Tabs.Panel>
         <Tabs.Panel value="grupos" p="sm" style={{ overflow: 'auto' }}>
           <GerenciadorDeGrupos />
+        </Tabs.Panel>
+        <Tabs.Panel value="pagina" p="sm" style={{ overflow: 'auto' }}>
+          <PainelDaPagina />
         </Tabs.Panel>
       </Tabs>,
     );
@@ -321,17 +359,28 @@ export function PainelDePropriedades() {
     case 'textField':
       linhas.push(
         expressao('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
-        texto('pattern', 'Padrão (pattern)', elemento.pattern ?? '', (v) =>
-          mudarElemento((el) => {
-            const tf = el as Extract<Element, { kind: 'textField' }>;
-            if (!v) {
-              const copia = { ...tf };
-              delete copia.pattern;
-              return copia;
-            }
-            return { ...tf, pattern: v };
-          }),
-        ),
+        {
+          id: 'pattern',
+          rotulo: 'Padrão (pattern)',
+          no: (
+            <Linha key="pattern" id="pattern" rotulo="Padrão (pattern)">
+              <CampoPattern
+                valor={elemento.pattern ?? ''}
+                onCommit={(v) =>
+                  mudarElemento((el) => {
+                    const tf = el as Extract<Element, { kind: 'textField' }>;
+                    if (!v) {
+                      const copia = { ...tf };
+                      delete copia.pattern;
+                      return copia;
+                    }
+                    return { ...tf, pattern: v };
+                  })
+                }
+              />
+            </Linha>
+          ),
+        },
         {
           id: 'blankWhenNull',
           rotulo: 'Vazio se nulo',

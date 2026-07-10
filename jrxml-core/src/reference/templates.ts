@@ -425,6 +425,7 @@ export const REFERENCIA_ETIQUETA_A4: ReportTemplate = {
     columnCount: 3,
     columnWidth: 178,
     columnSpacing: 10,
+    printOrder: 'Horizontal',
   },
   properties: { 'reportlenz.template.tipo': 'etiqueta_a4' },
   styles: [{ name: 'base', isDefault: true, fontName: 'DejaVu Sans', fontSize: 8 }],

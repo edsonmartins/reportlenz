@@ -739,6 +739,7 @@ function parsePageFormat(ctx: Ctx, root: XmlNode): PageFormat {
     columnCount: numAttr(ctx, root, 'columnCount', path) ?? 1,
     columnWidth: numAttr(ctx, root, 'columnWidth', path) ?? 555,
     columnSpacing: numAttr(ctx, root, 'columnSpacing', path) ?? 0,
+    ...opt('printOrder', oneOf(ctx, attr(root, 'printOrder'), ['Vertical', 'Horizontal'] as const, 'printOrder', path)),
   };
 }
 
