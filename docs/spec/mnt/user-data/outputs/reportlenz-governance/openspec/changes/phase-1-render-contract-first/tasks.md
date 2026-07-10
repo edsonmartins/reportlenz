@@ -30,5 +30,5 @@
 - [x] 6.1 OTel: spans compile/fill/export separados; métricas via /actuator/prometheus (scrape VictoriaMetrics), traces via bridge OTel→OTLP (endpoint por env → Tempo), logs no stdout (Loki/promtail é infra)
 
 ## 7. Aceite
-- [ ] 7.1 Critérios RFC-003 §8 e RFC-002 §7 verdes
-- [ ] 7.2 Preview fiel (mesmo engine da produção) e batch idempotente
+- [x] 7.1 Critérios RFC-003 §8 e RFC-002 §7 verdes → `docs/design/nota-005-aceite-fase-1.md`
+- [x] 7.2 Preview fiel (mesmo engine da produção — um único PipelineDeRender) e batch idempotente (lote + item)

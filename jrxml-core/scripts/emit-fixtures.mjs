@@ -28,4 +28,10 @@ for (const [name, template] of Object.entries(REFERENCE_TEMPLATES)) {
   const fileJava = join(outDirJava, `${rootName}.java`);
   writeFileSync(fileJava, java, 'utf8');
   console.log(`emitido: ${fileJava}`);
+
+  // inputSchema gerado pelo core — consumido pelo teste cruzado do render-service
+  // (prova RFC-002 §7: o schema TS é validável pelo networknt do serviço).
+  const fileSchema = join(outDir, `${name}.schema.json`);
+  writeFileSync(fileSchema, JSON.stringify(schema, null, 2), 'utf8');
+  console.log(`emitido: ${fileSchema}`);
 }
