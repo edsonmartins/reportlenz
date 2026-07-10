@@ -15,9 +15,9 @@
 - [x] 3.2 Validação inline + ReportChecker (✨ no ExpressionEditor: validarExpressaoInline ANTES do "Usar"; pós-commit a validação contínua segue)
 
 ## 4. Gates de governança (RFC-006)
-- [ ] 4.1 G1 XSD 7 · G2 anti-Pull · G3 integridade de expressão
-- [ ] 4.2 G4 dialeto · G5 contrato presente · G6 hash
-- [ ] 4.3 Publish bloqueado se qualquer gate falhar ("Pass 5 = autoridade sobre done")
+- [x] 4.1 G1 (estrutural no core + load/compile pela Library real no serviço — ADR-013) · G2 anti-Pull · G3 integridade de expressão
+- [x] 4.2 G4 dialeto · G5 contrato presente (inputSchema válido 2020-12) · G6 jrxml_hash recalculado/consistente
+- [x] 4.3 Publish bloqueado se qualquer gate falhar — inclusive se a verificação autoritativa (POST /publish/verificar) estiver indisponível; PublishWizard com checklist G1–G6 e pacote de integração
 
 ## 5. Repositório / ciclo de vida
 - [ ] 5.1 Modelo `report_template` / `report_template_version` (ADR-009)

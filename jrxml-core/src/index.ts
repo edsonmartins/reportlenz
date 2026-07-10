@@ -49,6 +49,10 @@ export { sha256 } from './hash/sha256.js';
 export { buildIntegrationPackage } from './publish/integrationPackage.js';
 export type { IntegrationPackage, IntegrationPackageOptions, VersionRecord } from './publish/integrationPackage.js';
 
+// Gates de governança G1–G6 no publish (RFC-006 §3, Fase 4).
+export { avaliarGates } from './publish/gates.js';
+export type { CodigoDeGate, ResultadoDeGate, ResultadoDosGates } from './publish/gates.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export {
   REFERENCE_TEMPLATES,

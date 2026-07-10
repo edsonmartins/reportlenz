@@ -15,6 +15,7 @@ import { Galeria } from './galeria/Galeria';
 import { PreviewPanel } from './preview/PreviewPanel';
 import { usePreviewStore } from './preview/previewStore';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
+import { PublishWizard } from './publish/PublishWizard';
 import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
 import { bandaComum } from './store/mutacoes';
@@ -61,6 +62,7 @@ function ComandosDeSelecao() {
 /** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
 function BarraDoCanvas() {
   const [assistenteAberto, setAssistenteAberto] = useState(false);
+  const [publishAberto, setPublishAberto] = useState(false);
   const zoom = useCanvasStore((s) => s.zoom);
   const definirZoom = useCanvasStore((s) => s.definirZoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
@@ -158,8 +160,14 @@ function BarraDoCanvas() {
             Renderizar (Jasper)
           </Button>
         </Tooltip>
+        <Tooltip label="Gates G1–G6 (RFC-006): publish só com todos verdes, confirmados pela Library real">
+          <Button size="compact-xs" variant="light" onClick={() => setPublishAberto(true)}>
+            Publicar…
+          </Button>
+        </Tooltip>
       </div>
       <AssistenteDrawer aberto={assistenteAberto} onFechar={() => setAssistenteAberto(false)} />
+      <PublishWizard aberto={publishAberto} onFechar={() => setPublishAberto(false)} />
     </Group>
   );
 }
