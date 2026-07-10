@@ -1,0 +1,11 @@
+{
+  "name": "reportlenz",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "core:test": "pnpm --dir jrxml-core test",
+    "core:build": "pnpm --dir jrxml-core build",
+    "ui:dev": "pnpm --dir jrxml-designer-react dev",
+    "ui:test": "pnpm --dir jrxml-designer-react test"
+  }
+}

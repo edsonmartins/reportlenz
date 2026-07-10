@@ -1,7 +1,7 @@
 # Tasks — phase-2-react-mantine-shell
 
 ## 1. Scaffold da UI
-- [ ] 1.1 Pacote `jrxml-designer-react` (React 18, Mantine v9, Archbase); store do documento (`ReportTemplate`)
+- [x] 1.1 Pacote `jrxml-designer-react` (React **19.2** — exigência do Mantine 9.4, que dropou o 18; Archbase 4.x suporta ambos; ADR-005 dizia 18), Mantine 9.4, Archbase 4.0.36; store do documento (`ReportTemplate`) em zustand com seleção por caminho; workspace pnpm ativado (previsto na decisão de layout da Fase 0)
 - [ ] 1.2 Integração com `jrxml-core` (parse/serialize/validate em toda mutação)
 
 ## 2. Canvas

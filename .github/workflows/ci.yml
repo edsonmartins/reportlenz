@@ -1,4 +1,4 @@
-# CI do ReportLenz — valida o jrxml-core (tarefa phase-0/1.2).
+# CI do ReportLenz — core (TS), designer (React), harness (Library 7.0.7) e render-service (Spring).
 name: CI
 
 on:
@@ -10,9 +10,6 @@ jobs:
   jrxml-core:
     name: jrxml-core · lint + typecheck + test + build
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: jrxml-core
     steps:
       - uses: actions/checkout@v4
 
@@ -24,31 +21,68 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          cache-dependency-path: jrxml-core/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Instalar dependências
+      - name: Instalar dependências (workspace)
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm --dir jrxml-core lint
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm --dir jrxml-core typecheck
 
       - name: Testes (Vitest)
-        run: pnpm test
+        run: pnpm --dir jrxml-core test
 
       - name: Build (ESM + d.ts)
-        run: pnpm build
+        run: pnpm --dir jrxml-core build
 
       # RFC-001 §8 / I-7: o bundle não pode conter dependência de framework de UI.
       - name: Guardião headless (I-7)
+        working-directory: jrxml-core
         run: |
           if grep -RInE "from ['\"](react|vue|@vue/)" dist/; then
             echo "::error::I-7 violado: import de framework de UI encontrado no bundle"
             exit 1
           fi
           echo "OK: bundle sem imports de UI"
+
+  # Casca React do designer (ADR-005/RFC-004, Fase 2).
+  jrxml-designer-react:
+    name: designer · lint + typecheck + test + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar dependências (workspace)
+        run: pnpm install --frozen-lockfile
+
+      # O designer consome o core via workspace — build do core primeiro.
+      - name: Build do jrxml-core
+        run: pnpm --dir jrxml-core build
+
+      - name: Lint
+        run: pnpm --dir jrxml-designer-react lint
+
+      - name: Typecheck
+        run: pnpm --dir jrxml-designer-react typecheck
+
+      - name: Testes (Vitest + Testing Library)
+        run: pnpm --dir jrxml-designer-react test
+
+      - name: Build (Vite)
+        run: pnpm --dir jrxml-designer-react build
 
   # Gate G1 (ADR-013): JRXML emitido deve ser aceito pela Library 7.0.7 real.
   jr7-harness:
@@ -65,7 +99,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-          cache-dependency-path: jrxml-core/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - uses: actions/setup-java@v4
         with:
@@ -74,11 +108,10 @@ jobs:
           cache: maven
 
       - name: Build do jrxml-core e emissão dos fixtures
-        working-directory: jrxml-core
         run: |
           pnpm install --frozen-lockfile
-          pnpm build
-          pnpm emit:fixtures
+          pnpm --dir jrxml-core build
+          pnpm --dir jrxml-core emit:fixtures
 
       - name: Validar com a Library 7.0.7 (load + compile)
         working-directory: tools/jr7-harness

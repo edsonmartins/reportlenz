@@ -1,0 +1,5 @@
+# Workspace do ReportLenz (previsto na decisão de layout da Fase 0:
+# "migra para monorepo quando a UI chegar" — a UI chegou na Fase 2).
+packages:
+  - jrxml-core
+  - jrxml-designer-react
