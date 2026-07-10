@@ -24,7 +24,7 @@ import type { Element, TableCell } from '../model/elements.js';
 import type { ReportTemplate } from '../model/report.js';
 
 /** Parâmetros built-in do engine JasperReports (sempre disponíveis). */
-const BUILTIN_PARAMETERS = new Set([
+export const BUILTIN_PARAMETERS: ReadonlySet<string> = new Set([
   'REPORT_PARAMETERS_MAP',
   'REPORT_CONTEXT',
   'REPORT_LOCALE',
@@ -42,7 +42,7 @@ const BUILTIN_PARAMETERS = new Set([
 ]);
 
 /** Variáveis built-in do engine. */
-const BUILTIN_VARIABLES = new Set([
+export const BUILTIN_VARIABLES: ReadonlySet<string> = new Set([
   'PAGE_NUMBER',
   'MASTER_CURRENT_PAGE',
   'MASTER_TOTAL_PAGES',

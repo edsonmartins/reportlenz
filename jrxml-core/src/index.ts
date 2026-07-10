@@ -27,7 +27,7 @@ export { serializeJrxml } from './serialize/serializeJrxml.js';
 
 // Validação dupla (RFC-001 §6) — tarefas phase-0/6.1-6.3.
 export { validateSchema } from './validate/validateSchema.js';
-export { validateContract } from './validate/validateContract.js';
+export { validateContract, BUILTIN_PARAMETERS, BUILTIN_VARIABLES } from './validate/validateContract.js';
 
 // Extração de contrato (RFC-001 §4, alimenta a RFC-002) — tarefa phase-0/7.1.
 export { extractContract } from './extract/extractContract.js';

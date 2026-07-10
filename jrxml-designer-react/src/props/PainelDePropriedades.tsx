@@ -23,6 +23,8 @@ import {
 import type { Element, StyleProps } from '@reportlenz/jrxml-core';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
+import { ExpressionEditor } from '../expression/ExpressionEditor';
+import { escopoMaster } from '../expression/sugestoes';
 import { useDocumentoStore, obterBanda } from '../store/documentoStore';
 import { atualizarBoundsDoElemento, comElemento, definirEstiloDoElemento } from '../store/mutacoes';
 import { resolverPropDeEstilo } from './heranca';
@@ -187,6 +189,18 @@ export function PainelDePropriedades() {
     ),
   });
 
+  // Expression editor (phase-3/1.x): autocomplete sobre o contrato + inline.
+  const escopo = escopoMaster(template.dataContract, template.bands.groups.map((g) => g.name));
+  const expressao = (id: string, rotulo: string, valor: string, onCommit: (v: string) => void) => ({
+    id,
+    rotulo,
+    no: (
+      <Linha key={id} id={id} rotulo={rotulo}>
+        <ExpressionEditor valor={valor} escopo={escopo} onCommit={onCommit} aria-label={rotulo} />
+      </Linha>
+    ),
+  });
+
   const linhas: Array<{ id: string; rotulo: string; no: ReactNode }> = [
     // ---- posição e tamanho (sempre locais)
     numero('x', 'X (pt)', b.x, (v) => mudarBounds({ x: v })),
@@ -265,7 +279,7 @@ export function PainelDePropriedades() {
     )),
 
     // ---- comum
-    texto('printWhen', 'Imprimir quando', elemento.printWhenExpression ?? '', (v) =>
+    expressao('printWhen', 'Imprimir quando', elemento.printWhenExpression ?? '', (v) =>
       mudarElemento((el) => {
         if (!v) {
           const copia = { ...el };
@@ -284,7 +298,7 @@ export function PainelDePropriedades() {
       break;
     case 'textField':
       linhas.push(
-        texto('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
+        expressao('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
         texto('pattern', 'Padrão (pattern)', elemento.pattern ?? '', (v) =>
           mudarElemento((el) => {
             const tf = el as Extract<Element, { kind: 'textField' }>;
@@ -314,7 +328,7 @@ export function PainelDePropriedades() {
       break;
     case 'image':
       linhas.push(
-        texto('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
+        expressao('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
         {
           id: 'scaleImage',
           rotulo: 'Escala',
@@ -350,7 +364,7 @@ export function PainelDePropriedades() {
             </Linha>
           ),
         },
-        texto('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
+        expressao('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
       );
       break;
     case 'rectangle':
@@ -358,10 +372,10 @@ export function PainelDePropriedades() {
       break;
     case 'subreport':
       linhas.push(
-        texto('templateExpression', 'Template', elemento.templateExpression, (v) =>
+        expressao('templateExpression', 'Template', elemento.templateExpression, (v) =>
           mudarElemento((el) => ({ ...el, templateExpression: v }) as Element),
         ),
-        texto('dataSourceExpression', 'Datasource', elemento.dataSourceExpression ?? '', (v) =>
+        expressao('dataSourceExpression', 'Datasource', elemento.dataSourceExpression ?? '', (v) =>
           mudarElemento((el) => ({ ...el, dataSourceExpression: v || undefined }) as Element),
         ),
       );

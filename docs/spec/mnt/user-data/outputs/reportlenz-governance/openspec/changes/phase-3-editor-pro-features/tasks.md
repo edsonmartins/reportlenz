@@ -1,9 +1,9 @@
 # Tasks — phase-3-editor-pro-features
 
 ## 1. Expression editor
-- [ ] 1.1 Autocomplete sobre fields/params/vars do contrato (`$F{`, `$P{`, `$V{`)
-- [ ] 1.2 Validação de sintaxe e de nomes referenciados (erro inline + ReportChecker)
-- [ ] 1.3 Suporte a funções (`jasperreports-functions`)
+- [x] 1.1 Autocomplete sobre fields/params/vars do contrato (`$F{`, `$P{`, `$V{`) — incl. built-ins e `{grupo}_COUNT`
+- [x] 1.2 Validação de sintaxe e de nomes referenciados (erro inline + ReportChecker no commit)
+- [x] 1.3 Suporte a funções (`jasperreports-functions`) — catálogo de 20 funções com assinatura/descrição pt-BR
 
 ## 2. Tabela
 - [ ] 2.1 Componente de tabela no modelo (`jrxml-core`) + UI
