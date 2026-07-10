@@ -20,8 +20,8 @@
 - [x] 4.2 `conditionalStyle` (zebra por padrão; expression editor no conditionExpression; overrides de fundo/negrito) e `printWhenExpression` (no painel de elemento desde a Fase 2, com expression editor desde o bloco 1)
 
 ## 5. Grupos e subreports
-- [ ] 5.1 Grupos com groupHeader/groupFooter e subtotais
-- [ ] 5.2 Subreports (fatura: itens + impostos em sub-relatório), com contrato do subreport
+- [x] 5.1 Grupos com groupHeader/groupFooter e subtotais (aba Grupos no painel de documento; "+ Subtotal" cria variável Sum com reset no grupo + textField no rodapé em um clique)
+- [x] 5.2 Subreports com contrato do filho: editor de parâmetros no painel (add/remove/editar expressões com autocomplete) + preset "Sub-relatório" no Inserir
 
 ## 6. Padrões pt-BR
 - [ ] 6.1 `pattern` R$, milhar com ponto, `dd/MM/yyyy`; `blankWhenNull`

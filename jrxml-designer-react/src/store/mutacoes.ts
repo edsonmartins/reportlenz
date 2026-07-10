@@ -318,6 +318,122 @@ export function distribuirElementos(caminhos: CaminhoDeElemento[], eixo: 'horizo
 }
 
 // ---------------------------------------------------------------------------
+// Grupos com subtotais (Fase 3, bloco 5)
+
+const ALTURA_BANDA_DE_GRUPO = 20;
+
+function comGrupos(template: ReportTemplate, atualizar: (grupos: ReportTemplate['bands']['groups']) => ReportTemplate['bands']['groups']): ReportTemplate {
+  return { ...template, bands: { ...template.bands, groups: atualizar(template.bands.groups) } };
+}
+
+/** 5.1: novo grupo com quebra por expressão (header e footer prontos). */
+export function adicionarGrupo(nome: string, expressao: string) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const limpo = nome.trim();
+    if (!limpo || template.bands.groups.some((g) => g.name === limpo)) return template;
+    return comGrupos(template, (grupos) => [
+      ...grupos,
+      {
+        name: limpo,
+        expression: expressao,
+        header: { height: ALTURA_BANDA_DE_GRUPO, splitType: 'Stretch', elements: [] },
+        footer: { height: ALTURA_BANDA_DE_GRUPO, splitType: 'Stretch', elements: [] },
+      },
+    ]);
+  };
+}
+
+/** Remove o grupo; resetGroup órfão em variáveis vira problema no checker. */
+export function removerGrupo(nome: string) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comGrupos(template, (grupos) => grupos.filter((g) => g.name !== nome));
+}
+
+export function atualizarGrupo(nome: string, patch: Partial<Pick<ReportTemplate['bands']['groups'][number], 'expression' | 'startNewPage'>>) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comGrupos(template, (grupos) =>
+      grupos.map((g) => {
+        if (g.name !== nome) return g;
+        const novo = { ...g, ...patch };
+        if (novo.startNewPage === undefined) delete novo.startNewPage;
+        return novo;
+      }),
+    );
+}
+
+/** Liga/desliga as bandas header/footer do grupo. */
+export function alternarBandaDoGrupo(nome: string, parte: 'header' | 'footer') {
+  return (template: ReportTemplate): ReportTemplate =>
+    comGrupos(template, (grupos) =>
+      grupos.map((g) => {
+        if (g.name !== nome) return g;
+        const novo = { ...g };
+        if (novo[parte]) {
+          delete novo[parte];
+        } else {
+          novo[parte] = { height: ALTURA_BANDA_DE_GRUPO, splitType: 'Stretch', elements: [] };
+        }
+        return novo;
+      }),
+    );
+}
+
+/**
+ * 5.1 (subtotal): cria a variável `Sum` com reset no grupo e o textField no
+ * rodapé do grupo (criando o rodapé se não existir) — subtotais em um passo.
+ */
+export function adicionarSubtotalAoGrupo(nomeGrupo: string, campo: FieldDecl) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const grupo = template.bands.groups.find((g) => g.name === nomeGrupo);
+    if (!grupo || (campo.type !== 'decimal' && campo.type !== 'integer')) return template;
+
+    const nomeVariavel = `soma_${campo.name}_${nomeGrupo}`.replaceAll('.', '_');
+    if (template.dataContract.variables.some((v) => v.name === nomeVariavel)) return template;
+
+    const comVariavel: ReportTemplate = {
+      ...template,
+      dataContract: {
+        ...template.dataContract,
+        variables: [
+          ...template.dataContract.variables,
+          {
+            name: nomeVariavel,
+            type: campo.type,
+            calculation: 'Sum',
+            expression: `$F{${campo.name}}`,
+            resetType: 'Group',
+            resetGroup: nomeGrupo,
+          },
+        ],
+      },
+    };
+
+    return comGrupos(comVariavel, (grupos) =>
+      grupos.map((g) => {
+        if (g.name !== nomeGrupo) return g;
+        const footer: Band = g.footer ?? { height: ALTURA_BANDA_DE_GRUPO, splitType: 'Stretch', elements: [] };
+        return {
+          ...g,
+          footer: {
+            ...footer,
+            elements: [
+              ...footer.elements,
+              {
+                kind: 'textField',
+                bounds: { x: 0, y: 2, width: 160, height: 14 },
+                expression: `$V{${nomeVariavel}}`,
+                pattern: campo.type === 'decimal' ? '#,##0.00' : '#,##0',
+                style: { bold: true, hAlign: 'Right' },
+              },
+            ],
+          },
+        };
+      }),
+    );
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Gerenciador de estilos (Fase 3, bloco 4)
 
 function comEstilos(template: ReportTemplate, atualizar: (styles: Style[]) => Style[]): ReportTemplate {

@@ -9,6 +9,7 @@
  */
 import {
   ActionIcon,
+  Button,
   Checkbox,
   Divider,
   Group,
@@ -16,6 +17,7 @@ import {
   ScrollArea,
   Select,
   Stack,
+  Tabs,
   Text,
   TextInput,
   Tooltip,
@@ -26,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';
 import { EditorDeTabela } from './EditorDeTabela';
 import { GerenciadorDeEstilos } from './GerenciadorDeEstilos';
+import { GerenciadorDeGrupos } from './GerenciadorDeGrupos';
 import { escopoMaster } from '../expression/sugestoes';
 import { useDocumentoStore, obterBanda } from '../store/documentoStore';
 import { atualizarBoundsDoElemento, comElemento, definirEstiloDoElemento } from '../store/mutacoes';
@@ -127,8 +130,21 @@ export function PainelDePropriedades() {
   );
 
   if (selecao.length === 0) {
-    // Sem seleção: propriedades do DOCUMENTO — gerenciador de estilos (Fase 3, bloco 4).
-    return moldura(<GerenciadorDeEstilos />);
+    // Sem seleção: propriedades do DOCUMENTO — estilos (bloco 4) e grupos (bloco 5).
+    return moldura(
+      <Tabs defaultValue="estilos" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <Tabs.List>
+          <Tabs.Tab value="estilos">Estilos</Tabs.Tab>
+          <Tabs.Tab value="grupos">Grupos</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="estilos" style={{ overflow: 'auto' }}>
+          <GerenciadorDeEstilos />
+        </Tabs.Panel>
+        <Tabs.Panel value="grupos" p="sm" style={{ overflow: 'auto' }}>
+          <GerenciadorDeGrupos />
+        </Tabs.Panel>
+      </Tabs>,
+    );
   }
   if (selecao.length !== 1) {
     return moldura(
@@ -384,6 +400,69 @@ export function PainelDePropriedades() {
         expressao('dataSourceExpression', 'Datasource', elemento.dataSourceExpression ?? '', (v) =>
           mudarElemento((el) => ({ ...el, dataSourceExpression: v || undefined }) as Element),
         ),
+        {
+          id: 'subreportParams',
+          rotulo: 'Parâmetros do sub-relatório',
+          no: (
+            <Stack key="subreportParams" gap={4} data-testid="params-subreport">
+              <Text size="xs" fw={600}>
+                Parâmetros do sub-relatório (contrato do filho)
+              </Text>
+              {elemento.parameters.map((p, i) => (
+                <Group key={i} gap={4} wrap="nowrap">
+                  <Text size="xs" w={80} truncate title={p.name}>
+                    {p.name}
+                  </Text>
+                  <div style={{ flex: 1 }}>
+                    <ExpressionEditor
+                      valor={p.expression}
+                      escopo={escopo}
+                      aria-label={`expressão do parâmetro ${p.name}`}
+                      onCommit={(v) =>
+                        mudarElemento((el) => {
+                          const sub = el as Extract<Element, { kind: 'subreport' }>;
+                          return {
+                            ...sub,
+                            parameters: sub.parameters.map((x, j) => (j === i ? { ...x, expression: v } : x)),
+                          };
+                        })
+                      }
+                    />
+                  </div>
+                  <ActionIcon
+                    size="xs"
+                    variant="subtle"
+                    color="red"
+                    aria-label={`remover parâmetro ${p.name}`}
+                    onClick={() =>
+                      mudarElemento((el) => {
+                        const sub = el as Extract<Element, { kind: 'subreport' }>;
+                        return { ...sub, parameters: sub.parameters.filter((_, j) => j !== i) };
+                      })
+                    }
+                  >
+                    ×
+                  </ActionIcon>
+                </Group>
+              ))}
+              <Button
+                size="compact-xs"
+                variant="default"
+                onClick={() =>
+                  mudarElemento((el) => {
+                    const sub = el as Extract<Element, { kind: 'subreport' }>;
+                    return {
+                      ...sub,
+                      parameters: [...sub.parameters, { name: `param${sub.parameters.length + 1}`, expression: '""' }],
+                    };
+                  })
+                }
+              >
+                + parâmetro
+              </Button>
+            </Stack>
+          ),
+        },
       );
       break;
     case 'table':

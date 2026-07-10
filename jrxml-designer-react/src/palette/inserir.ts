@@ -46,6 +46,17 @@ export const PRESETS_DE_ELEMENTO: PresetDeElemento[] = [
     criar: () => ({ kind: 'image', bounds: { x: 5, y: 5, width: 80, height: 40 }, expression: '""', scaleImage: 'RetainShape' }),
   },
   {
+    grupo: 'básicos',
+    rotulo: 'Sub-relatório',
+    // Contrato do filho via parâmetros; datasource sobre coleção do contrato (ajuste no painel).
+    criar: () => ({
+      kind: 'subreport',
+      bounds: { x: 5, y: 5, width: 300, height: 30 },
+      templateExpression: '$P{sub_template}',
+      parameters: [],
+    }),
+  },
+  {
     grupo: 'barcode',
     rotulo: 'Code128',
     criar: () => ({
