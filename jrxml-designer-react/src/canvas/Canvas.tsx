@@ -100,7 +100,27 @@ export function Canvas() {
       <div style={{ paddingTop: MARGEM_EM_TORNO_DA_FOLHA }}>
         <Regua orientacao="vertical" comprimentoPt={pf.pageHeight} zoom={zoom} />
       </div>
-      <div style={{ padding: MARGEM_EM_TORNO_DA_FOLHA }}>
+      <div style={{ padding: MARGEM_EM_TORNO_DA_FOLHA, position: 'relative' }}>
+        {/* I-8 (5.1): o canvas é APROXIMAÇÃO e diz isso na cara. */}
+        <div
+          data-testid="rotulo-aproximacao"
+          style={{
+            position: 'sticky',
+            top: 4,
+            left: 4,
+            zIndex: 2,
+            display: 'inline-block',
+            fontSize: 10,
+            padding: '2px 8px',
+            borderRadius: 4,
+            background: 'var(--mantine-color-yellow-1)',
+            color: 'var(--mantine-color-yellow-9)',
+            border: '1px solid var(--mantine-color-yellow-4)',
+            marginBottom: 6,
+          }}
+        >
+          Aproximação — a verdade é o render Jasper
+        </div>
         <PaginaCanvas pageFormat={pf} zoom={zoom} mostrarGrid={mostrarGrid} passoGridMm={passoGridMm}>
           {faixasDeBandas(template).map((faixa) => (
             <BandaCanvas key={chaveDaBanda(faixa.caminho)} faixa={faixa} pageFormat={pf} zoom={zoom} />

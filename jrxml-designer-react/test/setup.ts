@@ -28,3 +28,10 @@ class ResizeObserverStub {
   disconnect() {}
 }
 window.ResizeObserver = window.ResizeObserver ?? ResizeObserverStub;
+
+// jsdom não implementa object URLs (preview usa p/ o PNG do render).
+if (typeof URL.createObjectURL !== 'function') {
+  let contador = 0;
+  URL.createObjectURL = () => `blob:mock-${contador++}`;
+  URL.revokeObjectURL = () => {};
+}

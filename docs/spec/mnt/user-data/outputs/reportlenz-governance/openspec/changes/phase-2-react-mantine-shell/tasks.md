@@ -23,8 +23,8 @@
 - [x] 4.2 Geração de `inputSchema` via core (ao vivo, memoizada pelo contrato); SEM Query Editor/JDBC/Query Preview (teste de ausência)
 
 ## 5. Preview
-- [ ] 5.1 Aproximação no canvas (rotulada)
-- [ ] 5.2 Botão "Renderizar (Jasper)" → `POST /render/preview`; PreviewPanel lado a lado
+- [x] 5.1 Aproximação no canvas (rotulada: "Aproximação — a verdade é o render Jasper")
+- [x] 5.2 Botão "Renderizar (Jasper)" → `POST /render/preview` (jrxml + sampleData gerado do contrato + inputSchema); PreviewPanel lado a lado com PNG paginado, 422 com violações e erro de indisponibilidade; render-service achata payload aninhado → chaves pontuadas (reconciliação schema↔fill)
 
 ## 6. ReportChecker
 - [ ] 6.1 Painel de problemas (validação XSD + contrato, mensagens do core)

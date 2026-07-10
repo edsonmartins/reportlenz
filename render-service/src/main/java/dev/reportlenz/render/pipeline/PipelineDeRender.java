@@ -68,8 +68,9 @@ public class PipelineDeRender {
         JasperReport report = cache.obterOuCompilar(jrxml, fonte ->
                 Observation.createNotStarted("render.compilacao", observacoes)
                         .observe(() -> compilador.compilar(fonte)));
-        Map<String, Object> parametros = parametrosDeclarados(report, payload);
-        JRDataSource datasource = new JRMapCollectionDataSource(List.of(payload));
+        Map<String, Object> registro = comChavesAchatadas(payload);
+        Map<String, Object> parametros = parametrosDeclarados(report, registro);
+        JRDataSource datasource = new JRMapCollectionDataSource(List.of(registro));
         try {
             return Observation.createNotStarted("render.fill", observacoes).observe(() -> {
                 try {
@@ -120,6 +121,33 @@ public class PipelineDeRender {
                         throw new FalhaDeRender("falha no export PNG: " + e.getMessage(), e);
                     }
                 });
+    }
+
+    /**
+     * Reconciliação schema ↔ fill: o `inputSchema` valida payload ANINHADO
+     * (`pedido: { numero }`), mas `$F{pedido.numero}` resolve por chave
+     * pontuada LITERAL. Além das entradas originais, materializa as folhas de
+     * objetos aninhados como chaves pontuadas (`pedido.numero`). Listas ficam
+     * intactas (coleções alimentam tabelas/subreports).
+     */
+    private Map<String, Object> comChavesAchatadas(Map<String, Object> payload) {
+        Map<String, Object> registro = new HashMap<>(payload);
+        achatar("", payload, registro);
+        return registro;
+    }
+
+    private void achatar(String prefixo, Map<String, Object> origem, Map<String, Object> destino) {
+        for (Map.Entry<String, Object> entrada : origem.entrySet()) {
+            String chave = prefixo.isEmpty() ? entrada.getKey() : prefixo + "." + entrada.getKey();
+            Object valor = entrada.getValue();
+            if (valor instanceof Map<?, ?> aninhado) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> mapa = (Map<String, Object>) aninhado;
+                achatar(chave, mapa, destino);
+            } else if (!prefixo.isEmpty()) {
+                destino.putIfAbsent(chave, valor);
+            }
+        }
     }
 
     /**

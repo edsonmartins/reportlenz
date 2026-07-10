@@ -100,6 +100,23 @@ class PipelineDeRenderTest {
     }
 
     @Test
+    void payloadAninhadoDoSchemaResolveCamposPontuados() throws Exception {
+        // Reconciliação schema ↔ fill (phase-2/5.2): o designer envia payload
+        // ANINHADO (validado pelo inputSchema); $F{cliente.nome} deve resolver.
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("titulo", "Comprovante 99");
+        payload.put("cliente", Map.of("nome", "Mercado da Vila"));
+        payload.put("itens", List.of(Map.of("descricao", "Farofa", "quantidade", 3)));
+
+        byte[] pdf = pipeline.renderizarPdf(COMPROVANTE_MINI, payload);
+        try (PDDocument doc = Loader.loadPDF(pdf)) {
+            String texto = new PDFTextStripper().getText(doc);
+            assertThat(texto).contains("Cliente: Mercado da Vila"); // $F{cliente.nome} via achatamento
+            assertThat(texto).contains("Farofa");
+        }
+    }
+
+    @Test
     void recusaQueryNoRelatorioPrincipal() {
         String pull = COMPROVANTE_MINI.replace(
                 "<parameter name=\"titulo\" class=\"java.lang.String\"/>",

@@ -7,6 +7,8 @@ import { ActionIcon, AppShell, Badge, Button, Divider, Group, Stack, Text, Title
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 import { Canvas } from './canvas/Canvas';
 import { DataContractPanel } from './contrato/DataContractPanel';
+import { PreviewPanel } from './preview/PreviewPanel';
+import { usePreviewStore } from './preview/previewStore';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
 import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
@@ -101,6 +103,21 @@ function BarraDoCanvas() {
         </Button>
       </Tooltip>
       <ComandosDeSelecao />
+      <div style={{ marginLeft: 'auto' }}>
+        <Tooltip label="Render REAL pelo engine JasperReports (a verdade; o canvas é aproximação)">
+          <Button
+            size="compact-xs"
+            color="green"
+            variant="light"
+            onClick={() => {
+              usePreviewStore.getState().abrir();
+              void usePreviewStore.getState().renderizar(0);
+            }}
+          >
+            Renderizar (Jasper)
+          </Button>
+        </Tooltip>
+      </div>
     </Group>
   );
 }
@@ -141,6 +158,7 @@ export function App() {
                 <Canvas />
               </div>
               <PainelDePropriedades />
+              <PreviewPanel />
             </div>
           </>
         ) : (
