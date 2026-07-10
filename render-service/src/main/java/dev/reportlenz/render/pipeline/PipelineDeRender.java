@@ -13,6 +13,8 @@ import javax.imageio.ImageIO;
 import org.springframework.stereotype.Component;
 
 import dev.reportlenz.render.pipeline.ErroDeRender.FalhaDeRender;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -49,19 +51,35 @@ public class PipelineDeRender {
 
     private final CompiladorJrxml compilador;
     private final CacheDeCompilacao cache;
+    private final ObservationRegistry observacoes;
 
-    public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache) {
+    public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache, ObservationRegistry observacoes) {
         this.compilador = compilador;
         this.cache = cache;
+        this.observacoes = observacoes;
     }
 
-    /** Compila (com cache) e preenche com o payload Push. */
+    /**
+     * Compila (com cache) e preenche com o payload Push. Observabilidade
+     * (RFC-003 §7): spans/métricas SEPARADOS por etapa — `render.compilacao`
+     * só quando compila de verdade (cache hit não conta), `render.fill` sempre.
+     */
     public JasperPrint preencher(String jrxml, Map<String, Object> payload) {
-        JasperReport report = cache.obterOuCompilar(jrxml, compilador::compilar);
+        JasperReport report = cache.obterOuCompilar(jrxml, fonte ->
+                Observation.createNotStarted("render.compilacao", observacoes)
+                        .observe(() -> compilador.compilar(fonte)));
         Map<String, Object> parametros = parametrosDeclarados(report, payload);
         JRDataSource datasource = new JRMapCollectionDataSource(List.of(payload));
         try {
-            return JasperFillManager.fillReport(report, parametros, datasource);
+            return Observation.createNotStarted("render.fill", observacoes).observe(() -> {
+                try {
+                    return JasperFillManager.fillReport(report, parametros, datasource);
+                } catch (Exception e) {
+                    throw new FalhaDeRender("falha no fill: " + e.getMessage(), e);
+                }
+            });
+        } catch (FalhaDeRender e) {
+            throw e;
         } catch (Exception e) {
             throw new FalhaDeRender("falha no fill: " + e.getMessage(), e);
         }
@@ -73,11 +91,15 @@ public class PipelineDeRender {
     }
 
     public byte[] exportarPdf(JasperPrint print) {
-        try {
-            return JasperExportManager.exportReportToPdf(print);
-        } catch (Exception e) {
-            throw new FalhaDeRender("falha no export PDF: " + e.getMessage(), e);
-        }
+        return Observation.createNotStarted("render.export", observacoes)
+                .lowCardinalityKeyValue("formato", "pdf")
+                .observe(() -> {
+                    try {
+                        return JasperExportManager.exportReportToPdf(print);
+                    } catch (Exception e) {
+                        throw new FalhaDeRender("falha no export PDF: " + e.getMessage(), e);
+                    }
+                });
     }
 
     /** Exporta UMA página como PNG (preview paginado do designer, RFC-003 §4). */
@@ -86,14 +108,18 @@ public class PipelineDeRender {
         if (pagina < 0 || pagina >= total) {
             throw new FalhaDeRender("página " + pagina + " inexistente (documento tem " + total + ")", null);
         }
-        try {
-            Image imagem = JasperPrintManager.printPageToImage(print, pagina, ZOOM_PREVIEW_PNG);
-            ByteArrayOutputStream saida = new ByteArrayOutputStream();
-            ImageIO.write((BufferedImage) imagem, "png", saida);
-            return saida.toByteArray();
-        } catch (Exception e) {
-            throw new FalhaDeRender("falha no export PNG: " + e.getMessage(), e);
-        }
+        return Observation.createNotStarted("render.export", observacoes)
+                .lowCardinalityKeyValue("formato", "png")
+                .observe(() -> {
+                    try {
+                        Image imagem = JasperPrintManager.printPageToImage(print, pagina, ZOOM_PREVIEW_PNG);
+                        ByteArrayOutputStream saida = new ByteArrayOutputStream();
+                        ImageIO.write((BufferedImage) imagem, "png", saida);
+                        return saida.toByteArray();
+                    } catch (Exception e) {
+                        throw new FalhaDeRender("falha no export PNG: " + e.getMessage(), e);
+                    }
+                });
     }
 
     /**

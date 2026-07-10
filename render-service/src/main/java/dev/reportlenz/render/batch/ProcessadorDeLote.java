@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import dev.reportlenz.render.pipeline.PipelineDeRender;
 import dev.reportlenz.render.pipeline.ValidadorDePayload;
 import dev.reportlenz.render.storage.ArmazenamentoDeSaida;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -37,18 +39,20 @@ public class ProcessadorDeLote implements SmartLifecycle {
     private final PipelineDeRender pipeline;
     private final ValidadorDePayload validador;
     private final ArmazenamentoDeSaida armazenamento;
+    private final ObservationRegistry observacoes;
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     private final AtomicBoolean rodando = new AtomicBoolean(false);
     private Thread trabalhador;
 
     public ProcessadorDeLote(FilaDeRender fila, RepositorioDeJobs repositorio, PipelineDeRender pipeline,
-            ValidadorDePayload validador, ArmazenamentoDeSaida armazenamento) {
+            ValidadorDePayload validador, ArmazenamentoDeSaida armazenamento, ObservationRegistry observacoes) {
         this.fila = fila;
         this.repositorio = repositorio;
         this.pipeline = pipeline;
         this.validador = validador;
         this.armazenamento = armazenamento;
+        this.observacoes = observacoes;
     }
 
     // ------------------------------------------------------------------ ciclo
@@ -92,6 +96,11 @@ public class ProcessadorDeLote implements SmartLifecycle {
     // -------------------------------------------------------------- processo
 
     void processar(String jobId) {
+        // Span do job inteiro; compile/fill/export têm spans próprios no pipeline.
+        Observation.createNotStarted("render.batch.job", observacoes).observe(() -> processarJob(jobId));
+    }
+
+    private void processarJob(String jobId) {
         var entrada = repositorio.carregarEntrada(jobId).orElse(null);
         if (entrada == null) {
             log.warn("[BATCH] jobId desconhecido na fila: {}", jobId);

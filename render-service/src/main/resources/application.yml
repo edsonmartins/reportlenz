@@ -21,6 +21,20 @@ spring:
 server:
   port: 8087
 
+management:
+  endpoints:
+    web:
+      exposure:
+        # /actuator/prometheus é o alvo de scrape do VictoriaMetrics (RFC-003 §7)
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING:1.0}
+  otlp:
+    tracing:
+      # Tempo (ou collector OTLP) — configurar na infra
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+
 reportlenz:
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}

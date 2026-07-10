@@ -15,3 +15,14 @@ reportlenz:
     provider: LOCAL
     local-path: target/test-saidas
     public-base-url: ""
+
+# Atenção: este arquivo FAZ SOMBRA ao application.yml principal nos testes
+# (mesmo nome no classpath — sem merge); replicar aqui o que os testes usam.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 0.0   # sem export de traces em teste

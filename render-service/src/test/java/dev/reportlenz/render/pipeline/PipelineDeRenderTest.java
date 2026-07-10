@@ -22,8 +22,8 @@ import dev.reportlenz.render.pipeline.ErroDeRender.PullProibido;
  */
 class PipelineDeRenderTest {
 
-    private final PipelineDeRender pipeline =
-            new PipelineDeRender(new CompiladorJrxml(), new CacheDeCompilacaoEmMemoria());
+    private final PipelineDeRender pipeline = new PipelineDeRender(
+            new CompiladorJrxml(), new CacheDeCompilacaoEmMemoria(), io.micrometer.observation.ObservationRegistry.NOOP);
 
     /** Comprovante-mini no dialeto 7, contract-first: sem query em lugar nenhum. */
     private static final String COMPROVANTE_MINI = """

@@ -27,7 +27,7 @@
 - [ ] 5.4 Saída para storage (S3/MinIO) + links — padrão MEDIASTORE implantado com provider LOCAL (decisão: arquivos primeiro); ramo MINIO pendente
 
 ## 6. Observabilidade
-- [ ] 6.1 OTel: spans compile/fill/export separados; métricas (VictoriaMetrics), traces (Tempo), logs (Loki)
+- [x] 6.1 OTel: spans compile/fill/export separados; métricas via /actuator/prometheus (scrape VictoriaMetrics), traces via bridge OTel→OTLP (endpoint por env → Tempo), logs no stdout (Loki/promtail é infra)
 
 ## 7. Aceite
 - [ ] 7.1 Critérios RFC-003 §8 e RFC-002 §7 verdes
