@@ -15,6 +15,8 @@ function BarraDoCanvas() {
   const definirZoom = useCanvasStore((s) => s.definirZoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
   const alternarGrid = useCanvasStore((s) => s.alternarGrid);
+  const snapAtivo = useCanvasStore((s) => s.snapAtivo);
+  const alternarSnap = useCanvasStore((s) => s.alternarSnap);
 
   return (
     <Group gap="xs" px="md" py={6} style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
@@ -34,6 +36,11 @@ function BarraDoCanvas() {
       <Tooltip label="Mostrar/ocultar grid (o snap usa o passo do grid)">
         <Button size="compact-xs" variant={mostrarGrid ? 'filled' : 'default'} onClick={alternarGrid}>
           Grid
+        </Button>
+      </Tooltip>
+      <Tooltip label="Snap: gruda em bordas/centros vizinhos e no grid (Alt ignora durante o arraste)">
+        <Button size="compact-xs" variant={snapAtivo ? 'filled' : 'default'} onClick={alternarSnap}>
+          Snap
         </Button>
       </Tooltip>
     </Group>

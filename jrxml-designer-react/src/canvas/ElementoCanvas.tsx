@@ -10,10 +10,16 @@ import type { Bounds, Element } from '@reportlenz/jrxml-core';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { useRef } from 'react';
 import type { CaminhoDeElemento } from '../store/documentoStore';
-import { useDocumentoStore } from '../store/documentoStore';
+import { obterBanda, useDocumentoStore } from '../store/documentoStore';
 import { atualizarBoundsDoElemento } from '../store/mutacoes';
 import { chaveDoCaminho } from '../store/documentoStore';
-import { ptParaPx, pxParaPt } from './geometria';
+import { useCanvasStore } from '../store/canvasStore';
+import { chaveDaBanda } from './bandas';
+import { mmParaPt, ptParaPx, pxParaPt } from './geometria';
+import { alvosDeSnap, aplicarSnap } from './snap';
+
+/** Tolerância de snap em px de tela (convertida para pt sob o zoom). */
+const TOLERANCIA_SNAP_PX = 4;
 
 type Direcao = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 type ModoDeArrasto = 'mover' | Direcao;
@@ -157,11 +163,34 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
     if (!a) return;
     const dxPt = pxParaPt(e.clientX - a.x0, zoom);
     const dyPt = pxParaPt(e.clientY - a.y0, zoom);
-    mutarTemplate(atualizarBoundsDoElemento(caminho, aplicarArrasto(a.modo, a.bounds0, dxPt, dyPt)));
+    let candidato = aplicarArrasto(a.modo, a.bounds0, dxPt, dyPt);
+
+    // Snapping (2.4): só no MOVER; Alt ignora pontualmente.
+    const { snapAtivo, mostrarGrid, passoGridMm, definirGuiasDeSnap } = useCanvasStore.getState();
+    if (a.modo === 'mover' && snapAtivo && !e.altKey) {
+      const template = useDocumentoStore.getState().template;
+      const banda = template ? obterBanda(template, caminho.banda) : undefined;
+      if (template && banda) {
+        const alvos = alvosDeSnap(banda, new Set([caminho.indice]), template.pageFormat.columnWidth);
+        const resultado = aplicarSnap(
+          candidato,
+          alvos,
+          pxParaPt(TOLERANCIA_SNAP_PX, zoom),
+          mostrarGrid ? mmParaPt(passoGridMm) : undefined,
+        );
+        candidato = resultado.bounds;
+        definirGuiasDeSnap({ banda: chaveDaBanda(caminho.banda), x: resultado.guiaX, y: resultado.guiaY });
+      }
+    } else if (a.modo === 'mover') {
+      definirGuiasDeSnap(null);
+    }
+
+    mutarTemplate(atualizarBoundsDoElemento(caminho, candidato));
   };
 
   const terminar = () => {
     arrasto.current = null;
+    useCanvasStore.getState().definirGuiasDeSnap(null);
   };
 
   const b = elemento.bounds;

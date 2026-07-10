@@ -6,6 +6,7 @@
  */
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useRef } from 'react';
+import { useCanvasStore } from '../store/canvasStore';
 import { useDocumentoStore } from '../store/documentoStore';
 import { redimensionarBanda } from '../store/mutacoes';
 import type { FaixaDeBanda } from './bandas';
@@ -94,6 +95,8 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
         />
       ))}
 
+      <GuiasDeSnapDaBanda chave={chaveDaBanda(faixa.caminho)} zoom={zoom} />
+
       <div
         data-testid={`resize-${chaveDaBanda(faixa.caminho)}`}
         role="separator"
@@ -112,5 +115,43 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
         }}
       />
     </div>
+  );
+}
+
+/** Linhas de guia do snap ativo (2.4) — desenhadas por cima dos elementos. */
+function GuiasDeSnapDaBanda({ chave, zoom }: { chave: string; zoom: number }) {
+  const guias = useCanvasStore((s) => s.guiasDeSnap);
+  if (!guias || guias.banda !== chave) return null;
+  return (
+    <>
+      {guias.x !== null && (
+        <div
+          data-testid="guia-snap-x"
+          style={{
+            position: 'absolute',
+            left: ptParaPx(guias.x, zoom),
+            top: 0,
+            bottom: 0,
+            width: 1,
+            background: 'var(--mantine-color-pink-6)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+      {guias.y !== null && (
+        <div
+          data-testid="guia-snap-y"
+          style={{
+            position: 'absolute',
+            top: ptParaPx(guias.y, zoom),
+            left: 0,
+            right: 0,
+            height: 1,
+            background: 'var(--mantine-color-pink-6)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+    </>
   );
 }
