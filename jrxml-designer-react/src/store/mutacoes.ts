@@ -3,7 +3,7 @@
  * `ReportTemplate → ReportTemplate` para usar com `mutarTemplate` — cada uma
  * passa automaticamente pela validação contínua (1.2).
  */
-import type { Band, Bounds, Element, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { Band, Bounds, Element, ReportTemplate, StyleProps } from '@reportlenz/jrxml-core';
 import { alturaMinimaDaBanda, chaveDaBanda } from '../canvas/bandas';
 import type { CaminhoDeBanda, CaminhoDeElemento } from './documentoStore';
 
@@ -97,6 +97,32 @@ export function atualizarBoundsDoElemento(caminho: CaminhoDeElemento, bounds: Bo
       return { ...banda, elements };
     });
   };
+}
+
+/**
+ * Sobrescrita local de estilo (painel de propriedades, 3.2): `undefined`
+ * REMOVE a sobrescrita (volta a herdar); style vazio some do elemento.
+ */
+export function definirEstiloDoElemento<K extends keyof StyleProps>(
+  caminho: CaminhoDeElemento,
+  prop: K,
+  valor: StyleProps[K] | undefined,
+) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comElemento(template, caminho, (el) => {
+      const style: StyleProps = { ...el.style };
+      if (valor === undefined) {
+        delete style[prop];
+      } else {
+        style[prop] = valor;
+      }
+      if (Object.keys(style).length === 0) {
+        const copia = { ...el };
+        delete copia.style;
+        return copia;
+      }
+      return { ...el, style };
+    });
 }
 
 /** Agrupa caminhos por banda (para comandos multi-elemento). */

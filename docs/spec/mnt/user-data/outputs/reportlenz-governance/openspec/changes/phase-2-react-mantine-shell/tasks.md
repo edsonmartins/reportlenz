@@ -14,9 +14,9 @@
 - [x] 2.7 Undo/redo com histórico (snapshots imutáveis, limite 100; arrastes coalescem por gesto; Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y + botões)
 
 ## 3. Painel de propriedades
-- [ ] 3.1 Todos os atributos JR do elemento
-- [ ] 3.2 Herança visual (cinza-claro herdado / preto sobrescrito)
-- [ ] 3.3 Filtro por nome
+- [x] 3.1 Todos os atributos JR do elemento (bounds, aparência, específicos por kind, styleRef, printWhen)
+- [x] 3.2 Herança visual (cinza-claro herdado / preto sobrescrito; × volta a herdar; cadeia local → styleRef → parent → default → engine)
+- [x] 3.3 Filtro por nome (busca sem acento)
 
 ## 4. DataContractPanel (contract-first)
 - [ ] 4.1 Declaração de fields/params/vars (escalar, objeto, array)

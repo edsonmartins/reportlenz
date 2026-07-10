@@ -6,6 +6,7 @@
 import { ActionIcon, AppShell, Badge, Button, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 import { Canvas } from './canvas/Canvas';
+import { PainelDePropriedades } from './props/PainelDePropriedades';
 import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
 import { bandaComum } from './store/mutacoes';
@@ -133,8 +134,11 @@ export function App() {
         {template ? (
           <>
             <BarraDoCanvas />
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <Canvas />
+            <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Canvas />
+              </div>
+              <PainelDePropriedades />
             </div>
           </>
         ) : (
