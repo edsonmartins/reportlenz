@@ -10,7 +10,7 @@
 - [x] 2.3 Elementos selecionáveis/movíveis/resizable (8 handles; clamp na banda; Shift = seleção aditiva; aproximação visual por kind)
 - [x] 2.4 Snapping com guias de alinhamento (bordas/centros vizinhos + bordas da banda; prioridade sobre o grid; Alt ignora; toggle na toolbar)
 - [x] 2.5 Multi-seleção; alinhar/distribuir; z-order (mesma banda; z-order = ordem de pintura do JRXML, seleção acompanha os novos índices)
-- [ ] 2.6 Nudge (setas/Shift), copy/paste, delete
+- [x] 2.6 Nudge (setas 1pt/Shift 10pt), copy/paste (clipboard interno; colar re-seleciona e desloca +5pt acumulativo), delete
 - [ ] 2.7 Undo/redo com histórico
 
 ## 3. Painel de propriedades

@@ -3,6 +3,7 @@
  * eixos + folha rolável. As bandas (2.2) e elementos (2.3) entram como filhos
  * da PaginaCanvas.
  */
+import { useEffect } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
 import { useCanvasStore } from '../store/canvasStore';
 import { ESPESSURA_REGUA, Regua } from './Regua';
@@ -12,7 +13,57 @@ import { chaveDaBanda, faixasDeBandas } from './bandas';
 
 const MARGEM_EM_TORNO_DA_FOLHA = 24;
 
+/** Passos do nudge (RFC-004 §3: setas 1pt; Shift 10pt). */
+const NUDGE_PT = 1;
+const NUDGE_SHIFT_PT = 10;
+
+/** Atalhos de teclado do canvas (2.6): nudge, delete, copy/paste. */
+function useTecladoDoCanvas() {
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent) => {
+      const alvo = e.target as HTMLElement | null;
+      if (alvo && (['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName) || alvo.isContentEditable)) {
+        return; // digitação em campos não mexe no canvas
+      }
+      const s = useDocumentoStore.getState();
+      if (!s.template) return;
+
+      const passo = e.shiftKey ? NUDGE_SHIFT_PT : NUDGE_PT;
+      const temSelecao = s.selecao.length > 0;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          if (temSelecao) { e.preventDefault(); s.moverSelecao(-passo, 0); }
+          return;
+        case 'ArrowRight':
+          if (temSelecao) { e.preventDefault(); s.moverSelecao(passo, 0); }
+          return;
+        case 'ArrowUp':
+          if (temSelecao) { e.preventDefault(); s.moverSelecao(0, -passo); }
+          return;
+        case 'ArrowDown':
+          if (temSelecao) { e.preventDefault(); s.moverSelecao(0, passo); }
+          return;
+        case 'Delete':
+        case 'Backspace':
+          if (temSelecao) { e.preventDefault(); s.removerSelecao(); }
+          return;
+        default:
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && temSelecao) {
+            s.copiarSelecao();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+            e.preventDefault();
+            s.colarClipboard();
+          }
+      }
+    };
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
+  }, []);
+}
+
 export function Canvas() {
+  useTecladoDoCanvas();
   const template = useDocumentoStore((s) => s.template);
   const zoom = useCanvasStore((s) => s.zoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);

@@ -70,10 +70,21 @@ function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
 }
 
+/** Prende bounds dentro da banda (largura da coluna × altura da banda; mínimo 1pt). */
+function clampNaBanda(bounds: Bounds, banda: Band, larguraBandaPt: number): Bounds {
+  const width = clamp(Math.round(bounds.width), 1, larguraBandaPt);
+  const height = clamp(Math.round(bounds.height), 1, Math.max(1, banda.height));
+  return {
+    width,
+    height,
+    x: clamp(Math.round(bounds.x), 0, Math.max(0, larguraBandaPt - width)),
+    y: clamp(Math.round(bounds.y), 0, Math.max(0, banda.height - height)),
+  };
+}
+
 /**
  * Move/redimensiona um elemento (2.3), CLAMPEADO dentro da banda: o engine
  * recusa elemento fora dos limites (largura da coluna × altura da banda).
- * Tamanho mínimo 1pt.
  */
 export function atualizarBoundsDoElemento(caminho: CaminhoDeElemento, bounds: Bounds) {
   return (template: ReportTemplate): ReportTemplate => {
@@ -81,21 +92,90 @@ export function atualizarBoundsDoElemento(caminho: CaminhoDeElemento, bounds: Bo
     return comBanda(template, caminho.banda, (banda) => {
       const elemento = banda.elements[caminho.indice];
       if (!elemento) return banda;
-
-      const width = clamp(Math.round(bounds.width), 1, larguraBanda);
-      const height = clamp(Math.round(bounds.height), 1, Math.max(1, banda.height));
-      const ajustado: Bounds = {
-        width,
-        height,
-        x: clamp(Math.round(bounds.x), 0, Math.max(0, larguraBanda - width)),
-        y: clamp(Math.round(bounds.y), 0, Math.max(0, banda.height - height)),
-      };
-
       const elements = banda.elements.slice();
-      elements[caminho.indice] = { ...elemento, bounds: ajustado };
+      elements[caminho.indice] = { ...elemento, bounds: clampNaBanda(bounds, banda, larguraBanda) };
       return { ...banda, elements };
     });
   };
+}
+
+/** Agrupa caminhos por banda (para comandos multi-elemento). */
+function agruparPorBanda(caminhos: CaminhoDeElemento[]): Array<{ banda: CaminhoDeBanda; indices: number[] }> {
+  const grupos = new Map<string, { banda: CaminhoDeBanda; indices: number[] }>();
+  for (const c of caminhos) {
+    const chave = chaveDaBanda(c.banda);
+    const grupo = grupos.get(chave) ?? { banda: c.banda, indices: [] };
+    grupo.indices.push(c.indice);
+    grupos.set(chave, grupo);
+  }
+  return [...grupos.values()];
+}
+
+/** Nudge por teclado (2.6): desloca a seleção em pt, com clamp por banda. */
+export function nudgeElementos(caminhos: CaminhoDeElemento[], dxPt: number, dyPt: number) {
+  return (template: ReportTemplate): ReportTemplate => {
+    let atual = template;
+    for (const grupo of agruparPorBanda(caminhos)) {
+      atual = comBanda(atual, grupo.banda, (banda) => {
+        const elements = banda.elements.slice();
+        for (const i of grupo.indices) {
+          const el = elements[i];
+          if (!el) continue;
+          elements[i] = {
+            ...el,
+            bounds: clampNaBanda(
+              { ...el.bounds, x: el.bounds.x + dxPt, y: el.bounds.y + dyPt },
+              banda,
+              atual.pageFormat.columnWidth,
+            ),
+          };
+        }
+        return { ...banda, elements };
+      });
+    }
+    return atual;
+  };
+}
+
+/** Delete (2.6): remove os elementos selecionados. */
+export function removerElementos(caminhos: CaminhoDeElemento[]) {
+  return (template: ReportTemplate): ReportTemplate => {
+    let atual = template;
+    for (const grupo of agruparPorBanda(caminhos)) {
+      const indices = new Set(grupo.indices);
+      atual = comBanda(atual, grupo.banda, (banda) => ({
+        ...banda,
+        elements: banda.elements.filter((_, i) => !indices.has(i)),
+      }));
+    }
+    return atual;
+  };
+}
+
+/**
+ * Paste (2.6): insere cópias na banda de ORIGEM com deslocamento, e devolve a
+ * nova seleção (os elementos colados, no fim = na frente da pintura).
+ */
+export function colarElementos(
+  template: ReportTemplate,
+  banda: CaminhoDeBanda,
+  elementos: Element[],
+  deslocamentoPt: number,
+): { template: ReportTemplate; selecao: CaminhoDeElemento[] } {
+  let selecao: CaminhoDeElemento[] = [];
+  const novoTemplate = comBanda(template, banda, (b) => {
+    const copias = elementos.map((el) => ({
+      ...structuredClone(el),
+      bounds: clampNaBanda(
+        { ...el.bounds, x: el.bounds.x + deslocamentoPt, y: el.bounds.y + deslocamentoPt },
+        b,
+        template.pageFormat.columnWidth,
+      ),
+    }));
+    selecao = copias.map((_, k) => ({ banda, indice: b.elements.length + k }));
+    return { ...b, elements: [...b.elements, ...copias] };
+  });
+  return { template: novoTemplate, selecao };
 }
 
 // ---------------------------------------------------------------------------

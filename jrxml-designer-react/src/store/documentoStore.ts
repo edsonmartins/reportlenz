@@ -10,11 +10,18 @@
  * o modelo do core não tem ids de runtime, e caminhos sobrevivem a
  * serialize/parse.
  */
-import type { Band, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { Band, Element, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
 import type { Alinhamento } from './mutacoes';
-import { alinharElementos, aplicarZOrder, distribuirElementos } from './mutacoes';
+import {
+  alinharElementos,
+  aplicarZOrder,
+  colarElementos,
+  distribuirElementos,
+  nudgeElementos,
+  removerElementos,
+} from './mutacoes';
 
 // ---------------------------------------------------------------------------
 // Caminhos (seleção estável sem ids de runtime)
@@ -43,11 +50,12 @@ export function mesmoCaminho(a: CaminhoDeElemento, b: CaminhoDeElemento): boolea
   return chaveDoCaminho(a) === chaveDoCaminho(b);
 }
 
+export function chaveDeBanda(b: CaminhoDeBanda): string {
+  return b.tipo === 'secao' ? b.secao : b.tipo === 'detail' ? `detail[${b.indice}]` : `grupo:${b.nome}:${b.parte}`;
+}
+
 export function chaveDoCaminho(c: CaminhoDeElemento): string {
-  const b = c.banda;
-  const banda =
-    b.tipo === 'secao' ? b.secao : b.tipo === 'detail' ? `detail[${b.indice}]` : `grupo:${b.nome}:${b.parte}`;
-  return `${banda}/${c.indice}`;
+  return `${chaveDeBanda(c.banda)}/${c.indice}`;
 }
 
 /** Resolve o caminho de banda dentro do template (undefined se não existe). */
@@ -118,6 +126,13 @@ export interface DocumentoState {
   alinharSelecao: (alinhamento: Alinhamento) => void;
   distribuirSelecao: (eixo: 'horizontal' | 'vertical') => void;
   zOrderSelecao: (direcao: 'frente' | 'tras') => void;
+
+  // Teclado e clipboard (2.6). Clipboard é INTERNO, em memória (sem browser storage).
+  clipboard: { elementos: Element[]; banda: CaminhoDeBanda; colagens: number } | null;
+  moverSelecao: (dxPt: number, dyPt: number) => void;
+  removerSelecao: () => void;
+  copiarSelecao: () => void;
+  colarClipboard: () => void;
 }
 
 export const useDocumentoStore = create<DocumentoState>((set, get) => ({
@@ -176,6 +191,48 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
       template: resultado.template,
       problemas: validarDocumento(resultado.template),
       selecao: resultado.selecao,
+    });
+  },
+
+  clipboard: null,
+
+  moverSelecao: (dxPt, dyPt) => {
+    get().mutarTemplate(nudgeElementos(get().selecao, dxPt, dyPt));
+  },
+
+  removerSelecao: () => {
+    const { selecao } = get();
+    if (selecao.length === 0) return;
+    get().mutarTemplate(removerElementos(selecao));
+    set({ selecao: [] });
+  },
+
+  copiarSelecao: () => {
+    const { template, selecao } = get();
+    if (!template || selecao.length === 0) return;
+    const banda = selecao[0]?.banda;
+    if (!banda) return;
+    // Copia os elementos da primeira banda da seleção (paste previsível na origem).
+    const elementos = selecao
+      .filter((c) => chaveDeBanda(c.banda) === chaveDeBanda(banda))
+      .map((c) => obterBanda(template, c.banda)?.elements[c.indice])
+      .filter((el): el is Element => el !== undefined)
+      .map((el) => structuredClone(el));
+    if (elementos.length > 0) {
+      set({ clipboard: { elementos, banda, colagens: 0 } });
+    }
+  },
+
+  colarClipboard: () => {
+    const { template, clipboard } = get();
+    if (!template || !clipboard) return;
+    const deslocamento = 5 * (clipboard.colagens + 1);
+    const resultado = colarElementos(template, clipboard.banda, clipboard.elementos, deslocamento);
+    set({
+      template: resultado.template,
+      problemas: validarDocumento(resultado.template),
+      selecao: resultado.selecao,
+      clipboard: { ...clipboard, colagens: clipboard.colagens + 1 },
     });
   },
 }));
