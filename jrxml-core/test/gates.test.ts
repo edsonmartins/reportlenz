@@ -8,6 +8,9 @@ import type { ReportTemplate } from '../src/model/report.js';
  * todos verdes; cada gate acusa com o código/mensagem da tabela da RFC.
  */
 
+/** Clone JSON-safe (o eslint headless do core não conhece structuredClone). */
+const clonar = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+
 describe('jrxml-core · gates de publish G1–G6 (phase-4/4.1-4.3)', () => {
   it('template de referência passa nos seis gates (verde para publicar)', () => {
     const r = avaliarGates(REFERENCIA_FATURA);
@@ -21,7 +24,7 @@ describe('jrxml-core · gates de publish G1–G6 (phase-4/4.1-4.3)', () => {
   });
 
   it('G3 vermelho: expressão fora do contrato bloqueia (EXPR_UNKNOWN_REF)', () => {
-    const t: ReportTemplate = structuredClone(REFERENCIA_FATURA);
+    const t: ReportTemplate = clonar(REFERENCIA_FATURA);
     t.bands.title!.elements.push({
       kind: 'textField',
       bounds: { x: 0, y: 40, width: 100, height: 12 },
@@ -37,7 +40,7 @@ describe('jrxml-core · gates de publish G1–G6 (phase-4/4.1-4.3)', () => {
   });
 
   it('G5 vermelho: contrato vazio = CONTRACT_MISSING (nada de publicar sem contrato)', () => {
-    const t: ReportTemplate = structuredClone(REFERENCIA_FATURA);
+    const t: ReportTemplate = clonar(REFERENCIA_FATURA);
     t.dataContract = { fields: [], parameters: [], variables: [] };
     // Zera bindings para isolar o G5 (sem G3 junto).
     t.bands = { detail: [], groups: [] };
@@ -53,7 +56,7 @@ describe('jrxml-core · gates de publish G1–G6 (phase-4/4.1-4.3)', () => {
     const base = avaliarGates(REFERENCIA_FATURA);
     expect(avaliarGates(REFERENCIA_FATURA, { hashEsperado: base.jrxmlHash }).verde).toBe(true);
 
-    const mudado: ReportTemplate = structuredClone(REFERENCIA_FATURA);
+    const mudado: ReportTemplate = clonar(REFERENCIA_FATURA);
     mudado.bands.title!.height += 1;
     const r = avaliarGates(mudado, { hashEsperado: base.jrxmlHash });
     const g6 = r.gates.find((g) => g.gate === 'G6')!;
@@ -63,7 +66,7 @@ describe('jrxml-core · gates de publish G1–G6 (phase-4/4.1-4.3)', () => {
   });
 
   it('G1 vermelho: modelo que o serializer recusa não passa (aproximação estrutural)', () => {
-    const t: ReportTemplate = structuredClone(REFERENCIA_FATURA);
+    const t: ReportTemplate = clonar(REFERENCIA_FATURA);
     (t.bands.title!.elements[0] as { kind: string }).kind = 'inexistente';
     const r = avaliarGates(t);
     const g1 = r.gates.find((g) => g.gate === 'G1')!;
