@@ -7,5 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
     setupFiles: ['test/setup.ts'],
+    // O app completo (3 painéis) em jsdom é pesado; folga p/ máquinas de CI.
+    testTimeout: 15000,
   },
 });

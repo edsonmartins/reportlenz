@@ -6,6 +6,7 @@
 import { ActionIcon, AppShell, Badge, Button, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 import { Canvas } from './canvas/Canvas';
+import { DataContractPanel } from './contrato/DataContractPanel';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
 import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
@@ -135,6 +136,7 @@ export function App() {
           <>
             <BarraDoCanvas />
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+              <DataContractPanel />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Canvas />
               </div>

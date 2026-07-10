@@ -3,7 +3,7 @@
  * `ReportTemplate → ReportTemplate` para usar com `mutarTemplate` — cada uma
  * passa automaticamente pela validação contínua (1.2).
  */
-import type { Band, Bounds, Element, ReportTemplate, StyleProps } from '@reportlenz/jrxml-core';
+import type { Band, Bounds, DataContract, Element, ReportTemplate, StyleProps } from '@reportlenz/jrxml-core';
 import { alturaMinimaDaBanda, chaveDaBanda } from '../canvas/bandas';
 import type { CaminhoDeBanda, CaminhoDeElemento } from './documentoStore';
 
@@ -97,6 +97,15 @@ export function atualizarBoundsDoElemento(caminho: CaminhoDeElemento, bounds: Bo
       return { ...banda, elements };
     });
   };
+}
+
+/**
+ * Mutação do contrato de dados (DataContractPanel, bloco 4). O contrato é a
+ * ÚNICA fonte de dados do template (ADR-003) — não existe, por construção,
+ * mutação que anexe query/conexão.
+ */
+export function comContrato(template: ReportTemplate, atualizar: (contrato: DataContract) => DataContract): ReportTemplate {
+  return { ...template, dataContract: atualizar(template.dataContract) };
 }
 
 /**

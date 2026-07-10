@@ -19,8 +19,8 @@
 - [x] 3.3 Filtro por nome (busca sem acento)
 
 ## 4. DataContractPanel (contract-first)
-- [ ] 4.1 Declaração de fields/params/vars (escalar, objeto, array)
-- [ ] 4.2 Geração de `inputSchema` via core; SEM Query Editor/JDBC/Query Preview
+- [x] 4.1 Declaração de fields/params/vars (escalar, objeto via nomes pontuados, coleção com itemFields aninhados)
+- [x] 4.2 Geração de `inputSchema` via core (ao vivo, memoizada pelo contrato); SEM Query Editor/JDBC/Query Preview (teste de ausência)
 
 ## 5. Preview
 - [ ] 5.1 Aproximação no canvas (rotulada)
