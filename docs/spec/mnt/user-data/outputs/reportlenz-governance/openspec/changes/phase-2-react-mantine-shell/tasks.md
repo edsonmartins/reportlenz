@@ -27,7 +27,7 @@
 - [x] 5.2 Botão "Renderizar (Jasper)" → `POST /render/preview` (jrxml + sampleData gerado do contrato + inputSchema); PreviewPanel lado a lado com PNG paginado, 422 com violações e erro de indisponibilidade; render-service achata payload aninhado → chaves pontuadas (reconciliação schema↔fill)
 
 ## 6. ReportChecker
-- [ ] 6.1 Painel de problemas (validação XSD + contrato, mensagens do core)
+- [x] 6.1 Painel de problemas (mensagens do core com código/mensagem/caminho; clique navega até o elemento; recolhível)
 
 ## 7. UX
 - [ ] 7.1 Tooltips de auto-explicação nos controles
