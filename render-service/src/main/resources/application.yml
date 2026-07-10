@@ -39,7 +39,15 @@ reportlenz:
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
   storage:
-    # Padrão MEDIASTORE (integrall-commerce-api): LOCAL agora, MINIO na tarefa 5.4
+    # Padrão MEDIASTORE (integrall-commerce-api): LOCAL (default) ou MINIO
     provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}
     local-path: ${REPORTLENZ_STORAGE_LOCAL_PATH:data/saidas}
     public-base-url: ${REPORTLENZ_STORAGE_PUBLIC_URL:}
+    minio:
+      # Infra do usuário (ex.: MINIO_ENDPOINT=https://192.168.1.110:9000)
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      access-key: ${MINIO_ACCESS_KEY:}
+      secret-key: ${MINIO_SECRET_KEY:}
+      bucket: ${MINIO_BUCKET:reportlenz-saidas}
+      region: ${MINIO_REGION:us-east-1}
+      insecure-tls: ${MINIO_INSECURE_TLS:false}

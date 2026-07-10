@@ -28,6 +28,8 @@ public class ArmazenamentoProperties {
         private String secretKey = "";
         private String bucket = "reportlenz-saidas";
         private String region = "us-east-1";
+        /** Aceita certificado TLS inválido (MinIO self-signed na rede interna). */
+        private boolean insecureTls = false;
 
         public String getEndpoint() { return endpoint; }
         public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
@@ -39,6 +41,8 @@ public class ArmazenamentoProperties {
         public void setBucket(String bucket) { this.bucket = bucket; }
         public String getRegion() { return region; }
         public void setRegion(String region) { this.region = region; }
+        public boolean isInsecureTls() { return insecureTls; }
+        public void setInsecureTls(boolean insecureTls) { this.insecureTls = insecureTls; }
     }
 
     public Provider getProvider() { return provider; }

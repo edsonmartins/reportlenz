@@ -24,7 +24,7 @@
 - [x] 5.1 `POST /render/batch` (async) + fila Redis + worker idempotente (lote: UNIQUE idempotency_key em SQLite; item: PK job_id+idx)
 - [x] 5.2 Compile único + fill N (cache sha256 do pipeline; verificado com spy)
 - [x] 5.3 `GET /render/batch/{jobId}` (status + outputs + erros por item)
-- [ ] 5.4 Saída para storage (S3/MinIO) + links — padrão MEDIASTORE implantado com provider LOCAL (decisão: arquivos primeiro); ramo MINIO pendente
+- [x] 5.4 Saída para storage (S3/MinIO) + links — padrão MEDIASTORE completo: LOCAL + MINIO (SDK v2, path-style, bucket auto-criado, insecure-tls p/ self-signed, fallback LOCAL); validado contra o MinIO real da infra (bucket reportlenz-saidas criado)
 
 ## 6. Observabilidade
 - [x] 6.1 OTel: spans compile/fill/export separados; métricas via /actuator/prometheus (scrape VictoriaMetrics), traces via bridge OTel→OTLP (endpoint por env → Tempo), logs no stdout (Loki/promtail é infra)

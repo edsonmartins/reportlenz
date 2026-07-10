@@ -154,6 +154,17 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Storage MinIO/S3 (tarefa 5.4, padrão MEDIASTORE) — SDK v2, path-style -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>2.47.4</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>apache-client</artifactId>
+      <version>2.47.4</version>
+    </dependency>
   </dependencies>
 
   <build>
