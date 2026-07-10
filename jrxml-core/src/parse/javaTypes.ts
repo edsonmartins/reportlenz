@@ -40,7 +40,14 @@ export function fieldTypeFromJavaClass(javaClass: string): FieldType | undefined
   return scalarTypeFromJavaClass(javaClass);
 }
 
-/** Inverso (serializer, tarefa 5.x): tipo do contrato → classe Java canônica. */
+/**
+ * Inverso (serializer, tarefa 5.x): tipo do contrato → classe Java canônica.
+ *
+ * Datas são `java.sql.Date`/`java.sql.Timestamp` (e NÃO `java.time.*`):
+ * o `getFormat` do fill da Library 7.0.7 só aplica `pattern` a
+ * `java.util.Date` e `Number` — um field `LocalDate` renderiza `toString()`
+ * ISO ignorando o pattern (achado do aceite da Fase 3, nota-007).
+ */
 export function javaClassFromScalarType(type: ScalarType): string {
   switch (type) {
     case 'string':
@@ -52,8 +59,8 @@ export function javaClassFromScalarType(type: ScalarType): string {
     case 'boolean':
       return 'java.lang.Boolean';
     case 'date':
-      return 'java.time.LocalDate';
+      return 'java.sql.Date';
     case 'datetime':
-      return 'java.time.LocalDateTime';
+      return 'java.sql.Timestamp';
   }
 }

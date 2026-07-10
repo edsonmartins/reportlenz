@@ -35,5 +35,5 @@
 - [x] 8.2 Mescla de mini-contrato do bloco ao contrato do template (conflito de nomes: compatível reaproveita; incompatível renomeia com sufixo e reescreve as expressões do bloco)
 
 ## 9. Aceite
-- [ ] 9.1 Critérios RFC-004 §10 (features pro) verdes
-- [ ] 9.2 Fatura/comprovante/etiqueta A4 de referência produzidos com qualidade
+- [x] 9.1 Critérios RFC-004 §10 (features pro) verdes — mapa de evidências na nota 007
+- [x] 9.2 Fatura/comprovante/etiqueta A4 de referência produzidos com qualidade — render real 4/4 (ReferenciasDeQualidadeTest + inspeção visual; correções: coerção de payload, java.sql.Date p/ pattern, total contract-first na fatura)

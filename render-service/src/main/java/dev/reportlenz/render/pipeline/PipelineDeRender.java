@@ -68,7 +68,10 @@ public class PipelineDeRender {
         JasperReport report = cache.obterOuCompilar(jrxml, fonte ->
                 Observation.createNotStarted("render.compilacao", observacoes)
                         .observe(() -> compilador.compilar(fonte)));
-        Map<String, Object> registro = comChavesAchatadas(payload);
+        // Coerção JSON → classes declaradas (Double→BigDecimal, String→LocalDate…)
+        // no registro-mestre E nos itens de coleção (datasets de tabela). Aceite 9.2.
+        Map<String, Object> registro = CoercaoDePayload.coagirRegistro(
+                comChavesAchatadas(payload), CoercaoDePayload.classesDeclaradas(report));
         Map<String, Object> parametros = parametrosDeclarados(report, registro);
         JRDataSource datasource = new JRMapCollectionDataSource(List.of(registro));
         try {

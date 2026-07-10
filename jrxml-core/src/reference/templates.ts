@@ -52,6 +52,9 @@ export const REFERENCIA_FATURA: ReportTemplate = {
         ],
       },
       { name: 'entregas', type: 'collection' },
+      // Contract-first: o total vem CALCULADO a montante (Push) — dentro do
+      // dataset da tabela não há como somar campos do registro-mestre.
+      { name: 'total', type: 'decimal', description: 'Total geral da fatura (calculado a montante)' },
     ],
     parameters: [
       { name: 'logo_url', type: 'string' },
@@ -143,7 +146,14 @@ export const REFERENCIA_FATURA: ReportTemplate = {
                 },
                 footer: {
                   height: 18,
-                  elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 200, height: 18 }, text: 'Total' }],
+                  elements: [
+                    {
+                      kind: 'staticText',
+                      bounds: { x: 0, y: 0, width: 200, height: 18 },
+                      text: '(total geral no resumo)',
+                      style: { fontSize: 7, italic: true },
+                    },
+                  ],
                 },
               },
             ],
@@ -172,10 +182,10 @@ export const REFERENCIA_FATURA: ReportTemplate = {
       elements: [
         {
           kind: 'frame',
-          bounds: { x: 300, y: 0, width: 255, height: 30 },
+          bounds: { x: 300, y: 20, width: 255, height: 18 },
           elements: [
-            { kind: 'staticText', bounds: { x: 0, y: 0, width: 80, height: 20 }, text: 'Registros:' },
-            { kind: 'textField', bounds: { x: 80, y: 0, width: 175, height: 20 }, expression: '$V{total_registros}', pattern: '#,##0' },
+            { kind: 'staticText', bounds: { x: 0, y: 0, width: 80, height: 18 }, text: 'Registros:' },
+            { kind: 'textField', bounds: { x: 80, y: 0, width: 175, height: 18 }, expression: '$V{total_registros}', pattern: '#,##0' },
           ],
         },
         {
@@ -185,6 +195,22 @@ export const REFERENCIA_FATURA: ReportTemplate = {
           dataSourceExpression: 'new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{entregas})',
           parameters: [{ name: 'cliente', expression: '$F{cliente_nome}' }],
           printWhenExpression: '$F{entregas} != null',
+        },
+        // Total geral contract-first ($F{total}, calculado a montante) — por
+        // último no array para preservar índices/caminhos históricos.
+        {
+          kind: 'staticText',
+          bounds: { x: 300, y: 0, width: 80, height: 18 },
+          text: 'Total geral',
+          style: { bold: true },
+        },
+        {
+          kind: 'textField',
+          bounds: { x: 380, y: 0, width: 175, height: 18 },
+          expression: '$F{total}',
+          pattern: '¤ #,##0.00',
+          blankWhenNull: true,
+          style: { bold: true, hAlign: 'Right' },
         },
       ],
     },
