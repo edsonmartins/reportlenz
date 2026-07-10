@@ -9,7 +9,7 @@
 - [x] 2.2 Bandas (title..summary, groups) com resize de altura (ordem de design view; clamp no rodapé do elemento mais baixo)
 - [x] 2.3 Elementos selecionáveis/movíveis/resizable (8 handles; clamp na banda; Shift = seleção aditiva; aproximação visual por kind)
 - [x] 2.4 Snapping com guias de alinhamento (bordas/centros vizinhos + bordas da banda; prioridade sobre o grid; Alt ignora; toggle na toolbar)
-- [ ] 2.5 Multi-seleção; alinhar/distribuir; z-order
+- [x] 2.5 Multi-seleção; alinhar/distribuir; z-order (mesma banda; z-order = ordem de pintura do JRXML, seleção acompanha os novos índices)
 - [ ] 2.6 Nudge (setas/Shift), copy/paste, delete
 - [ ] 2.7 Undo/redo com histórico
 

@@ -13,6 +13,8 @@
 import type { Band, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
+import type { Alinhamento } from './mutacoes';
+import { alinharElementos, aplicarZOrder, distribuirElementos } from './mutacoes';
 
 // ---------------------------------------------------------------------------
 // Caminhos (seleção estável sem ids de runtime)
@@ -111,6 +113,11 @@ export interface DocumentoState {
   mutarTemplate: (mutacao: (t: ReportTemplate) => ReportTemplate) => void;
   selecionar: (caminho: CaminhoDeElemento, aditivo?: boolean) => void;
   limparSelecao: () => void;
+
+  // Comandos de multi-seleção (2.5) — exigem seleção numa mesma banda.
+  alinharSelecao: (alinhamento: Alinhamento) => void;
+  distribuirSelecao: (eixo: 'horizontal' | 'vertical') => void;
+  zOrderSelecao: (direcao: 'frente' | 'tras') => void;
 }
 
 export const useDocumentoStore = create<DocumentoState>((set, get) => ({
@@ -151,5 +158,24 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
 
   limparSelecao: () => {
     set({ selecao: [] });
+  },
+
+  alinharSelecao: (alinhamento) => {
+    get().mutarTemplate(alinharElementos(get().selecao, alinhamento));
+  },
+
+  distribuirSelecao: (eixo) => {
+    get().mutarTemplate(distribuirElementos(get().selecao, eixo));
+  },
+
+  zOrderSelecao: (direcao) => {
+    const { template, selecao } = get();
+    if (!template) return;
+    const resultado = aplicarZOrder(template, selecao, direcao);
+    set({
+      template: resultado.template,
+      problemas: validarDocumento(resultado.template),
+      selecao: resultado.selecao,
+    });
   },
 }));

@@ -3,11 +3,51 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { ActionIcon, AppShell, Badge, Button, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, AppShell, Badge, Button, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 import { Canvas } from './canvas/Canvas';
 import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
+import { bandaComum } from './store/mutacoes';
+
+/** Comandos de multi-seleção (2.5): alinhar (≥2), distribuir (≥3), z-order (≥1). */
+function ComandosDeSelecao() {
+  const selecao = useDocumentoStore((s) => s.selecao);
+  const alinharSelecao = useDocumentoStore((s) => s.alinharSelecao);
+  const distribuirSelecao = useDocumentoStore((s) => s.distribuirSelecao);
+  const zOrderSelecao = useDocumentoStore((s) => s.zOrderSelecao);
+
+  const mesmaBanda = bandaComum(selecao) !== null;
+  const podeAlinhar = mesmaBanda && selecao.length >= 2;
+  const podeDistribuir = mesmaBanda && selecao.length >= 3;
+  const temSelecao = selecao.length >= 1 && mesmaBanda;
+
+  const botao = (rotulo: string, dica: string, habilitado: boolean, acao: () => void) => (
+    <Tooltip label={dica} key={rotulo}>
+      <Button size="compact-xs" variant="default" disabled={!habilitado} onClick={acao}>
+        {rotulo}
+      </Button>
+    </Tooltip>
+  );
+
+  return (
+    <Group gap={4}>
+      <Divider orientation="vertical" />
+      {botao('⊏', 'Alinhar esquerdas (seleção na mesma banda)', podeAlinhar, () => alinharSelecao('esquerda'))}
+      {botao('⊓', 'Alinhar topos', podeAlinhar, () => alinharSelecao('topo'))}
+      {botao('⊐', 'Alinhar direitas', podeAlinhar, () => alinharSelecao('direita'))}
+      {botao('⊔', 'Alinhar bases', podeAlinhar, () => alinharSelecao('base'))}
+      {botao('⫞', 'Centralizar na horizontal', podeAlinhar, () => alinharSelecao('centroH'))}
+      {botao('⫟', 'Centralizar na vertical', podeAlinhar, () => alinharSelecao('centroV'))}
+      <Divider orientation="vertical" />
+      {botao('⇹', 'Distribuir horizontalmente (3+)', podeDistribuir, () => distribuirSelecao('horizontal'))}
+      {botao('⇳', 'Distribuir verticalmente (3+)', podeDistribuir, () => distribuirSelecao('vertical'))}
+      <Divider orientation="vertical" />
+      {botao('▲', 'Trazer para frente (ordem de pintura do JRXML)', temSelecao, () => zOrderSelecao('frente'))}
+      {botao('▼', 'Enviar para trás', temSelecao, () => zOrderSelecao('tras'))}
+    </Group>
+  );
+}
 
 /** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
 function BarraDoCanvas() {
@@ -43,6 +83,7 @@ function BarraDoCanvas() {
           Snap
         </Button>
       </Tooltip>
+      <ComandosDeSelecao />
     </Group>
   );
 }
