@@ -54,6 +54,13 @@ function useTecladoDoCanvas() {
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
             e.preventDefault();
             s.colarClipboard();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) s.refazer();
+            else s.desfazer();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            s.refazer();
           }
       }
     };

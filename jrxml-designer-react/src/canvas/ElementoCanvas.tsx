@@ -148,6 +148,7 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
     if (modo === 'mover') {
       selecionar(caminho, e.shiftKey);
     }
+    useDocumentoStore.getState().iniciarGesto(); // 2.7: o drag inteiro = 1 undo
     arrasto.current = { modo, x0: e.clientX, y0: e.clientY, bounds0: elemento.bounds };
     if (e.currentTarget.setPointerCapture) {
       try {
@@ -191,6 +192,7 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
   const terminar = () => {
     arrasto.current = null;
     useCanvasStore.getState().definirGuiasDeSnap(null);
+    useDocumentoStore.getState().encerrarGesto();
   };
 
   const b = elemento.bounds;

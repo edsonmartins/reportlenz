@@ -11,7 +11,7 @@
 - [x] 2.4 Snapping com guias de alinhamento (bordas/centros vizinhos + bordas da banda; prioridade sobre o grid; Alt ignora; toggle na toolbar)
 - [x] 2.5 Multi-seleção; alinhar/distribuir; z-order (mesma banda; z-order = ordem de pintura do JRXML, seleção acompanha os novos índices)
 - [x] 2.6 Nudge (setas 1pt/Shift 10pt), copy/paste (clipboard interno; colar re-seleciona e desloca +5pt acumulativo), delete
-- [ ] 2.7 Undo/redo com histórico
+- [x] 2.7 Undo/redo com histórico (snapshots imutáveis, limite 100; arrastes coalescem por gesto; Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y + botões)
 
 ## 3. Painel de propriedades
 - [ ] 3.1 Todos os atributos JR do elemento

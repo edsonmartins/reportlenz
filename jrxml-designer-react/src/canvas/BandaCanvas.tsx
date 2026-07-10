@@ -30,6 +30,7 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
   const arrasto = useRef<{ yInicialPx: number; alturaInicialPt: number } | null>(null);
 
   const aoIniciarArrasto = (e: ReactPointerEvent<HTMLDivElement>) => {
+    useDocumentoStore.getState().iniciarGesto(); // 2.7: resize de banda = 1 undo
     arrasto.current = { yInicialPx: e.clientY, alturaInicialPt: faixa.alturaPt };
     // jsdom não implementa pointer capture — proteger para os testes.
     if (e.currentTarget.setPointerCapture && e.currentTarget.hasPointerCapture !== undefined) {
@@ -49,6 +50,7 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
 
   const aoTerminarArrasto = () => {
     arrasto.current = null;
+    useDocumentoStore.getState().encerrarGesto();
   };
 
   return (

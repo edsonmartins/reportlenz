@@ -108,12 +108,21 @@ function podarSelecao(template: ReportTemplate, selecao: CaminhoDeElemento[]): C
 // ---------------------------------------------------------------------------
 // Store
 
+/** Máximo de estados no histórico de undo (documentos são pequenos). */
+const LIMITE_DO_HISTORICO = 100;
+
 export interface DocumentoState {
   template: ReportTemplate | null;
   /** Seleção atual (multi-seleção chega na tarefa 2.5, o tipo já suporta). */
   selecao: CaminhoDeElemento[];
   /** Problemas da validação contínua (preenchido pela tarefa 1.2/6.1). */
   problemas: ParseError[];
+
+  // Undo/redo (2.7): snapshots imutáveis; arrastes coalescem por GESTO.
+  passado: ReportTemplate[];
+  futuro: ReportTemplate[];
+  /** Gesto em andamento (drag): um snapshot só, do início ao fim. */
+  gesto: { snapshotInicial: ReportTemplate } | null;
 
   novoDocumento: (template: ReportTemplate) => void;
   fecharDocumento: () => void;
@@ -133,30 +142,54 @@ export interface DocumentoState {
   removerSelecao: () => void;
   copiarSelecao: () => void;
   colarClipboard: () => void;
+
+  // Undo/redo (2.7).
+  iniciarGesto: () => void;
+  encerrarGesto: () => void;
+  desfazer: () => void;
+  refazer: () => void;
 }
 
-export const useDocumentoStore = create<DocumentoState>((set, get) => ({
+export const useDocumentoStore = create<DocumentoState>((set, get) => {
+  /**
+   * Via ÚNICA de commit de template (2.7): registra histórico (a menos que um
+   * gesto esteja aberto — o snapshot foi registrado no início do gesto),
+   * revalida e poda a seleção. `selecaoNova` permite comandos que também
+   * mudam a seleção (z-order, paste).
+   */
+  const aplicarTemplate = (proximo: ReportTemplate, selecaoNova?: CaminhoDeElemento[]) => {
+    const { template: atual, gesto, passado } = get();
+    if (!atual || proximo === atual) return;
+    const novoPassado = gesto ? passado : [...passado, atual].slice(-LIMITE_DO_HISTORICO);
+    set({
+      template: proximo,
+      passado: novoPassado,
+      futuro: [],
+      problemas: validarDocumento(proximo),
+      selecao: podarSelecao(proximo, selecaoNova ?? get().selecao),
+    });
+  };
+
+  return {
   template: null,
   selecao: [],
   problemas: [],
+  passado: [],
+  futuro: [],
+  gesto: null,
 
   novoDocumento: (template) => {
-    set({ template, selecao: [], problemas: validarDocumento(template) });
+    set({ template, selecao: [], problemas: validarDocumento(template), passado: [], futuro: [], gesto: null, clipboard: null });
   },
 
   fecharDocumento: () => {
-    set({ template: null, selecao: [], problemas: [] });
+    set({ template: null, selecao: [], problemas: [], passado: [], futuro: [], gesto: null, clipboard: null });
   },
 
   mutarTemplate: (mutacao) => {
     const atual = get().template;
     if (!atual) return;
-    const proximo = mutacao(atual);
-    set({
-      template: proximo,
-      problemas: validarDocumento(proximo),
-      selecao: podarSelecao(proximo, get().selecao),
-    });
+    aplicarTemplate(mutacao(atual));
   },
 
   selecionar: (caminho, aditivo = false) => {
@@ -187,11 +220,7 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
     const { template, selecao } = get();
     if (!template) return;
     const resultado = aplicarZOrder(template, selecao, direcao);
-    set({
-      template: resultado.template,
-      problemas: validarDocumento(resultado.template),
-      selecao: resultado.selecao,
-    });
+    aplicarTemplate(resultado.template, resultado.selecao);
   },
 
   clipboard: null,
@@ -228,11 +257,55 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
     if (!template || !clipboard) return;
     const deslocamento = 5 * (clipboard.colagens + 1);
     const resultado = colarElementos(template, clipboard.banda, clipboard.elementos, deslocamento);
+    aplicarTemplate(resultado.template, resultado.selecao);
+    set({ clipboard: { ...clipboard, colagens: clipboard.colagens + 1 } });
+  },
+
+  iniciarGesto: () => {
+    const { template, gesto, passado } = get();
+    if (!template || gesto) return;
+    // O snapshot entra JÁ no início; se o gesto terminar sem mudança, sai.
     set({
-      template: resultado.template,
-      problemas: validarDocumento(resultado.template),
-      selecao: resultado.selecao,
-      clipboard: { ...clipboard, colagens: clipboard.colagens + 1 },
+      gesto: { snapshotInicial: template },
+      passado: [...passado, template].slice(-LIMITE_DO_HISTORICO),
+      futuro: [],
     });
   },
-}));
+
+  encerrarGesto: () => {
+    const { gesto, passado, template } = get();
+    if (!gesto) return;
+    const semMudanca = template === gesto.snapshotInicial;
+    set({
+      gesto: null,
+      passado: semMudanca && passado[passado.length - 1] === gesto.snapshotInicial ? passado.slice(0, -1) : passado,
+    });
+  },
+
+  desfazer: () => {
+    const { passado, futuro, template } = get();
+    const anterior = passado[passado.length - 1];
+    if (!template || !anterior) return;
+    set({
+      template: anterior,
+      passado: passado.slice(0, -1),
+      futuro: [...futuro, template],
+      problemas: validarDocumento(anterior),
+      selecao: podarSelecao(anterior, get().selecao),
+    });
+  },
+
+  refazer: () => {
+    const { passado, futuro, template } = get();
+    const proximo = futuro[futuro.length - 1];
+    if (!template || !proximo) return;
+    set({
+      template: proximo,
+      futuro: futuro.slice(0, -1),
+      passado: [...passado, template].slice(-LIMITE_DO_HISTORICO),
+      problemas: validarDocumento(proximo),
+      selecao: podarSelecao(proximo, get().selecao),
+    });
+  },
+  };
+});

@@ -57,9 +57,24 @@ function BarraDoCanvas() {
   const alternarGrid = useCanvasStore((s) => s.alternarGrid);
   const snapAtivo = useCanvasStore((s) => s.snapAtivo);
   const alternarSnap = useCanvasStore((s) => s.alternarSnap);
+  const podeDesfazer = useDocumentoStore((s) => s.passado.length > 0);
+  const podeRefazer = useDocumentoStore((s) => s.futuro.length > 0);
+  const desfazer = useDocumentoStore((s) => s.desfazer);
+  const refazer = useDocumentoStore((s) => s.refazer);
 
   return (
     <Group gap="xs" px="md" py={6} style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+      <Tooltip label="Desfazer (Ctrl+Z)">
+        <ActionIcon variant="subtle" aria-label="desfazer" disabled={!podeDesfazer} onClick={desfazer}>
+          ↶
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="Refazer (Ctrl+Shift+Z ou Ctrl+Y)">
+        <ActionIcon variant="subtle" aria-label="refazer" disabled={!podeRefazer} onClick={refazer}>
+          ↷
+        </ActionIcon>
+      </Tooltip>
+      <Divider orientation="vertical" />
       <Tooltip label="Diminuir zoom">
         <ActionIcon variant="subtle" aria-label="diminuir zoom" onClick={() => definirZoom(zoom - 0.25)}>
           −
