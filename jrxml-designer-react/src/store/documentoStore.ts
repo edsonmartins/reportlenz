@@ -148,6 +148,9 @@ export interface DocumentoState {
   encerrarGesto: () => void;
   desfazer: () => void;
   refazer: () => void;
+
+  /** Inserção (Fase 3): adiciona na banda da seleção (ou 1ª detail) e seleciona. */
+  inserirElemento: (elemento: Element) => void;
 }
 
 export const useDocumentoStore = create<DocumentoState>((set, get) => {
@@ -306,6 +309,16 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => {
       problemas: validarDocumento(proximo),
       selecao: podarSelecao(proximo, get().selecao),
     });
+  },
+
+  inserirElemento: (elemento) => {
+    const { template, selecao } = get();
+    if (!template) return;
+    const banda: CaminhoDeBanda = selecao[0]?.banda ?? { tipo: 'detail', indice: 0 };
+    const alvo = obterBanda(template, banda);
+    if (!alvo) return;
+    const resultado = colarElementos(template, banda, [elemento], 0);
+    aplicarTemplate(resultado.template, resultado.selecao);
   },
   };
 });

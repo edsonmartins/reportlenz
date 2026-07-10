@@ -3,8 +3,9 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { ActionIcon, AppShell, Badge, Button, Divider, Group, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { Canvas } from './canvas/Canvas';
+import { PRESETS_DE_ELEMENTO } from './palette/inserir';
 import { ReportChecker } from './checker/ReportChecker';
 import { DataContractPanel } from './contrato/DataContractPanel';
 import { Galeria } from './galeria/Galeria';
@@ -103,6 +104,30 @@ function BarraDoCanvas() {
           Snap
         </Button>
       </Tooltip>
+      <Divider orientation="vertical" />
+      <Menu shadow="md" width={260} transitionProps={{ duration: 0 }}>
+        <Menu.Target>
+          <Tooltip label="Inserir elemento na banda selecionada (ou na primeira detail)">
+            <Button size="compact-xs" variant="light">
+              + Inserir
+            </Button>
+          </Tooltip>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Label>Básicos</Menu.Label>
+          {PRESETS_DE_ELEMENTO.filter((p) => p.grupo === 'básicos').map((p) => (
+            <Menu.Item key={p.rotulo} onClick={() => useDocumentoStore.getState().inserirElemento(p.criar())}>
+              {p.rotulo}
+            </Menu.Item>
+          ))}
+          <Menu.Label>Código de barras (perfis pt-BR)</Menu.Label>
+          {PRESETS_DE_ELEMENTO.filter((p) => p.grupo === 'barcode').map((p) => (
+            <Menu.Item key={p.rotulo} onClick={() => useDocumentoStore.getState().inserirElemento(p.criar())}>
+              {p.rotulo}
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
       <ComandosDeSelecao />
       <div style={{ marginLeft: 'auto' }}>
         <Tooltip label="Render REAL pelo engine JasperReports (a verdade; o canvas é aproximação)">

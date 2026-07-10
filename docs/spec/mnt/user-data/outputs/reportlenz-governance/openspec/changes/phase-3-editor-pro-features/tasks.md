@@ -12,8 +12,8 @@
 - [x] 2.4 Binding de coluna ao contrato: nova coluna nasce ligada a um itemField (header + `$F{campo}` + pattern por tipo)
 
 ## 3. Código de barras
-- [ ] 3.1 Elemento barcode (barcode4j): Code128, QR
-- [ ] 3.2 Perfil boleto/DANFE
+- [x] 3.1 Elemento barcode (barcode4j): Code128, QR (modelo/parser/serializer desde a Fase 0; edição no painel desde a Fase 2; inserção via menu "+ Inserir")
+- [x] 3.2 Perfil boleto/DANFE: presets pt-BR com dimensões dos padrões (boleto ITF-25 103×13mm FEBRABAN; DANFE Code128 80×12mm com chave de 44 dígitos; QR NFC-e/Pix 25mm) — menu Inserir também cobre os básicos (pendência da paleta encerrada)
 
 ## 4. Estilos
 - [ ] 4.1 Estilos nomeados + herança
