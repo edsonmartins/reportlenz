@@ -25,6 +25,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';
 import { EditorDeTabela } from './EditorDeTabela';
+import { GerenciadorDeEstilos } from './GerenciadorDeEstilos';
 import { escopoMaster } from '../expression/sugestoes';
 import { useDocumentoStore, obterBanda } from '../store/documentoStore';
 import { atualizarBoundsDoElemento, comElemento, definirEstiloDoElemento } from '../store/mutacoes';
@@ -125,10 +126,14 @@ export function PainelDePropriedades() {
     </aside>
   );
 
+  if (selecao.length === 0) {
+    // Sem seleção: propriedades do DOCUMENTO — gerenciador de estilos (Fase 3, bloco 4).
+    return moldura(<GerenciadorDeEstilos />);
+  }
   if (selecao.length !== 1) {
     return moldura(
       <Text size="sm" c="dimmed" p="md">
-        {selecao.length === 0 ? 'Selecione um elemento no canvas.' : `${selecao.length} elementos selecionados.`}
+        {`${selecao.length} elementos selecionados.`}
       </Text>,
     );
   }

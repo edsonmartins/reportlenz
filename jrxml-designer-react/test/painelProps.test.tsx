@@ -55,9 +55,9 @@ describe('jrxml-designer-react · painel de propriedades (3.1-3.3)', () => {
     useDocumentoStore.getState().novoDocumento(structuredClone(REFERENCIA_FATURA));
   });
 
-  it('sem seleção orienta; com seleção mostra os atributos do elemento', () => {
+  it('sem seleção mostra o gerenciador de estilos; com seleção, os atributos do elemento', () => {
     renderApp();
-    expect(screen.getByText('Selecione um elemento no canvas.')).toBeInTheDocument();
+    expect(screen.getByTestId('gerenciador-de-estilos')).toBeInTheDocument();
 
     selecionar('el-title/0'); // textField com styleRef base
     expect(screen.getByTestId('prop-x')).toBeInTheDocument();

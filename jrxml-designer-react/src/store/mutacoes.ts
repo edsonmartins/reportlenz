@@ -7,10 +7,12 @@ import type {
   Band,
   Bounds,
   ColunaDeTabela,
+  ConditionalStyle,
   DataContract,
   Element,
   FieldDecl,
   ReportTemplate,
+  Style,
   StyleProps,
   TableColumn,
   TableElement,
@@ -313,6 +315,97 @@ export function distribuirElementos(caminhos: CaminhoDeElemento[], eixo: 'horizo
       return { ...b, elements };
     });
   };
+}
+
+// ---------------------------------------------------------------------------
+// Gerenciador de estilos (Fase 3, bloco 4)
+
+function comEstilos(template: ReportTemplate, atualizar: (styles: Style[]) => Style[]): ReportTemplate {
+  return { ...template, styles: atualizar(template.styles) };
+}
+
+export function adicionarEstilo(nome: string) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const limpo = nome.trim();
+    if (!limpo || template.styles.some((s) => s.name === limpo)) return template;
+    return comEstilos(template, (styles) => [...styles, { name: limpo }]);
+  };
+}
+
+/** Remove o estilo; referências órfãs (styleRef) viram problema no checker. */
+export function removerEstilo(nome: string) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comEstilos(template, (styles) => styles.filter((s) => s.name !== nome));
+}
+
+/** Atualiza o estilo; `isDefault: true` é EXCLUSIVO (limpa os demais). */
+export function atualizarEstilo(nome: string, patch: Partial<Style>) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comEstilos(template, (styles) =>
+      styles.map((s) => {
+        if (s.name !== nome) {
+          return patch.isDefault === true && s.isDefault ? limparIsDefault(s) : s;
+        }
+        const novo: Style = { ...s, ...patch };
+        // Campos zerados saem do objeto (herança limpa no serializer).
+        for (const chave of Object.keys(patch) as Array<keyof Style>) {
+          if (novo[chave] === undefined) delete novo[chave];
+        }
+        return novo;
+      }),
+    );
+}
+
+function limparIsDefault(s: Style): Style {
+  const copia = { ...s };
+  delete copia.isDefault;
+  return copia;
+}
+
+/** Condições do estilo (4.2): destacar linhas quando a expressão for verdadeira. */
+export function adicionarCondicaoDeEstilo(nome: string) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comEstilos(template, (styles) =>
+      styles.map((s) =>
+        s.name === nome
+          ? {
+              ...s,
+              conditionalStyles: [
+                ...(s.conditionalStyles ?? []),
+                { conditionExpression: '$V{REPORT_COUNT} % 2 == 0', style: { mode: 'Opaque', backcolor: '#F0F0F0' } },
+              ],
+            }
+          : s,
+      ),
+    );
+}
+
+export function atualizarCondicaoDeEstilo(nome: string, indice: number, patch: Partial<ConditionalStyle>) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comEstilos(template, (styles) =>
+      styles.map((s) => {
+        if (s.name !== nome || !s.conditionalStyles?.[indice]) return s;
+        const conditionalStyles = s.conditionalStyles.slice();
+        conditionalStyles[indice] = { ...conditionalStyles[indice]!, ...patch };
+        return { ...s, conditionalStyles };
+      }),
+    );
+}
+
+export function removerCondicaoDeEstilo(nome: string, indice: number) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comEstilos(template, (styles) =>
+      styles.map((s) => {
+        if (s.name !== nome || !s.conditionalStyles) return s;
+        const conditionalStyles = s.conditionalStyles.filter((_, i) => i !== indice);
+        if (conditionalStyles.length === 0) {
+          const copia = { ...s };
+          delete copia.conditionalStyles;
+          return copia;
+        }
+        return { ...s, conditionalStyles };
+      }),
+    );
 }
 
 // ---------------------------------------------------------------------------

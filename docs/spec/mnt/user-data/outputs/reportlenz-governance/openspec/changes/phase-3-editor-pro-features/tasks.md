@@ -16,8 +16,8 @@
 - [x] 3.2 Perfil boleto/DANFE: presets pt-BR com dimensões dos padrões (boleto ITF-25 103×13mm FEBRABAN; DANFE Code128 80×12mm com chave de 44 dígitos; QR NFC-e/Pix 25mm) — menu Inserir também cobre os básicos (pendência da paleta encerrada)
 
 ## 4. Estilos
-- [ ] 4.1 Estilos nomeados + herança
-- [ ] 4.2 `conditionalStyle` e `printWhenExpression` (destacar linhas/condições)
+- [x] 4.1 Estilos nomeados + herança (GerenciadorDeEstilos no painel direito sem seleção; criar/editar/remover; default exclusivo; pai via select)
+- [x] 4.2 `conditionalStyle` (zebra por padrão; expression editor no conditionExpression; overrides de fundo/negrito) e `printWhenExpression` (no painel de elemento desde a Fase 2, com expression editor desde o bloco 1)
 
 ## 5. Grupos e subreports
 - [ ] 5.1 Grupos com groupHeader/groupFooter e subtotais
