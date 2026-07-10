@@ -98,7 +98,9 @@ describe('jrxml-core · validateContract (6.2, G3)', () => {
     const t: ReportTemplate = clone(REFERENCIA_FATURA);
     const tabela = t.bands.detail[0]?.elements[1];
     if (tabela?.kind !== 'table') throw new Error('fixture inesperado');
-    const cell = tabela.columns[0]?.detail.elements[0];
+    const col0 = tabela.columns[0];
+    if (!col0 || 'columns' in col0) throw new Error('esperava coluna simples');
+    const cell = col0.detail.elements[0];
     if (cell?.kind !== 'textField') throw new Error('fixture inesperado');
     cell.expression = '$F{cliente_nome}'; // existe no master, não nos itemFields
     const result = validateContract(t);

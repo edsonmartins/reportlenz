@@ -14,7 +14,7 @@ import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import type { ErrorCode, ParseError, Result } from '../errors.js';
 import type { Band, BandSet, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl, ParamDecl, VariableCalculation, VariableDecl, VariableResetType } from '../model/contract.js';
-import type { BarcodeType, Element, StaticText, SubreportParameter, TableCell, TableColumn, TextField } from '../model/elements.js';
+import type { BarcodeType, ColunaDeTabela, Element, StaticText, SubreportParameter, TableCell, TextField } from '../model/elements.js';
 import type { Bounds, PageFormat, Pen } from '../model/primitives.js';
 import type { ReportTemplate } from '../model/report.js';
 import type { ConditionalStyle, Style, StyleProps } from '../model/styles.js';
@@ -536,17 +536,39 @@ function parseTable(ctx: Ctx, node: XmlNode, component: XmlNode, path: string): 
     }
   }
 
-  const columns: TableColumn[] = [];
-  for (const [i, col] of children(component, 'column').entries()) {
-    const colPath = `${componentPath}/column[${i}]`;
+  const columns = parseColunas(ctx, component, componentPath);
+
+  return { kind: 'table', ...parseElementBase(ctx, node, path), datasetField, columns };
+}
+
+/** Colunas de tabela: `single` ou `group` (merge de cabeçalho), recursivo. */
+function parseColunas(ctx: Ctx, pai: XmlNode, paiPath: string): ColunaDeTabela[] {
+  const columns: ColunaDeTabela[] = [];
+  for (const [i, col] of children(pai, 'column').entries()) {
+    const colPath = `${paiPath}/column[${i}]`;
     const colKind = attr(col, 'kind');
-    if (colKind !== 'single') {
-      err(ctx, 'UNSUPPORTED_ELEMENT', `coluna de tabela com kind "${colKind ?? '(ausente)'}" não suportada (apenas "single"; grupos de coluna chegam na Fase 3)`, colPath);
-      continue;
-    }
     const width = numAttr(ctx, col, 'width', colPath);
     if (width === undefined) {
       err(ctx, 'INVALID_ATTRIBUTE', 'coluna de tabela sem atributo "width"', colPath);
+      continue;
+    }
+
+    if (colKind === 'group') {
+      const headerCell = child(col, 'columnHeader');
+      if (!headerCell) {
+        err(ctx, 'INVALID_ATTRIBUTE', 'grupo de colunas sem <columnHeader> (a célula mesclada)', colPath);
+        continue;
+      }
+      columns.push({
+        width,
+        header: parseTableCell(ctx, headerCell, `${colPath}/columnHeader`),
+        columns: parseColunas(ctx, col, colPath),
+      });
+      continue;
+    }
+
+    if (colKind !== 'single') {
+      err(ctx, 'UNSUPPORTED_ELEMENT', `coluna de tabela com kind "${colKind ?? '(ausente)'}" não suportada (apenas "single" e "group")`, colPath);
       continue;
     }
     const detailCell = child(col, 'detailCell');
@@ -563,8 +585,7 @@ function parseTable(ctx: Ctx, node: XmlNode, component: XmlNode, path: string): 
       ...opt('footer', footerCell ? parseTableCell(ctx, footerCell, `${colPath}/columnFooter`) : undefined),
     });
   }
-
-  return { kind: 'table', ...parseElementBase(ctx, node, path), datasetField, columns };
+  return columns;
 }
 
 function parseTableCell(ctx: Ctx, node: XmlNode, path: string): TableCell {

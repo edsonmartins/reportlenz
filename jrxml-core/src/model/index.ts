@@ -6,6 +6,7 @@ export type { ConditionalStyle, Style, StyleProps } from './styles.js';
 export type {
   BarcodeElement,
   BarcodeType,
+  ColunaDeTabela,
   Element,
   ElementBase,
   ElementKind,
@@ -19,9 +20,11 @@ export type {
   SubreportParameter,
   TableCell,
   TableColumn,
+  TableColumnGroup,
   TableElement,
   TextField,
 } from './elements.js';
+export { contarColunasFolha, eGrupoDeColunas } from './elements.js';
 export type { Band, BandSet, Group } from './bands.js';
 export type {
   DataContract,

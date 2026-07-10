@@ -24,6 +24,7 @@ import type { Element, StyleProps } from '@reportlenz/jrxml-core';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';
+import { EditorDeTabela } from './EditorDeTabela';
 import { escopoMaster } from '../expression/sugestoes';
 import { useDocumentoStore, obterBanda } from '../store/documentoStore';
 import { atualizarBoundsDoElemento, comElemento, definirEstiloDoElemento } from '../store/mutacoes';
@@ -382,13 +383,9 @@ export function PainelDePropriedades() {
       break;
     case 'table':
       linhas.push({
-        id: 'datasetField',
-        rotulo: 'Campo (coleção)',
-        no: (
-          <Linha key="datasetField" id="datasetField" rotulo="Campo (coleção)">
-            <Text size="xs">{`$F{${elemento.datasetField}} · ${elemento.columns.length} coluna(s)`}</Text>
-          </Linha>
-        ),
+        id: 'tabela',
+        rotulo: 'Tabela',
+        no: <EditorDeTabela key="tabela" caminho={caminho} tabela={elemento} />,
       });
       break;
     case 'line':

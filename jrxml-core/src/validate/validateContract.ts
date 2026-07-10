@@ -20,7 +20,8 @@
 import type { ParseError, ValidationResult } from '../errors.js';
 import type { Band } from '../model/bands.js';
 import type { FieldDecl } from '../model/contract.js';
-import type { Element, TableCell } from '../model/elements.js';
+import type { ColunaDeTabela, Element, TableCell } from '../model/elements.js';
+import { eGrupoDeColunas } from '../model/elements.js';
 import type { ReportTemplate } from '../model/report.js';
 
 /** Parâmetros built-in do engine JasperReports (sempre disponíveis). */
@@ -136,15 +137,25 @@ function checkElement(ctx: Ctx, el: Element, scope: Scope, path: string): void {
         parameters: BUILTIN_PARAMETERS,
         variables: BUILTIN_VARIABLES,
       };
-      el.columns.forEach((col, i) => {
-        const colPath = `${path}/columns[${i}]`;
-        if (col.header) checkTableCell(ctx, col.header, itemScope, `${colPath}/header`);
-        checkTableCell(ctx, col.detail, itemScope, `${colPath}/detail`);
-        if (col.footer) checkTableCell(ctx, col.footer, itemScope, `${colPath}/footer`);
-      });
+      checkColunas(ctx, el.columns, itemScope, path);
       return;
     }
   }
+}
+
+/** Varre colunas simples e grupos (merge de cabeçalho), recursivamente. */
+function checkColunas(ctx: Ctx, colunas: ColunaDeTabela[], itemScope: Scope, path: string): void {
+  colunas.forEach((col, i) => {
+    const colPath = `${path}/columns[${i}]`;
+    if (eGrupoDeColunas(col)) {
+      checkTableCell(ctx, col.header, itemScope, `${colPath}/header`);
+      checkColunas(ctx, col.columns, itemScope, colPath);
+      return;
+    }
+    if (col.header) checkTableCell(ctx, col.header, itemScope, `${colPath}/header`);
+    checkTableCell(ctx, col.detail, itemScope, `${colPath}/detail`);
+    if (col.footer) checkTableCell(ctx, col.footer, itemScope, `${colPath}/footer`);
+  });
 }
 
 function checkBand(ctx: Ctx, band: Band | undefined, path: string): void {

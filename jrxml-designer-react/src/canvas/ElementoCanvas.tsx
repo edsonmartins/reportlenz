@@ -7,6 +7,7 @@
  * O desenho aqui é APROXIMAÇÃO (I-8): a verdade é o render Jasper (bloco 5).
  */
 import type { Bounds, Element } from '@reportlenz/jrxml-core';
+import { contarColunasFolha } from '@reportlenz/jrxml-core';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { useRef } from 'react';
 import type { CaminhoDeElemento } from '../store/documentoStore';
@@ -81,7 +82,7 @@ function conteudo(el: Element, zoom: number): ReactNode {
     case 'barcode':
       return <Placeholder rotulo={`barcode ${el.barcodeType}`} zoom={zoom} />;
     case 'table':
-      return <Placeholder rotulo={`tabela · $F{${el.datasetField}} · ${el.columns.length} col`} zoom={zoom} />;
+      return <Placeholder rotulo={`tabela · $F{${el.datasetField}} · ${contarColunasFolha(el.columns)} col`} zoom={zoom} />;
     case 'subreport':
       return <Placeholder rotulo={`subreport: ${el.templateExpression}`} zoom={zoom} />;
     case 'frame':

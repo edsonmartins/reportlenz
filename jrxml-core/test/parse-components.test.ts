@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseJrxml } from '../src/index.js';
+import type { TableColumn } from '../src/index.js';
+import { eGrupoDeColunas, parseJrxml } from '../src/index.js';
 
 /**
  * Testes da tarefa phase-0/4.1c: component (table, barcode) e subreport,
@@ -115,12 +116,14 @@ describe('jrxml-core · parseJrxml — componentes (4.1c)', () => {
 
     // Colunas com células
     expect(tabela.columns).toHaveLength(2);
-    expect(tabela.columns[0]?.width).toBe(355);
-    expect(tabela.columns[0]?.header?.styleRef).toBe('CabecalhoTabela');
-    expect(tabela.columns[0]?.header?.elements[0]?.kind).toBe('staticText');
-    expect(tabela.columns[0]?.detail.elements[0]?.kind).toBe('textField');
-    expect(tabela.columns[0]?.footer).toBeUndefined();
-    expect(tabela.columns[1]?.footer?.height).toBe(18);
+    const col0 = tabela.columns[0] as TableColumn;
+    const col1 = tabela.columns[1] as TableColumn;
+    expect(col0.width).toBe(355);
+    expect(col0.header?.styleRef).toBe('CabecalhoTabela');
+    expect(col0.header?.elements[0]?.kind).toBe('staticText');
+    expect(col0.detail.elements[0]?.kind).toBe('textField');
+    expect(col0.footer).toBeUndefined();
+    expect(col1.footer?.height).toBe(18);
 
     // Contrato: dataset ligou os itemFields da coleção
     const itens = t.dataContract.fields.find((f) => f.name === 'itens');
@@ -171,12 +174,24 @@ describe('jrxml-core · parseJrxml — componentes (4.1c)', () => {
     expect(result.errors[0]?.message).toContain('POSTNET');
   });
 
-  it('acusa UNSUPPORTED_ELEMENT para coluna de grupo (Fase 3)', () => {
-    const xml = COMPROVANTE_TABELA.replace('<column kind="single" width="355">', '<column kind="group" width="355">');
+  it('mapeia grupo de colunas (merge de cabeçalho — Fase 3)', () => {
+    const xml = COMPROVANTE_TABELA.replace(
+      '<column kind="single" width="200">',
+      `<column kind="group" width="200">
+\t\t\t\t\t\t<columnHeader height="16">
+\t\t\t\t\t\t\t<element kind="staticText" x="0" y="0" width="200" height="16"><text><![CDATA[Medidas]]></text></element>
+\t\t\t\t\t\t</columnHeader>
+\t\t\t\t\t\t<column kind="single" width="200">`,
+    ).replace('</column>\n\t\t\t\t</component>', '</column>\n\t\t\t\t\t</column>\n\t\t\t\t</component>');
     const result = parseJrxml(xml);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    const e = result.errors.find((x) => x.code === 'UNSUPPORTED_ELEMENT');
-    expect(e?.message).toContain('group');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const tabela = result.value.bands.detail[0]?.elements[0];
+    if (tabela?.kind !== 'table') throw new Error('fixture inesperado');
+    const grupo = tabela.columns[1];
+    if (!grupo || !eGrupoDeColunas(grupo)) throw new Error('esperava grupo');
+    expect(grupo.header.elements[0]?.kind).toBe('staticText');
+    expect(grupo.columns).toHaveLength(1);
+    expect(eGrupoDeColunas(grupo.columns[0]!)).toBe(false);
   });
 });

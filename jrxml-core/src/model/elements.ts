@@ -117,20 +117,44 @@ export interface FrameElement extends ElementBase {
 
 /**
  * Tabela em modo Push: alimentada por um campo-coleção do contrato de dados
- * (`datasetField`), nunca por query. Merge/split de células chega na Fase 3.
+ * (`datasetField`), nunca por query.
  */
 export interface TableElement extends ElementBase {
   kind: 'table';
   /** Nome do campo (coleção) do contrato que alimenta as linhas. */
   datasetField: string;
-  columns: TableColumn[];
+  columns: ColunaDeTabela[];
 }
+
+/** Coluna simples ou grupo (merge de cabeçalho — `column kind="group"` no JR7). */
+export type ColunaDeTabela = TableColumn | TableColumnGroup;
 
 export interface TableColumn {
   width: number;
   header?: TableCell;
   detail: TableCell;
   footer?: TableCell;
+}
+
+/**
+ * Grupo de colunas (Fase 3): o `header` é a célula MESCLADA que cobre as
+ * colunas filhas; a largura é a soma das filhas. Aninhável.
+ */
+export interface TableColumnGroup {
+  /** Largura total (soma das filhas — o JR exige o atributo). */
+  width: number;
+  header: TableCell;
+  columns: ColunaDeTabela[];
+}
+
+/** Distingue grupo de coluna simples. */
+export function eGrupoDeColunas(coluna: ColunaDeTabela): coluna is TableColumnGroup {
+  return 'columns' in coluna;
+}
+
+/** Contagem de colunas FOLHA (o que o leitor vê como colunas). */
+export function contarColunasFolha(colunas: ColunaDeTabela[]): number {
+  return colunas.reduce((n, c) => n + (eGrupoDeColunas(c) ? contarColunasFolha(c.columns) : 1), 0);
 }
 
 export interface TableCell {

@@ -289,17 +289,29 @@ export const REFERENCIA_COMPROVANTE: ReportTemplate = {
                 detail: { height: 14, elements: [{ kind: 'textField', bounds: { x: 0, y: 0, width: 315, height: 14 }, expression: '$F{descricao}' }] },
               },
               {
-                width: 120,
-                header: { height: 16, elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 120, height: 16 }, style: { bold: true }, text: 'Qtde' }] },
-                detail: {
-                  height: 14,
-                  elements: [{ kind: 'textField', bounds: { x: 0, y: 0, width: 120, height: 14 }, expression: '$F{quantidade}', pattern: '#,##0.###', style: { hAlign: 'Right' } }],
+                // Grupo de colunas (merge de cabeçalho, Fase 3): "Medidas" cobre Qtde+Unid.
+                width: 240,
+                header: {
+                  height: 16,
+                  elements: [
+                    { kind: 'staticText', bounds: { x: 0, y: 0, width: 240, height: 16 }, style: { bold: true, hAlign: 'Center' }, text: 'Medidas' },
+                  ],
                 },
-              },
-              {
-                width: 120,
-                header: { height: 16, elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 120, height: 16 }, style: { bold: true }, text: 'Unid.' }] },
-                detail: { height: 14, elements: [{ kind: 'textField', bounds: { x: 0, y: 0, width: 120, height: 14 }, expression: '$F{unidade}' }] },
+                columns: [
+                  {
+                    width: 120,
+                    header: { height: 14, elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 120, height: 14 }, text: 'Qtde' }] },
+                    detail: {
+                      height: 14,
+                      elements: [{ kind: 'textField', bounds: { x: 0, y: 0, width: 120, height: 14 }, expression: '$F{quantidade}', pattern: '#,##0.###', style: { hAlign: 'Right' } }],
+                    },
+                  },
+                  {
+                    width: 120,
+                    header: { height: 14, elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 120, height: 14 }, text: 'Unid.' }] },
+                    detail: { height: 14, elements: [{ kind: 'textField', bounds: { x: 0, y: 0, width: 120, height: 14 }, expression: '$F{unidade}' }] },
+                  },
+                ],
               },
             ],
           },

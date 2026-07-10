@@ -6,10 +6,10 @@
 - [x] 1.3 Suporte a funções (`jasperreports-functions`) — catálogo de 20 funções com assinatura/descrição pt-BR
 
 ## 2. Tabela
-- [ ] 2.1 Componente de tabela no modelo (`jrxml-core`) + UI
-- [ ] 2.2 Add/delete/reorder de colunas
-- [ ] 2.3 Merge/split de células; seções (header/detail/footer)
-- [ ] 2.4 Binding de coluna ao contrato (array)
+- [x] 2.1 Componente de tabela no modelo (`jrxml-core`, desde a Fase 0) + UI (EditorDeTabela no painel)
+- [x] 2.2 Add/delete/reorder de colunas (grupos movem como unidade)
+- [x] 2.3 Merge/split via grupos de coluna (`column kind="group"` do JR7 — modelo/parser/serializer/validador; aceito pela Library no harness); seções H/F por coluna
+- [x] 2.4 Binding de coluna ao contrato: nova coluna nasce ligada a um itemField (header + `$F{campo}` + pattern por tipo)
 
 ## 3. Código de barras
 - [ ] 3.1 Elemento barcode (barcode4j): Code128, QR

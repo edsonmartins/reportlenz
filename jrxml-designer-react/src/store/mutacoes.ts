@@ -3,7 +3,19 @@
  * `ReportTemplate → ReportTemplate` para usar com `mutarTemplate` — cada uma
  * passa automaticamente pela validação contínua (1.2).
  */
-import type { Band, Bounds, DataContract, Element, ReportTemplate, StyleProps } from '@reportlenz/jrxml-core';
+import type {
+  Band,
+  Bounds,
+  ColunaDeTabela,
+  DataContract,
+  Element,
+  FieldDecl,
+  ReportTemplate,
+  StyleProps,
+  TableColumn,
+  TableElement,
+} from '@reportlenz/jrxml-core';
+import { eGrupoDeColunas } from '@reportlenz/jrxml-core';
 import { alturaMinimaDaBanda, chaveDaBanda } from '../canvas/bandas';
 import type { CaminhoDeBanda, CaminhoDeElemento } from './documentoStore';
 
@@ -301,6 +313,144 @@ export function distribuirElementos(caminhos: CaminhoDeElemento[], eixo: 'horizo
       return { ...b, elements };
     });
   };
+}
+
+// ---------------------------------------------------------------------------
+// Editor de tabela (Fase 3, bloco 2)
+
+function comTabela(template: ReportTemplate, caminho: CaminhoDeElemento, atualizar: (t: TableElement) => TableElement): ReportTemplate {
+  return comElemento(template, caminho, (el) => (el.kind === 'table' ? atualizar(el) : el));
+}
+
+const ALTURA_HEADER = 16;
+const ALTURA_DETAIL = 14;
+const LARGURA_NOVA_COLUNA = 100;
+
+function larguraDe(col: ColunaDeTabela): number {
+  return eGrupoDeColunas(col) ? col.columns.reduce((s, c) => s + larguraDe(c), 0) : col.width;
+}
+
+/** Recalcula larguras de grupos (soma das filhas) — invariante do JR. */
+function normalizarLarguras(colunas: ColunaDeTabela[]): ColunaDeTabela[] {
+  return colunas.map((c) =>
+    eGrupoDeColunas(c) ? { ...c, columns: normalizarLarguras(c.columns), width: larguraDe(c) } : c,
+  );
+}
+
+/** 2.4: nova coluna LIGADA a um campo do item da coleção (header + $F{campo}). */
+export function adicionarColunaDeTabela(caminho: CaminhoDeElemento, campo: FieldDecl) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      const pattern = campo.type === 'decimal' ? '#,##0.00' : campo.type === 'date' ? 'dd/MM/yyyy' : undefined;
+      const nova: TableColumn = {
+        width: LARGURA_NOVA_COLUNA,
+        header: {
+          height: ALTURA_HEADER,
+          elements: [
+            { kind: 'staticText', bounds: { x: 0, y: 0, width: LARGURA_NOVA_COLUNA, height: ALTURA_HEADER }, style: { bold: true }, text: campo.name },
+          ],
+        },
+        detail: {
+          height: ALTURA_DETAIL,
+          elements: [
+            {
+              kind: 'textField',
+              bounds: { x: 0, y: 0, width: LARGURA_NOVA_COLUNA, height: ALTURA_DETAIL },
+              expression: `$F{${campo.name}}`,
+              ...(pattern ? { pattern } : {}),
+            },
+          ],
+        },
+      };
+      return { ...tabela, columns: [...tabela.columns, nova] };
+    });
+}
+
+/** 2.2: remove a coluna/grupo raiz no índice. */
+export function removerColunaDeTabela(caminho: CaminhoDeElemento, indice: number) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => ({
+      ...tabela,
+      columns: tabela.columns.filter((_, i) => i !== indice),
+    }));
+}
+
+/** 2.2: reordena colunas raiz (grupos movem como unidade). */
+export function moverColunaDeTabela(caminho: CaminhoDeElemento, de: number, para: number) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      if (de < 0 || de >= tabela.columns.length || para < 0 || para >= tabela.columns.length) return tabela;
+      const columns = tabela.columns.slice();
+      const [movida] = columns.splice(de, 1);
+      columns.splice(para, 0, movida!);
+      return { ...tabela, columns };
+    });
+}
+
+/** Largura de coluna folha (grupos são soma automática). */
+export function definirLarguraDaColuna(caminho: CaminhoDeElemento, indice: number, largura: number) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      const col = tabela.columns[indice];
+      if (!col || eGrupoDeColunas(col)) return tabela;
+      const columns = tabela.columns.slice();
+      columns[indice] = { ...col, width: Math.max(10, Math.round(largura)) };
+      return { ...tabela, columns: normalizarLarguras(columns) };
+    });
+}
+
+/** 2.3: liga/desliga as seções header/footer de uma coluna folha. */
+export function alternarSecaoDaColuna(caminho: CaminhoDeElemento, indice: number, secao: 'header' | 'footer') {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      const col = tabela.columns[indice];
+      if (!col || eGrupoDeColunas(col)) return tabela;
+      const columns = tabela.columns.slice();
+      const nova: TableColumn = { ...col };
+      if (nova[secao]) {
+        delete nova[secao];
+      } else {
+        nova[secao] = { height: ALTURA_HEADER, elements: [] };
+      }
+      columns[indice] = nova;
+      return { ...tabela, columns };
+    });
+}
+
+/** 2.3 (merge): agrupa a coluna raiz `indice` com a seguinte sob um cabeçalho comum. */
+export function agruparColunas(caminho: CaminhoDeElemento, indice: number, titulo = 'Grupo') {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      const a = tabela.columns[indice];
+      const b = tabela.columns[indice + 1];
+      if (!a || !b) return tabela;
+      const width = larguraDe(a) + larguraDe(b);
+      const grupo: ColunaDeTabela = {
+        width,
+        header: {
+          height: ALTURA_HEADER,
+          elements: [
+            { kind: 'staticText', bounds: { x: 0, y: 0, width, height: ALTURA_HEADER }, style: { bold: true, hAlign: 'Center' }, text: titulo },
+          ],
+        },
+        columns: [a, b],
+      };
+      const columns = tabela.columns.slice();
+      columns.splice(indice, 2, grupo);
+      return { ...tabela, columns };
+    });
+}
+
+/** 2.3 (split): desfaz o grupo raiz `indice`, promovendo as filhas. */
+export function desagruparColunas(caminho: CaminhoDeElemento, indice: number) {
+  return (template: ReportTemplate): ReportTemplate =>
+    comTabela(template, caminho, (tabela) => {
+      const grupo = tabela.columns[indice];
+      if (!grupo || !eGrupoDeColunas(grupo)) return tabela;
+      const columns = tabela.columns.slice();
+      columns.splice(indice, 1, ...grupo.columns);
+      return { ...tabela, columns };
+    });
 }
 
 /**

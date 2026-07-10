@@ -11,7 +11,8 @@
  */
 import type { Band, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl } from '../model/contract.js';
-import type { BarcodeElement, Element, FrameElement, ImageElement, SubreportElement, TableCell, TableElement, TextField } from '../model/elements.js';
+import type { BarcodeElement, ColunaDeTabela, Element, FrameElement, ImageElement, SubreportElement, TableCell, TableElement, TextField } from '../model/elements.js';
+import { eGrupoDeColunas } from '../model/elements.js';
 import type { Pen } from '../model/primitives.js';
 import type { ReportTemplate } from '../model/report.js';
 import type { Style, StyleProps } from '../model/styles.js';
@@ -271,16 +272,28 @@ function writeTable(w: Writer, el: TableElement): void {
           )}</dataSourceExpression>`,
         );
       });
-      for (const col of el.columns) {
-        w.block(`<column${attrs([['kind', 'single'], ['width', col.width]])}>`, '</column>', () => {
-          if (col.header) writeTableCell(w, 'columnHeader', col.header);
-          writeTableCell(w, 'detailCell', col.detail);
-          if (col.footer) writeTableCell(w, 'columnFooter', col.footer);
-        });
-      }
+      writeColunas(w, el.columns);
     });
     writePrintWhen(w, el);
   });
+}
+
+/** Colunas simples e grupos (merge de cabeçalho), recursivo — dialeto 7. */
+function writeColunas(w: Writer, colunas: ColunaDeTabela[]): void {
+  for (const col of colunas) {
+    if (eGrupoDeColunas(col)) {
+      w.block(`<column${attrs([['kind', 'group'], ['width', col.width]])}>`, '</column>', () => {
+        writeTableCell(w, 'columnHeader', col.header);
+        writeColunas(w, col.columns);
+      });
+      continue;
+    }
+    w.block(`<column${attrs([['kind', 'single'], ['width', col.width]])}>`, '</column>', () => {
+      if (col.header) writeTableCell(w, 'columnHeader', col.header);
+      writeTableCell(w, 'detailCell', col.detail);
+      if (col.footer) writeTableCell(w, 'columnFooter', col.footer);
+    });
+  }
 }
 
 function writeSubreport(w: Writer, el: SubreportElement): void {

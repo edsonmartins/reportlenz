@@ -128,7 +128,8 @@ describe('jrxml-designer-react · painel de propriedades (3.1-3.3)', () => {
     selecionar('el-detail[0]/2'); // QRCode da fatura
     expect(screen.getByTestId('prop-barcodeType')).toBeInTheDocument();
 
-    selecionar('el-detail[0]/1'); // tabela
-    expect(screen.getByText('$F{itens} · 2 coluna(s)')).toBeInTheDocument();
+    selecionar('el-detail[0]/1'); // tabela → editor completo (Fase 3)
+    expect(screen.getByTestId('editor-de-tabela')).toBeInTheDocument();
+    expect(screen.getByText(/Tabela · \$F\{itens\} · 2 coluna/)).toBeInTheDocument();
   });
 });
