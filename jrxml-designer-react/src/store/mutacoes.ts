@@ -19,6 +19,8 @@ import type {
   TableElement,
 } from '@reportlenz/jrxml-core';
 import { eGrupoDeColunas } from '@reportlenz/jrxml-core';
+import type { BlocoReutilizavel } from '../blocos/biblioteca';
+import { mesclarMiniContrato, reescreverElemento } from '../blocos/mesclarContrato';
 import { alturaMinimaDaBanda, chaveDaBanda } from '../canvas/bandas';
 import type { CaminhoDeBanda, CaminhoDeElemento } from './documentoStore';
 
@@ -330,6 +332,37 @@ export function atualizarPagina(patch: Partial<PageFormat>) {
     }
     return { ...template, pageFormat };
   };
+}
+
+// ---------------------------------------------------------------------------
+// Biblioteca de blocos (Fase 3, bloco 8)
+
+/**
+ * Insere um bloco reutilizável (8.1): mescla o mini-contrato ao contrato do
+ * template (8.2 — conflitos renomeiam e as expressões do bloco são
+ * reescritas), garante a banda de destino (cria se não existir; estica até a
+ * altura mínima, nunca encolhe) e cola os elementos, que nascem selecionados.
+ */
+export function inserirBloco(
+  template: ReportTemplate,
+  bloco: BlocoReutilizavel,
+): { template: ReportTemplate; selecao: CaminhoDeElemento[]; avisos: string[] } {
+  const { contrato, renomeios, avisos } = mesclarMiniContrato(template.dataContract, bloco.miniContrato);
+  let t: ReportTemplate = { ...template, dataContract: contrato };
+
+  const caminho: CaminhoDeBanda =
+    bloco.destino === 'detail' ? { tipo: 'detail', indice: 0 } : { tipo: 'secao', secao: bloco.destino };
+  if (bloco.destino !== 'detail' && !t.bands[bloco.destino]) {
+    t = {
+      ...t,
+      bands: { ...t.bands, [bloco.destino]: { height: bloco.alturaMinimaPt, splitType: 'Stretch', elements: [] } },
+    };
+  }
+  t = comBanda(t, caminho, (banda) => ({ ...banda, height: Math.max(banda.height, bloco.alturaMinimaPt) }));
+
+  const elementos = bloco.elementos.map((el) => reescreverElemento(el, renomeios));
+  const resultado = colarElementos(t, caminho, elementos, 0);
+  return { ...resultado, avisos };
 }
 
 // ---------------------------------------------------------------------------

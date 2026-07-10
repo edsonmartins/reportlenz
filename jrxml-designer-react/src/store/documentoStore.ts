@@ -13,12 +13,14 @@
 import type { Band, Element, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
+import type { BlocoReutilizavel } from '../blocos/biblioteca';
 import type { Alinhamento } from './mutacoes';
 import {
   alinharElementos,
   aplicarZOrder,
   colarElementos,
   distribuirElementos,
+  inserirBloco,
   nudgeElementos,
   removerElementos,
 } from './mutacoes';
@@ -151,6 +153,8 @@ export interface DocumentoState {
 
   /** Inserção (Fase 3): adiciona na banda da seleção (ou 1ª detail) e seleciona. */
   inserirElemento: (elemento: Element) => void;
+  /** Bloco reutilizável (Fase 3, bloco 8): mescla o mini-contrato e cola os elementos. */
+  inserirBloco: (bloco: BlocoReutilizavel) => void;
 }
 
 export const useDocumentoStore = create<DocumentoState>((set, get) => {
@@ -318,6 +322,13 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => {
     const alvo = obterBanda(template, banda);
     if (!alvo) return;
     const resultado = colarElementos(template, banda, [elemento], 0);
+    aplicarTemplate(resultado.template, resultado.selecao);
+  },
+
+  inserirBloco: (bloco) => {
+    const { template } = get();
+    if (!template) return;
+    const resultado = inserirBloco(template, bloco);
     aplicarTemplate(resultado.template, resultado.selecao);
   },
   };

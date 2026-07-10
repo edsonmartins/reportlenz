@@ -5,6 +5,7 @@
  */
 import { ActionIcon, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { Canvas } from './canvas/Canvas';
+import { BIBLIOTECA_DE_BLOCOS } from './blocos/biblioteca';
 import { PRESETS_DE_ELEMENTO } from './palette/inserir';
 import { ReportChecker } from './checker/ReportChecker';
 import { DataContractPanel } from './contrato/DataContractPanel';
@@ -125,6 +126,12 @@ function BarraDoCanvas() {
             <Menu.Item key={p.rotulo} onClick={() => useDocumentoStore.getState().inserirElemento(p.criar())}>
               {p.rotulo}
             </Menu.Item>
+          ))}
+          <Menu.Label>Blocos (mesclam o contrato)</Menu.Label>
+          {BIBLIOTECA_DE_BLOCOS.map((b) => (
+            <Tooltip key={b.id} label={b.descricao} position="left">
+              <Menu.Item onClick={() => useDocumentoStore.getState().inserirBloco(b)}>{b.rotulo}</Menu.Item>
+            </Tooltip>
           ))}
         </Menu.Dropdown>
       </Menu>

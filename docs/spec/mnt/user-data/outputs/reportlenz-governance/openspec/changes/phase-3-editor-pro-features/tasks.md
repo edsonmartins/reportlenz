@@ -31,8 +31,8 @@
 - [x] 7.1 Print order + columns para grade de etiquetas (laser; NÃO térmica — ADR-011)
 
 ## 8. Biblioteca de blocos
-- [ ] 8.1 Blocos reutilizáveis (cabeçalho timbrado, rodapé com totais, assinatura, QR de pedido)
-- [ ] 8.2 Mescla de mini-contrato do bloco ao contrato do template (conflito de nomes)
+- [x] 8.1 Blocos reutilizáveis (cabeçalho timbrado, rodapé com totais, assinatura, QR de pedido)
+- [x] 8.2 Mescla de mini-contrato do bloco ao contrato do template (conflito de nomes: compatível reaproveita; incompatível renomeia com sufixo e reescreve as expressões do bloco)
 
 ## 9. Aceite
 - [ ] 9.1 Critérios RFC-004 §10 (features pro) verdes
