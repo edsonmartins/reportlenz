@@ -7,6 +7,7 @@
 import { Paper, Text, TextInput, UnstyledButton } from '@mantine/core';
 import type { KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { GerarExpressaoIA } from './GerarExpressaoIA';
 import type { EscopoDeExpressao, Sugestao } from './sugestoes';
 import { aplicarSugestao, contextoDoCursor, sugestoesPara, validarExpressaoInline } from './sugestoes';
 
@@ -94,6 +95,15 @@ export function ExpressionEditor({ valor, escopo, onCommit, herdado, ...props }:
           if (texto !== valor) onCommit(texto);
         }}
         styles={herdado ? { input: { color: 'var(--mantine-color-gray-5)' } } : undefined}
+        rightSection={
+          <GerarExpressaoIA
+            escopo={escopo}
+            onUsar={(expressao) => {
+              setTexto(expressao);
+              onCommit(expressao);
+            }}
+          />
+        }
         {...props}
       />
 

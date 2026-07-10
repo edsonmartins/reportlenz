@@ -73,6 +73,39 @@ public class AssistControlador {
         return new GerarTemplateResponse(templateMap, obs instanceof String s ? s : "", cliente.config().model());
     }
 
+    public record GerarExpressaoRequest(String descricao, Map<String, Object> escopo) {}
+
+    public record GerarExpressaoResponse(String expressao, String explicacao, String modelo) {}
+
+    /**
+     * Assistente B — NL → expressão JR (RFC-005 §3, tarefa phase-4/3.1). O
+     * vocabulário é o ESCOPO do editor (master ou dataset da tabela) — a
+     * validação definitiva é do front (validarExpressaoInline + ReportChecker).
+     */
+    @PostMapping("/assist/gerar-expressao")
+    public GerarExpressaoResponse gerarExpressao(@RequestBody GerarExpressaoRequest request) {
+        if (request.descricao() == null || request.descricao().isBlank()) {
+            throw new RespostaInvalida("descricao vazia — nada a traduzir", null);
+        }
+        String usuario = PromptDoAssistente.usuarioExpressao(
+                request.descricao(),
+                request.escopo() == null ? null : json.writeValueAsString(request.escopo()));
+
+        String conteudo = Observation.createNotStarted("assist.gerar_expressao", observacoes)
+                .lowCardinalityKeyValue("modelo", cliente.config().model())
+                .observe(() -> cliente.completar(PromptDoAssistente.SISTEMA_EXPRESSAO, usuario));
+
+        Map<String, Object> corpo = parsear(conteudo);
+        Object expressao = corpo.get("expressao");
+        if (!(expressao instanceof String expr)) {
+            throw new RespostaInvalida("resposta sem \"expressao\" — o modelo fugiu do formato", null);
+        }
+        recusarPull(expr);
+        Object explicacao = corpo.get("explicacao");
+        return new GerarExpressaoResponse(
+                expr.strip(), explicacao instanceof String s ? s : "", cliente.config().model());
+    }
+
     /** Aceita JSON puro ou cercado em ```json ... ``` (modelos adoram cercas). */
     private Map<String, Object> parsear(String conteudo) {
         String texto = conteudo == null ? "" : conteudo.strip();

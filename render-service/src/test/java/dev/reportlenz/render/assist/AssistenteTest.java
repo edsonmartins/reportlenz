@@ -82,6 +82,29 @@ class AssistenteTest {
     }
 
     @Test
+    void assistenteB_traduzNlParaExpressaoComVocabularioDoEscopo() {
+        String resposta = """
+                {"expressao": "$F{quantidade}.multiply($F{precoUnitario})",
+                 "explicacao": "total do item = quantidade × preço"}""";
+        var r = controlador(resposta).gerarExpressao(new AssistControlador.GerarExpressaoRequest(
+                "total do item = quantidade vezes preço unitário",
+                Map.of("fields", java.util.List.of("quantidade", "precoUnitario"))));
+        assertThat(r.expressao()).isEqualTo("$F{quantidade}.multiply($F{precoUnitario})");
+        assertThat(r.explicacao()).contains("quantidade");
+        // O prompt de sistema ensina BigDecimal e proíbe SQL.
+        assertThat(PromptDoAssistente.SISTEMA_EXPRESSAO).contains(".multiply(").contains("PROIBIDO SQL");
+        assertThat(PromptDoAssistente.usuarioExpressao("soma", "{\"fields\":[\"valor\"]}"))
+                .contains("soma").contains("valor");
+    }
+
+    @Test
+    void assistenteB_respostaSemExpressaoVira502() {
+        assertThatThrownBy(() -> controlador("{\"explicacao\": \"não entendi\"}")
+                .gerarExpressao(new AssistControlador.GerarExpressaoRequest("x", null)))
+                .isInstanceOf(ErroDoAssistente.RespostaInvalida.class);
+    }
+
+    @Test
     void semChaveConfiguradaDegradaComIaIndisponivel() {
         var semChave = new ClienteDeInferencia(new ConfiguracaoDoAssistente(null, null, null, null));
         assertThatThrownBy(() -> semChave.completar("s", "u"))

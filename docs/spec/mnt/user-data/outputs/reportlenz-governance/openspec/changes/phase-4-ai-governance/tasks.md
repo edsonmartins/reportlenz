@@ -11,8 +11,8 @@
 - [x] 2.4 Validação obrigatória (estrutural + contrato) antes de exibir: normalizarDraft + validarDocumento no drawer; problemas visíveis antes do "Carregar rascunho"
 
 ## 3. Assistente B — NL → expressão
-- [ ] 3.1 Tradução NL → expressão JR válida contra o contrato
-- [ ] 3.2 Validação inline + ReportChecker
+- [x] 3.1 Tradução NL → expressão JR válida contra o contrato (POST /assist/gerar-expressao; vocabulário = escopo do editor; prompt ensina BigDecimal/funções/ternário)
+- [x] 3.2 Validação inline + ReportChecker (✨ no ExpressionEditor: validarExpressaoInline ANTES do "Usar"; pós-commit a validação contínua segue)
 
 ## 4. Gates de governança (RFC-006)
 - [ ] 4.1 G1 XSD 7 · G2 anti-Pull · G3 integridade de expressão

@@ -80,6 +80,30 @@ public final class PromptDoAssistente {
             registro-mestre); pageFooter com $V{PAGE_NUMBER}; QR/barcode com bounds quadrados \
             (~70×70) para QRCode.""";
 
+    public static final String SISTEMA_EXPRESSAO = """
+            Você traduz português para UMA expressão JasperReports válida (Assistente B do ReportLenz).
+
+            REGRAS:
+            1. A expressão é uma expressão Java avaliada pelo engine. Referências: $F{campo}, \
+            $P{parametro}, $V{variavel} — use SOMENTE os nomes listados no vocabulário fornecido. \
+            Se faltar nome, não invente: explique a lacuna em "explicacao" e devolva "expressao" vazia.
+            2. Valores monetários/decimais são java.math.BigDecimal: aritmética com .add(), \
+            .subtract(), .multiply(), .divide(x, 2, java.math.RoundingMode.HALF_UP) — NUNCA +,-,*,/ \
+            entre BigDecimals. Inteiros (Long) podem usar aritmética normal.
+            3. Strings concatenam com + (ex.: "Cliente: " + $F{cliente}). Condicionais com ternário \
+            (cond ? a : b). Comparações de objeto com .equals(), nunca ==.
+            4. Funções do jasperreports-functions estão disponíveis (ex.: DATEFORMAT($F{data}, \
+            "dd/MM/yyyy"), TEXT($F{valor}, "¤ #,##0.00"), CONCATENATE(...), IF(...), TODAY()).
+            5. PROIBIDO SQL/query/conexão em qualquer forma.
+            6. Responda APENAS JSON puro: {"expressao": "<expressão em uma linha>", \
+            "explicacao": "<curta, pt-BR>"}""";
+
+    /** Prompt do usuário do Assistente B: pedido NL + vocabulário do escopo. */
+    public static String usuarioExpressao(String descricao, String escopoJson) {
+        return "Pedido:\n" + descricao.strip() + "\n\nVocabulário disponível (nomes válidos):\n"
+                + (escopoJson == null || escopoJson.isBlank() ? "{}" : escopoJson) + "\n";
+    }
+
     /** Prompt do usuário: descrição NL + contrato atual (vocabulário). */
     public static String usuario(String descricao, String contratoJson, String templateAtualJson) {
         StringBuilder sb = new StringBuilder();
