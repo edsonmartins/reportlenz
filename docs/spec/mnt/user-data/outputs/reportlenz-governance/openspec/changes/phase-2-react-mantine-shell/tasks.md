@@ -5,7 +5,7 @@
 - [x] 1.2 Integração com `jrxml-core` (serialize → validateSchema + validateContract em toda mutação → `problemas`; poda de seleção pendurada)
 
 ## 2. Canvas
-- [ ] 2.1 Página A4/custom em pt; réguas mm/cm; grid
+- [x] 2.1 Página A4/custom em pt; réguas mm/cm; grid (+ guias de margem e de coluna p/ etiqueta A4; zoom 25–400%)
 - [ ] 2.2 Bandas (title..summary, groups) com resize de altura
 - [ ] 2.3 Elementos selecionáveis/movíveis/resizable
 - [ ] 2.4 Snapping com guias de alinhamento

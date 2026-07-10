@@ -3,40 +3,79 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { AppShell, Badge, Button, Group, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, AppShell, Badge, Button, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import { Canvas } from './canvas/Canvas';
+import { useCanvasStore } from './store/canvasStore';
 import { useDocumentoStore } from './store/documentoStore';
+
+/** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
+function BarraDoCanvas() {
+  const zoom = useCanvasStore((s) => s.zoom);
+  const definirZoom = useCanvasStore((s) => s.definirZoom);
+  const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
+  const alternarGrid = useCanvasStore((s) => s.alternarGrid);
+
+  return (
+    <Group gap="xs" px="md" py={6} style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
+      <Tooltip label="Diminuir zoom">
+        <ActionIcon variant="subtle" aria-label="diminuir zoom" onClick={() => definirZoom(zoom - 0.25)}>
+          −
+        </ActionIcon>
+      </Tooltip>
+      <Text size="sm" w={48} ta="center" data-testid="zoom-atual">
+        {Math.round(zoom * 100)}%
+      </Text>
+      <Tooltip label="Aumentar zoom">
+        <ActionIcon variant="subtle" aria-label="aumentar zoom" onClick={() => definirZoom(zoom + 0.25)}>
+          +
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label="Mostrar/ocultar grid (o snap usa o passo do grid)">
+        <Button size="compact-xs" variant={mostrarGrid ? 'filled' : 'default'} onClick={alternarGrid}>
+          Grid
+        </Button>
+      </Tooltip>
+    </Group>
+  );
+}
 
 export function App() {
   const template = useDocumentoStore((s) => s.template);
   const novoDocumento = useDocumentoStore((s) => s.novoDocumento);
+  const problemas = useDocumentoStore((s) => s.problemas);
 
   return (
-    <AppShell header={{ height: 48 }} padding="md">
+    <AppShell header={{ height: 48 }} padding={0}>
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Group gap="xs">
             <Title order={4}>ReportLenz</Title>
             <Badge variant="light">designer</Badge>
           </Group>
-          {template && <Text size="sm" c="dimmed">{template.name}</Text>}
+          {template && (
+            <Group gap="xs">
+              <Text size="sm" c="dimmed">
+                {template.name}
+              </Text>
+              <Badge color={problemas.length === 0 ? 'green' : 'red'} variant="light">
+                {problemas.length === 0 ? 'ok' : `${problemas.length} problema(s)`}
+              </Badge>
+            </Group>
+          )}
         </Group>
       </AppShell.Header>
 
-      <AppShell.Main>
+      <AppShell.Main style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
         {template ? (
-          <Stack gap="xs">
-            <Text fw={600}>{template.name}</Text>
-            <Text size="sm" c="dimmed">
-              {template.dataContract.fields.length} campos · {template.dataContract.parameters.length} parâmetros ·{' '}
-              {template.bands.detail.length} banda(s) detail
-            </Text>
-            <Text size="sm" c="dimmed">
-              O canvas chega no bloco 2; este shell prova o ciclo store ⇄ jrxml-core.
-            </Text>
-          </Stack>
+          <>
+            <BarraDoCanvas />
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <Canvas />
+            </div>
+          </>
         ) : (
-          <Stack gap="sm" maw={480}>
+          <Stack gap="sm" maw={480} p="md">
             <Title order={3}>Novo template</Title>
             <Text size="sm" c="dimmed">
               Comece por um template de referência pt-BR (a galeria completa chega na tarefa 7.2).

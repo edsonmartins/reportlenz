@@ -25,10 +25,11 @@ describe('jrxml-designer-react · App shell (1.1)', () => {
     expect(screen.getByRole('button', { name: 'etiqueta_a4' })).toBeInTheDocument();
   });
 
-  it('abrir um template de referência mostra o documento no shell', () => {
+  it('abrir um template de referência mostra o documento no canvas', () => {
     renderApp();
     fireEvent.click(screen.getByRole('button', { name: 'comprovante' }));
     expect(screen.getAllByText('comprovante_entrega').length).toBeGreaterThan(0);
-    expect(screen.getByText(/campos/)).toBeInTheDocument();
+    expect(screen.getByTestId('pagina-canvas')).toBeInTheDocument();
+    expect(screen.getByText('ok')).toBeInTheDocument(); // badge de problemas zerado
   });
 });
