@@ -4,6 +4,8 @@
  * nos blocos 2-5.
  */
 import { ActionIcon, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
+import { useState } from 'react';
+import { AssistenteDrawer } from './assistente/AssistenteDrawer';
 import { Canvas } from './canvas/Canvas';
 import { BIBLIOTECA_DE_BLOCOS } from './blocos/biblioteca';
 import { PRESETS_DE_ELEMENTO } from './palette/inserir';
@@ -58,6 +60,7 @@ function ComandosDeSelecao() {
 
 /** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
 function BarraDoCanvas() {
+  const [assistenteAberto, setAssistenteAberto] = useState(false);
   const zoom = useCanvasStore((s) => s.zoom);
   const definirZoom = useCanvasStore((s) => s.definirZoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
@@ -136,7 +139,12 @@ function BarraDoCanvas() {
         </Menu.Dropdown>
       </Menu>
       <ComandosDeSelecao />
-      <div style={{ marginLeft: 'auto' }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+        <Tooltip label="Gerar/refinar o relatório descrevendo em português (a saída é um rascunho revisável — RFC-005)">
+          <Button size="compact-xs" color="violet" variant="light" onClick={() => setAssistenteAberto(true)}>
+            ✨ Assistente
+          </Button>
+        </Tooltip>
         <Tooltip label="Render REAL pelo engine JasperReports (a verdade; o canvas é aproximação)">
           <Button
             size="compact-xs"
@@ -151,6 +159,7 @@ function BarraDoCanvas() {
           </Button>
         </Tooltip>
       </div>
+      <AssistenteDrawer aberto={assistenteAberto} onFechar={() => setAssistenteAberto(false)} />
     </Group>
   );
 }

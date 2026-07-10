@@ -8,6 +8,7 @@ export default defineConfig({
     // Preview real (RFC-004 §7): encaminha para o render-service local.
     proxy: {
       '/render': 'http://localhost:8087',
+      '/assist': 'http://localhost:8087',
     },
   },
 });

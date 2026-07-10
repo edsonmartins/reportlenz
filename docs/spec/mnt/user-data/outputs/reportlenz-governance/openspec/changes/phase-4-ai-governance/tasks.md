@@ -5,10 +5,10 @@
 - [ ] 1.2 Medir qualidade do binding ao contrato; decidir Accepted/ajuste
 
 ## 2. Assistente A — NL → JRXML
-- [ ] 2.1 Serviço de inferência local (GPU on-premises); proteção contra envio a nuvem
-- [ ] 2.2 Prompt/sistema com proibição de `<queryString>` (anti-Pull)
-- [ ] 2.3 Geração de `ReportTemplate` (draft) a partir de NL + contrato
-- [ ] 2.4 Validação obrigatória (XSD + contrato) antes de exibir no canvas
+- [x] 2.1 Serviço de inferência configurável — OpenRouter default, local (Ollama/vLLM) por base-url (ADR-014 emenda o ADR-010; decisão explícita do usuário em 2026-07-10); chave/modelo só no backend
+- [x] 2.2 Prompt/sistema com proibição de Pull + gate anti-Pull também na SAÍDA da IA (defesa em profundidade)
+- [x] 2.3 Geração de `ReportTemplate` (draft) a partir de NL + contrato (POST /assist/gerar-template; refino com templateAtual; AssistenteDrawer)
+- [x] 2.4 Validação obrigatória (estrutural + contrato) antes de exibir: normalizarDraft + validarDocumento no drawer; problemas visíveis antes do "Carregar rascunho"
 
 ## 3. Assistente B — NL → expressão
 - [ ] 3.1 Tradução NL → expressão JR válida contra o contrato

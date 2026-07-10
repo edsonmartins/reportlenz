@@ -37,6 +37,20 @@ public class TratadorDeErros {
                 .body(new ErroResponse("FALHA_DE_RENDER", e.getMessage()));
     }
 
+    /** IA indisponível degrada sem quebrar o designer (RFC-005/ADR-014). */
+    @ExceptionHandler(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel.class)
+    public ResponseEntity<ErroResponse> iaIndisponivel(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErroResponse("IA_INDISPONIVEL", e.getMessage()));
+    }
+
+    /** O modelo fugiu do formato pedido — o front oferece "tentar de novo". */
+    @ExceptionHandler(dev.reportlenz.render.assist.ErroDoAssistente.RespostaInvalida.class)
+    public ResponseEntity<ErroResponse> respostaInvalida(dev.reportlenz.render.assist.ErroDoAssistente.RespostaInvalida e) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ErroResponse("IA_RESPOSTA_INVALIDA", e.getMessage()));
+    }
+
     /** Corpo do 422: a lista de violações do inputSchema (RFC-002 §5). */
     public record ErroValidacaoResponse(String codigo, String mensagem, java.util.List<String> violacoes) {}
 

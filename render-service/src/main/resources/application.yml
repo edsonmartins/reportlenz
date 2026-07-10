@@ -36,6 +36,13 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  assist:
+    # ADR-014: OpenRouter default; base-url OpenAI-compatível — apontar para
+    # Ollama/vLLM local mantém inferência local como opt-in (I-4)
+    base-url: ${REPORTLENZ_LLM_BASE_URL:https://openrouter.ai/api/v1}
+    api-key: ${OPENROUTER_API_KEY:}
+    model: ${REPORTLENZ_LLM_MODEL:openai/gpt-4o-mini}
+    temperature: ${REPORTLENZ_LLM_TEMPERATURE:0.2}
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
   storage:
