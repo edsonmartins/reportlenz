@@ -34,5 +34,5 @@
 - [x] 7.2 Galeria de templates iniciais pt-BR (em branco + fatura, comprovante, form, etiqueta A4 — os mesmos validados pelo harness)
 
 ## 8. Aposentar Vue
-- [ ] 8.1 Paridade mínima atingida → remover a UI Vue do fork
-- [ ] 8.2 Aceite RFC-004 §10 (parte base) verde
+- [x] 8.1 Paridade mínima atingida → UI Vue aposentada e clone removido (decisão do usuário: reproduzir em React, não guardar; mapa de paridade na nota 006)
+- [x] 8.2 Aceite RFC-004 §10 (parte base) verde → `docs/design/nota-006-aposentadoria-vue-aceite-fase-2.md`

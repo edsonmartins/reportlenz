@@ -76,8 +76,8 @@ core       render+    casca      features    IA +
 headless   contrato   React      pro         governança
 ```
 
-- **Estado atual: Fases 0 e 1 concluídas** (aceites em `docs/design/nota-003-aceite-fase-0.md` e
-  `nota-005-aceite-fase-1.md`). Próxima: **Fase 2** (`phase-2-react-mantine-shell` — casca React).
+- **Estado atual: Fases 0, 1 e 2 concluídas** (aceites: notas 003, 005 e 006 em `docs/design/`).
+  A UI Vue do fork está aposentada (nota 006). Próxima: **Fase 3** (`phase-3-editor-pro-features`).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").
 
