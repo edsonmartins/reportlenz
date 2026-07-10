@@ -7,6 +7,8 @@ import { useDocumentoStore } from '../store/documentoStore';
 import { useCanvasStore } from '../store/canvasStore';
 import { ESPESSURA_REGUA, Regua } from './Regua';
 import { PaginaCanvas } from './PaginaCanvas';
+import { BandaCanvas } from './BandaCanvas';
+import { chaveDaBanda, faixasDeBandas } from './bandas';
 
 const MARGEM_EM_TORNO_DA_FOLHA = 24;
 
@@ -41,7 +43,11 @@ export function Canvas() {
         <Regua orientacao="vertical" comprimentoPt={pf.pageHeight} zoom={zoom} />
       </div>
       <div style={{ padding: MARGEM_EM_TORNO_DA_FOLHA }}>
-        <PaginaCanvas pageFormat={pf} zoom={zoom} mostrarGrid={mostrarGrid} passoGridMm={passoGridMm} />
+        <PaginaCanvas pageFormat={pf} zoom={zoom} mostrarGrid={mostrarGrid} passoGridMm={passoGridMm}>
+          {faixasDeBandas(template).map((faixa) => (
+            <BandaCanvas key={chaveDaBanda(faixa.caminho)} faixa={faixa} pageFormat={pf} zoom={zoom} />
+          ))}
+        </PaginaCanvas>
       </div>
     </div>
   );

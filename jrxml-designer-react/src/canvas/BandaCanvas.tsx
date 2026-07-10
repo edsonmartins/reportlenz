@@ -1,0 +1,101 @@
+/**
+ * Faixa de banda no canvas (tarefa phase-2/2.2): área da banda com rótulo e
+ * handle de resize de altura na borda inferior. O arraste COMMITA a mutação a
+ * cada movimento (validação contínua da 1.2 acompanha ao vivo; o histórico do
+ * undo/redo da 2.7 fará a coalescência por gesto).
+ */
+import type { PointerEvent as ReactPointerEvent } from 'react';
+import { useRef } from 'react';
+import { useDocumentoStore } from '../store/documentoStore';
+import { redimensionarBanda } from '../store/mutacoes';
+import type { FaixaDeBanda } from './bandas';
+import { chaveDaBanda } from './bandas';
+import { areaUtil, ptParaPx, pxParaPt } from './geometria';
+import type { PageFormat } from '@reportlenz/jrxml-core';
+
+const ALTURA_DO_HANDLE = 6;
+
+interface BandaCanvasProps {
+  faixa: FaixaDeBanda;
+  pageFormat: PageFormat;
+  zoom: number;
+}
+
+export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
+  const mutarTemplate = useDocumentoStore((s) => s.mutarTemplate);
+  const util = areaUtil(pageFormat);
+  const arrasto = useRef<{ yInicialPx: number; alturaInicialPt: number } | null>(null);
+
+  const aoIniciarArrasto = (e: ReactPointerEvent<HTMLDivElement>) => {
+    arrasto.current = { yInicialPx: e.clientY, alturaInicialPt: faixa.alturaPt };
+    // jsdom não implementa pointer capture — proteger para os testes.
+    if (e.currentTarget.setPointerCapture && e.currentTarget.hasPointerCapture !== undefined) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* ambiente sem pointer capture */
+      }
+    }
+  };
+
+  const aoMoverArrasto = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!arrasto.current) return;
+    const deltaPt = pxParaPt(e.clientY - arrasto.current.yInicialPx, zoom);
+    mutarTemplate(redimensionarBanda(faixa.caminho, arrasto.current.alturaInicialPt + deltaPt));
+  };
+
+  const aoTerminarArrasto = () => {
+    arrasto.current = null;
+  };
+
+  return (
+    <div
+      data-testid={`banda-${chaveDaBanda(faixa.caminho)}`}
+      style={{
+        position: 'absolute',
+        left: ptParaPx(util.x, zoom),
+        top: ptParaPx(faixa.yPt, zoom),
+        width: ptParaPx(util.width, zoom),
+        height: ptParaPx(faixa.alturaPt, zoom),
+        borderBottom: '1px solid var(--mantine-color-gray-4)',
+        boxSizing: 'border-box',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 1,
+          left: 2,
+          fontSize: 9,
+          lineHeight: 1,
+          padding: '1px 4px',
+          borderRadius: 2,
+          background: 'var(--mantine-color-gray-1)',
+          color: 'var(--mantine-color-gray-7)',
+          userSelect: 'none',
+          pointerEvents: 'none',
+        }}
+      >
+        {faixa.rotulo} · {Math.round(faixa.alturaPt)}pt
+      </span>
+
+      <div
+        data-testid={`resize-${chaveDaBanda(faixa.caminho)}`}
+        role="separator"
+        aria-label={`redimensionar ${faixa.rotulo}`}
+        onPointerDown={aoIniciarArrasto}
+        onPointerMove={aoMoverArrasto}
+        onPointerUp={aoTerminarArrasto}
+        onPointerCancel={aoTerminarArrasto}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: -ALTURA_DO_HANDLE / 2,
+          height: ALTURA_DO_HANDLE,
+          cursor: 'ns-resize',
+        }}
+      />
+    </div>
+  );
+}
