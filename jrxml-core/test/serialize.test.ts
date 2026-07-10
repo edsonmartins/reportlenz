@@ -45,6 +45,24 @@ describe('jrxml-core · serializeJrxml (5.1)', () => {
     expect(xml).toContain('<dataset name="itens_ds">');
   });
 
+  it('recusa elemento de runtime com kind desconhecido (nada some em silêncio)', () => {
+    const t: ReportTemplate = {
+      ...REFERENCIA_FATURA,
+      bands: {
+        detail: [
+          {
+            height: 20,
+            splitType: 'Stretch',
+            // @ts-expect-error — estado deliberadamente corrompido (sem kind)
+            elements: [{ bounds: { x: 0, y: 0, width: 1, height: 1 } }],
+          },
+        ],
+        groups: [],
+      },
+    };
+    expect(() => serializeJrxml(t)).toThrow(/kind desconhecido/);
+  });
+
   it('escapa atributos e protege CDATA contra ]]>', () => {
     const t: ReportTemplate = {
       ...REFERENCIA_FATURA,

@@ -341,6 +341,11 @@ function writeElement(w: Writer, el: Element): void {
       writeFrame(w, el);
       return;
   }
+  // O switch acima é exaustivo para o tipo Element; dados de RUNTIME fora do
+  // modelo (ex.: estado corrompido vindo da UI) não podem sumir em silêncio.
+  throw new Error(
+    `elemento com kind desconhecido não pode ser serializado: ${JSON.stringify((el as { kind?: unknown }).kind)}`,
+  );
 }
 
 function writeShape(

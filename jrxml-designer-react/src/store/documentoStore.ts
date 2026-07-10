@@ -11,6 +11,7 @@
  * serialize/parse.
  */
 import type { Band, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
+import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
 
 // ---------------------------------------------------------------------------
@@ -62,6 +63,39 @@ export function obterBanda(template: ReportTemplate, caminho: CaminhoDeBanda): B
 }
 
 // ---------------------------------------------------------------------------
+// Validação contínua (RFC-004 §2, tarefa phase-2/1.2)
+
+/**
+ * Toda mutação passa pelo jrxml-core: round-trip estrutural
+ * (serialize → validateSchema, dialeto 7/anti-Pull) + integridade de
+ * contrato (validateContract, G3). O resultado alimenta o ReportChecker
+ * (bloco 6). Erro inesperado do serializer vira problema visível — nunca
+ * exceção engolida.
+ */
+export function validarDocumento(template: ReportTemplate): ParseError[] {
+  try {
+    const xml = serializeJrxml(template);
+    return [...validateSchema(xml).messages, ...validateContract(template).messages];
+  } catch (e) {
+    return [
+      {
+        code: 'XML_MALFORMED',
+        message: `falha ao serializar o documento: ${e instanceof Error ? e.message : String(e)}`,
+        path: '',
+      },
+    ];
+  }
+}
+
+/** Remove seleções que a mutação tornou inválidas (elemento/banda removidos). */
+function podarSelecao(template: ReportTemplate, selecao: CaminhoDeElemento[]): CaminhoDeElemento[] {
+  return selecao.filter((caminho) => {
+    const banda = obterBanda(template, caminho.banda);
+    return banda !== undefined && caminho.indice >= 0 && caminho.indice < banda.elements.length;
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Store
 
 export interface DocumentoState {
@@ -85,7 +119,7 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
   problemas: [],
 
   novoDocumento: (template) => {
-    set({ template, selecao: [], problemas: [] });
+    set({ template, selecao: [], problemas: validarDocumento(template) });
   },
 
   fecharDocumento: () => {
@@ -95,7 +129,12 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => ({
   mutarTemplate: (mutacao) => {
     const atual = get().template;
     if (!atual) return;
-    set({ template: mutacao(atual) });
+    const proximo = mutacao(atual);
+    set({
+      template: proximo,
+      problemas: validarDocumento(proximo),
+      selecao: podarSelecao(proximo, get().selecao),
+    });
   },
 
   selecionar: (caminho, aditivo = false) => {
