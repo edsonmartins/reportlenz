@@ -30,8 +30,8 @@
 - [x] 6.1 Painel de problemas (mensagens do core com código/mensagem/caminho; clique navega até o elemento; recolhível)
 
 ## 7. UX
-- [ ] 7.1 Tooltips de auto-explicação nos controles
-- [ ] 7.2 Galeria de templates iniciais pt-BR (fatura, comprovante, form, etiqueta A4)
+- [x] 7.1 Tooltips de auto-explicação nos controles (zoom/grid/snap/align/z-order/undo-redo/render/badge de validação/limpar sobrescrita/required)
+- [x] 7.2 Galeria de templates iniciais pt-BR (em branco + fatura, comprovante, form, etiqueta A4 — os mesmos validados pelo harness)
 
 ## 8. Aposentar Vue
 - [ ] 8.1 Paridade mínima atingida → remover a UI Vue do fork

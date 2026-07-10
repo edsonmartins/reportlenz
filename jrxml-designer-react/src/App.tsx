@@ -3,11 +3,11 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { ActionIcon, AppShell, Badge, Button, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core';
-import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import { ActionIcon, AppShell, Badge, Button, Divider, Group, Text, Title, Tooltip } from '@mantine/core';
 import { Canvas } from './canvas/Canvas';
 import { ReportChecker } from './checker/ReportChecker';
 import { DataContractPanel } from './contrato/DataContractPanel';
+import { Galeria } from './galeria/Galeria';
 import { PreviewPanel } from './preview/PreviewPanel';
 import { usePreviewStore } from './preview/previewStore';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
@@ -125,7 +125,6 @@ function BarraDoCanvas() {
 
 export function App() {
   const template = useDocumentoStore((s) => s.template);
-  const novoDocumento = useDocumentoStore((s) => s.novoDocumento);
   const problemas = useDocumentoStore((s) => s.problemas);
 
   return (
@@ -141,9 +140,11 @@ export function App() {
               <Text size="sm" c="dimmed">
                 {template.name}
               </Text>
-              <Badge color={problemas.length === 0 ? 'green' : 'red'} variant="light">
-                {problemas.length === 0 ? 'ok' : `${problemas.length} problema(s)`}
-              </Badge>
+              <Tooltip label="Validação contínua: dialeto 7 + integridade com o contrato (detalhes no painel Problemas)">
+                <Badge color={problemas.length === 0 ? 'green' : 'red'} variant="light">
+                  {problemas.length === 0 ? 'ok' : `${problemas.length} problema(s)`}
+                </Badge>
+              </Tooltip>
             </Group>
           )}
         </Group>
@@ -166,19 +167,7 @@ export function App() {
             </div>
           </>
         ) : (
-          <Stack gap="sm" maw={480} p="md">
-            <Title order={3}>Novo template</Title>
-            <Text size="sm" c="dimmed">
-              Comece por um template de referência pt-BR (a galeria completa chega na tarefa 7.2).
-            </Text>
-            <Group>
-              {Object.entries(REFERENCE_TEMPLATES).map(([nome, ref]) => (
-                <Button key={nome} variant="light" onClick={() => novoDocumento(structuredClone(ref))}>
-                  {nome}
-                </Button>
-              ))}
-            </Group>
-          </Stack>
+          <Galeria />
         )}
       </AppShell.Main>
     </AppShell>

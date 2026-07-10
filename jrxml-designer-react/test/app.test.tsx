@@ -1,5 +1,5 @@
 import { MantineProvider } from '@mantine/core';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';
 import { useDocumentoStore } from '../src/store/documentoStore';
@@ -17,17 +17,17 @@ describe('jrxml-designer-react · App shell (1.1)', () => {
     useDocumentoStore.getState().fecharDocumento();
   });
 
-  it('sem documento: oferece os templates de referência do core', () => {
+  it('sem documento: mostra a galeria de modelos pt-BR', () => {
     renderApp();
     expect(screen.getByText('Novo template')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'fatura' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'comprovante' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'etiqueta_a4' })).toBeInTheDocument();
+    expect(screen.getByTestId('galeria')).toBeInTheDocument();
+    expect(screen.getByTestId('modelo-fatura')).toBeInTheDocument();
   });
 
-  it('abrir um template de referência mostra o documento no canvas', () => {
+  it('abrir um template da galeria mostra o documento no canvas', () => {
     renderApp();
-    fireEvent.click(screen.getByRole('button', { name: 'comprovante' }));
+    const card = screen.getByTestId('modelo-comprovante');
+    fireEvent.click(within(card).getByRole('button', { name: 'Usar' }));
     expect(screen.getAllByText('comprovante_entrega').length).toBeGreaterThan(0);
     expect(screen.getByTestId('pagina-canvas')).toBeInTheDocument();
     expect(screen.getByText('ok')).toBeInTheDocument(); // badge de problemas zerado
