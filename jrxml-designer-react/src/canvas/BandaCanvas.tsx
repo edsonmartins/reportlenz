@@ -10,6 +10,7 @@ import { useDocumentoStore } from '../store/documentoStore';
 import { redimensionarBanda } from '../store/mutacoes';
 import type { FaixaDeBanda } from './bandas';
 import { chaveDaBanda } from './bandas';
+import { ElementoCanvas } from './ElementoCanvas';
 import { areaUtil, ptParaPx, pxParaPt } from './geometria';
 import type { PageFormat } from '@reportlenz/jrxml-core';
 
@@ -23,6 +24,7 @@ interface BandaCanvasProps {
 
 export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
   const mutarTemplate = useDocumentoStore((s) => s.mutarTemplate);
+  const limparSelecao = useDocumentoStore((s) => s.limparSelecao);
   const util = areaUtil(pageFormat);
   const arrasto = useRef<{ yInicialPx: number; alturaInicialPt: number } | null>(null);
 
@@ -51,6 +53,10 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
   return (
     <div
       data-testid={`banda-${chaveDaBanda(faixa.caminho)}`}
+      onPointerDown={(e) => {
+        // Clique em área vazia da banda limpa a seleção (2.3).
+        if (e.target === e.currentTarget) limparSelecao();
+      }}
       style={{
         position: 'absolute',
         left: ptParaPx(util.x, zoom),
@@ -78,6 +84,15 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
       >
         {faixa.rotulo} · {Math.round(faixa.alturaPt)}pt
       </span>
+
+      {faixa.banda.elements.map((elemento, indice) => (
+        <ElementoCanvas
+          key={indice}
+          caminho={{ banda: faixa.caminho, indice }}
+          elemento={elemento}
+          zoom={zoom}
+        />
+      ))}
 
       <div
         data-testid={`resize-${chaveDaBanda(faixa.caminho)}`}

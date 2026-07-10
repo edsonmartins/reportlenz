@@ -7,7 +7,7 @@
 ## 2. Canvas
 - [x] 2.1 Página A4/custom em pt; réguas mm/cm; grid (+ guias de margem e de coluna p/ etiqueta A4; zoom 25–400%)
 - [x] 2.2 Bandas (title..summary, groups) com resize de altura (ordem de design view; clamp no rodapé do elemento mais baixo)
-- [ ] 2.3 Elementos selecionáveis/movíveis/resizable
+- [x] 2.3 Elementos selecionáveis/movíveis/resizable (8 handles; clamp na banda; Shift = seleção aditiva; aproximação visual por kind)
 - [ ] 2.4 Snapping com guias de alinhamento
 - [ ] 2.5 Multi-seleção; alinhar/distribuir; z-order
 - [ ] 2.6 Nudge (setas/Shift), copy/paste, delete

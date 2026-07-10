@@ -3,9 +3,9 @@
  * `ReportTemplate → ReportTemplate` para usar com `mutarTemplate` — cada uma
  * passa automaticamente pela validação contínua (1.2).
  */
-import type { Band, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { Band, Bounds, Element, ReportTemplate } from '@reportlenz/jrxml-core';
 import { alturaMinimaDaBanda } from '../canvas/bandas';
-import type { CaminhoDeBanda } from './documentoStore';
+import type { CaminhoDeBanda, CaminhoDeElemento } from './documentoStore';
 
 /** Aplica `atualizar` à banda no caminho, imutavelmente. */
 export function comBanda(
@@ -49,4 +49,51 @@ export function redimensionarBanda(caminho: CaminhoDeBanda, novaAlturaPt: number
       ...banda,
       height: Math.round(Math.max(alturaMinimaDaBanda(banda), novaAlturaPt)),
     }));
+}
+
+/** Aplica `atualizar` ao elemento no caminho, imutavelmente (tarefa 2.3). */
+export function comElemento(
+  template: ReportTemplate,
+  caminho: CaminhoDeElemento,
+  atualizar: (elemento: Element) => Element,
+): ReportTemplate {
+  return comBanda(template, caminho.banda, (banda) => {
+    const elemento = banda.elements[caminho.indice];
+    if (!elemento) return banda;
+    const elements = banda.elements.slice();
+    elements[caminho.indice] = atualizar(elemento);
+    return { ...banda, elements };
+  });
+}
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
+}
+
+/**
+ * Move/redimensiona um elemento (2.3), CLAMPEADO dentro da banda: o engine
+ * recusa elemento fora dos limites (largura da coluna × altura da banda).
+ * Tamanho mínimo 1pt.
+ */
+export function atualizarBoundsDoElemento(caminho: CaminhoDeElemento, bounds: Bounds) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const larguraBanda = template.pageFormat.columnWidth;
+    return comBanda(template, caminho.banda, (banda) => {
+      const elemento = banda.elements[caminho.indice];
+      if (!elemento) return banda;
+
+      const width = clamp(Math.round(bounds.width), 1, larguraBanda);
+      const height = clamp(Math.round(bounds.height), 1, Math.max(1, banda.height));
+      const ajustado: Bounds = {
+        width,
+        height,
+        x: clamp(Math.round(bounds.x), 0, Math.max(0, larguraBanda - width)),
+        y: clamp(Math.round(bounds.y), 0, Math.max(0, banda.height - height)),
+      };
+
+      const elements = banda.elements.slice();
+      elements[caminho.indice] = { ...elemento, bounds: ajustado };
+      return { ...banda, elements };
+    });
+  };
 }
