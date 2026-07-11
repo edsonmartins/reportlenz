@@ -38,6 +38,11 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  compile-cache:
+    # Compartilhado via Redis (ADR-008/change cache-compilacao-redis): chave =
+    # sha256(jrxml); false volta ao in-memory puro por instância
+    compartilhado: ${REPORTLENZ_COMPILE_CACHE_COMPARTILHADO:true}
+    ttl-horas: ${REPORTLENZ_COMPILE_CACHE_TTL_HORAS:24}
   assist:
     # ADR-014: OpenRouter default; base-url OpenAI-compatível — apontar para
     # Ollama/vLLM local mantém inferência local como opt-in (I-4)
