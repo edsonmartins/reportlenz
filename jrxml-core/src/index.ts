@@ -61,3 +61,6 @@ export {
   REFERENCIA_FATURA,
   REFERENCIA_FORMULARIO,
 } from './reference/templates.js';
+
+// Grade multi-registro em modo Push (ADR-015).
+export { colecaoDoDatasource, datasourceCampo, PROPRIEDADE_DATASOURCE } from './model/datasource.js';

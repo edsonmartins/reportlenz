@@ -22,6 +22,7 @@ import type { Band } from '../model/bands.js';
 import type { FieldDecl } from '../model/contract.js';
 import type { ColunaDeTabela, Element, TableCell } from '../model/elements.js';
 import { eGrupoDeColunas } from '../model/elements.js';
+import { colecaoDoDatasource, datasourceCampo } from '../model/datasource.js';
 import type { ReportTemplate } from '../model/report.js';
 
 /** Parâmetros built-in do engine JasperReports (sempre disponíveis). */
@@ -67,6 +68,8 @@ interface Ctx {
   master: Scope;
   /** Declarações completas dos fields (para checar tipo collection da tabela). */
   contractFields: readonly FieldDecl[];
+  /** Grade multi-registro ativa (ADR-015): V1 proíbe table/subreport. */
+  gradeAtiva: boolean;
 }
 
 function report(ctx: Ctx, code: ParseError['code'], message: string, path: string): void {
@@ -120,11 +123,18 @@ function checkElement(ctx: Ctx, el: Element, scope: Scope, path: string): void {
       el.elements.forEach((inner, i) => checkElement(ctx, inner, scope, `${path}/elements[${i}]`));
       return;
     case 'subreport':
+      if (ctx.gradeAtiva) {
+        report(ctx, 'INVALID_ATTRIBUTE', 'subreport não é suportado com reportlenz.datasource.campo ativo (ADR-015, restrição V1)', path);
+      }
       checkExpr(ctx, el.templateExpression, scope, path);
       checkExpr(ctx, el.dataSourceExpression, scope, path);
       el.parameters.forEach((p, i) => checkExpr(ctx, p.expression, scope, `${path}/parameters[${i}]`));
       return;
     case 'table': {
+      if (ctx.gradeAtiva) {
+        report(ctx, 'INVALID_ATTRIBUTE', 'table não é suportada com reportlenz.datasource.campo ativo (ADR-015, restrição V1)', path);
+        return;
+      }
       // Push (ADR-003): a tabela é alimentada por campo-coleção do contrato.
       const decl = ctx.contractFields.find((f) => f.name === el.datasetField);
       if (!decl) {
@@ -169,12 +179,43 @@ function checkBand(ctx: Ctx, band: Band | undefined, path: string): void {
  */
 export function validateContract(t: ReportTemplate): ValidationResult {
   const groupNames = new Set(t.bands.groups.map((g) => g.name));
+
+  // ADR-015 (grade multi-registro): com a property ativa, as bandas avaliam
+  // POR ITEM da coleção-datasource — $F{} resolve pelos itemFields.
+  const campoDatasource = datasourceCampo(t);
+  const colecao = colecaoDoDatasource(t);
+  const mensagensDaGrade: ParseError[] = [];
+  if (campoDatasource !== undefined) {
+    if (!colecao) {
+      mensagensDaGrade.push({
+        code: 'INVALID_ATTRIBUTE',
+        message: `reportlenz.datasource.campo aponta "${campoDatasource}", mas não há field collection com esse nome no contrato`,
+        path: 'dataContract',
+      });
+    }
+    for (const f of t.dataContract.fields) {
+      if (f.name !== campoDatasource) {
+        mensagensDaGrade.push({
+          code: 'INVALID_ATTRIBUTE',
+          message: `com reportlenz.datasource.campo ativo, "${f.name}" não pode ser field de topo — mova para parameter (ADR-015)`,
+          path: 'dataContract',
+        });
+      }
+    }
+  }
+
+  const masterFields =
+    campoDatasource !== undefined
+      ? new Set((colecao?.itemFields ?? []).map((f) => f.name))
+      : new Set(t.dataContract.fields.map((f) => f.name));
+
   const ctx: Ctx = {
-    messages: [],
+    messages: mensagensDaGrade,
     styleNames: new Set(t.styles.map((s) => s.name)),
     contractFields: t.dataContract.fields,
+    gradeAtiva: campoDatasource !== undefined,
     master: {
-      fields: new Set(t.dataContract.fields.map((f) => f.name)),
+      fields: masterFields,
       parameters: new Set([...t.dataContract.parameters.map((p) => p.name), ...BUILTIN_PARAMETERS]),
       variables: new Set([
         ...t.dataContract.variables.map((v) => v.name),

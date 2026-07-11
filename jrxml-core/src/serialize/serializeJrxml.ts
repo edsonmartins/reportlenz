@@ -13,6 +13,7 @@ import type { Band, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl } from '../model/contract.js';
 import type { BarcodeElement, ColunaDeTabela, Element, FrameElement, ImageElement, SubreportElement, TableCell, TableElement, TextField } from '../model/elements.js';
 import { eGrupoDeColunas } from '../model/elements.js';
+import { PROPRIEDADE_DATASOURCE } from '../model/datasource.js';
 import type { Pen } from '../model/primitives.js';
 import type { ReportTemplate } from '../model/report.js';
 import type { Style, StyleProps } from '../model/styles.js';
@@ -121,10 +122,11 @@ function datasetNameFor(fieldName: string): string {
   return `${fieldName}_ds`;
 }
 
-function writeContract(w: Writer, contract: DataContract): void {
+function writeContract(w: Writer, contract: DataContract, campoDatasource?: string): void {
   // Datasets primeiro (itens de coleções), como nos samples (dataset antes de parameter/field).
+  // A coleção-DATASOURCE (ADR-015) não vira dataset: os itens dela são o MESTRE.
   for (const f of contract.fields) {
-    if (f.type !== 'collection' || !f.itemFields?.length) continue;
+    if (f.type !== 'collection' || !f.itemFields?.length || f.name === campoDatasource) continue;
     w.block(`<dataset${attrs([['name', datasetNameFor(f.name)]])}>`, '</dataset>', () => {
       for (const item of f.itemFields ?? []) {
         writeFieldDecl(w, item);
@@ -150,6 +152,13 @@ function writeContract(w: Writer, contract: DataContract): void {
   }
 
   for (const f of contract.fields) {
+    if (f.name === campoDatasource && f.type === 'collection') {
+      // ADR-015: os `<field>` mestre são os itemFields (linha = item da coleção).
+      for (const item of f.itemFields ?? []) {
+        writeFieldDecl(w, item);
+      }
+      continue;
+    }
     writeFieldDecl(w, f);
   }
 
@@ -455,7 +464,7 @@ export function serializeJrxml(t: ReportTemplate): string {
       w.line(`<property${attrs([['name', name], ['value', value]])}/>`);
     }
     for (const style of t.styles) writeStyle(w, style);
-    writeContract(w, t.dataContract);
+    writeContract(w, t.dataContract, t.properties[PROPRIEDADE_DATASOURCE]);
     for (const group of t.bands.groups) writeGroup(w, group);
     writeBandSection(w, 'background', t.bands.background);
     writeBandSection(w, 'title', t.bands.title);

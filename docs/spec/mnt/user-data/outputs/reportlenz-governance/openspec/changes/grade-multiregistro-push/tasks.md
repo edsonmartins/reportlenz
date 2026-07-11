@@ -1,11 +1,11 @@
 # Tasks — grade-multiregistro-push
 
 ## 1. Core (jrxml-core)
-- [ ] 1.1 Modelo: `datasourceCampo` derivado de `properties['reportlenz.datasource.campo']` (helper) +
+- [x] 1.1 Modelo: `datasourceCampo` derivado de `properties['reportlenz.datasource.campo']` (helper) +
       regra de contrato (só a coleção-datasource como field; demais topo = parameters)
-- [ ] 1.2 Serializer: `<field>` mestre a partir dos itemFields quando a property está ativa
-- [ ] 1.3 Parser/extractContract: reconstruir coleção + itemFields a partir da property (round-trip)
-- [ ] 1.4 validateContract/avaliarGates: escopo das bandas = itemFields (+builtins/params/vars);
+- [x] 1.2 Serializer: `<field>` mestre a partir dos itemFields quando a property está ativa
+- [x] 1.3 Parser/extractContract: reconstruir coleção + itemFields a partir da property (round-trip)
+- [x] 1.4 validateContract/avaliarGates: escopo das bandas = itemFields (+builtins/params/vars);
       erros orientando field escalar de topo → parameter
 
 ## 2. Render-service

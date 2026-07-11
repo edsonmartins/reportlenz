@@ -803,12 +803,26 @@ export function parseJrxml(xml: string): Result<ReportTemplate, ParseError[]> {
   // Datasets antes do contrato/bandas: tabelas ligam itemFields via datasetRun.
   parseDatasets(ctx, root);
 
+  const properties = parseProperties(root);
+  let dataContract = parseContract(ctx, root);
+
+  // ADR-015 (grade multi-registro): com a property ativa, os `<field>` mestre
+  // são os ITENS da coleção — reconstrói o contrato (coleção + itemFields).
+  const campoDatasource = properties['reportlenz.datasource.campo'];
+  if (campoDatasource !== undefined && campoDatasource !== '') {
+    dataContract = {
+      ...dataContract,
+      fields: [{ name: campoDatasource, type: 'collection', itemFields: dataContract.fields }],
+    };
+    ctx.contractFields = dataContract.fields;
+  }
+
   const template: ReportTemplate = {
     name: name ?? '',
     pageFormat: parsePageFormat(ctx, root),
-    properties: parseProperties(root),
+    properties,
     styles,
-    dataContract: parseContract(ctx, root),
+    dataContract,
     bands: parseBandSet(ctx, root),
   };
 

@@ -1,6 +1,6 @@
 # ADR-015 — Grade multi-registro em modo Push (`reportlenz.datasource.campo`)
 
-- **Status:** Proposed
+- **Status:** Accepted (aceito pelo usuário em 2026-07-10)
 - **Data:** 2026-07-10
 - **Relacionado:** ADR-003 (contract-first), ADR-009, ADR-011 (térmica fora de escopo), RFC-002, RFC-003,
   nota-007 §4 (pendência registrada no aceite da Fase 3)
