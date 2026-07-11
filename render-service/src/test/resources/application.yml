@@ -12,6 +12,11 @@ spring:
       mode: always
 
 reportlenz:
+  compile-cache:
+    # Prefixo ÚNICO por execução: rodadas consecutivas da suíte (SQLite e
+    # PostgreSQL no CI) compartilham o Redis — sem isso o cache chega quente
+    # e os testes de "compila exatamente uma vez" quebram.
+    prefixo: "reportlenz:compile:test:${random.uuid}:"
   fila:
     nome: "reportlenz:render:fila:test"
   storage:
