@@ -77,10 +77,10 @@ headless   contrato   React      pro         governança
 ```
 
 - **Estado atual: TODAS as fases (0 a 4) concluídas** (aceites: notas 003, 005, 006, 007 e 008 em
-  `docs/design/`) **+ change `grade-multiregistro-push` aceito** (ADR-015, nota 009 — etiquetas A4 em
-  grade de ponta a ponta). A UI Vue do fork está aposentada (nota 006). Evoluções futuras entram como
-  novos OpenSpec change packages (§9); pendência registrada: migração SQLite→PostgreSQL (ADR-009)
-  quando escalar.
+  `docs/design/`) **+ changes `grade-multiregistro-push` (ADR-015, nota 009) e `migracao-postgresql`
+  (ADR-009: SQL portável; SQLite default dev, PostgreSQL produção via `REPORTLENZ_DB_URL`; CI valida os
+  dois) aceitos**. A UI Vue do fork está aposentada (nota 006). Evoluções futuras entram como novos
+  OpenSpec change packages (§9); sem pendências estruturais registradas.
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").
 
