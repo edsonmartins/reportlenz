@@ -18,9 +18,9 @@
 - [x] 3.3 REFERENCIA_ETIQUETA_A4 migrada para o novo arranjo (harness 4/4 + fixtures)
 
 ## 4. IA
-- [ ] 4.1 PromptDoAssistente: relatório de unidade repetida usa a property + coleção (re-medir spike
+- [x] 4.1 PromptDoAssistente: relatório de unidade repetida usa a property + coleção (re-medir spike
       nos casos de etiqueta)
 
 ## 5. Aceite
-- [ ] 5.1 Cenários da spec verdes (grade de ponta a ponta: designer → preview → batch); nota de design
+- [x] 5.1 Cenários da spec verdes (grade de ponta a ponta: designer → preview → batch); nota de design
       encerrando a pendência da nota-007 §4

@@ -30,10 +30,13 @@ public final class PromptDoAssistente {
             no dataContract, com os itemFields usados pelas células.
             2c. Dentro de $F{...}/$P{...}/$V{...} vai APENAS o nome declarado — nada de vírgula, \
             formato ou função. Formatação é SEMPRE o atributo "pattern" do textField.
-            2d. Relatório de UMA unidade repetida (etiqueta, crachá, ficha, recibo): cada registro \
-            do datasource é uma unidade — os campos são fields ESCALARES de topo usados direto nas \
-            bandas (SEM coleção e SEM table). Use coleção+table SOMENTE para lista DENTRO de um \
-            documento (itens de uma fatura, volumes de um romaneio).
+            2d. Relatório de UMA unidade repetida (etiqueta, crachá, ficha, recibo): use a GRADE \
+            multi-registro — declare "properties": {"reportlenz.datasource.campo": "<colecao>"} e um \
+            ÚNICO field type "collection" com os itemFields da unidade; as bandas referenciam os \
+            itemFields DIRETO (ex.: $F{preco}); demais valores de topo viram parameters. Nesse modo \
+            NÃO use table nem subreport, e para etiquetas configure pageFormat multi-coluna \
+            (columnCount 2-3, printOrder "Horizontal") + banda noData. Use coleção+table SOMENTE \
+            para lista DENTRO de um documento (itens de uma fatura, volumes de um romaneio).
             3. Elementos nunca vazam da banda: y + height ≤ height da banda; x + width ≤ columnWidth.
             4. Responda APENAS com JSON puro (sem markdown, sem comentários) no formato:
             {"template": <ReportTemplate>, "observacoes": "<notas curtas em pt-BR ou string vazia>"}
