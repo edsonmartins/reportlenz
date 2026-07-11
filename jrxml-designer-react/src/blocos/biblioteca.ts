@@ -19,6 +19,13 @@ export interface MiniContrato {
 
 export interface BlocoReutilizavel {
   id: string;
+  /**
+   * Versão do bloco (Fase 4, tarefa 6.1 — RFC-006 §5): blocos são artefatos
+   * versionados e referenciáveis; a inserção CARIMBA `reportlenz.bloco.<id>`
+   * = versão nas properties do template (proveniência auditável no JRXML).
+   * Mudança de elementos ou de mini-contrato ⇒ incrementar.
+   */
+  versao: number;
   rotulo: string;
   /** Auto-explicação pt-BR (tooltip — RFC-004 §9). */
   descricao: string;
@@ -35,6 +42,7 @@ const pt = (mm: number) => Math.round(mmParaPt(mm));
 export const BIBLIOTECA_DE_BLOCOS: BlocoReutilizavel[] = [
   {
     id: 'cabecalho-timbrado',
+    versao: 1,
     rotulo: 'Cabeçalho timbrado',
     descricao: 'Logotipo + razão social + CNPJ no pageHeader, com linha separadora. Dados via parâmetros.',
     destino: 'pageHeader',
@@ -55,6 +63,7 @@ export const BIBLIOTECA_DE_BLOCOS: BlocoReutilizavel[] = [
   },
   {
     id: 'rodape-com-totais',
+    versao: 1,
     rotulo: 'Rodapé com totais',
     descricao: 'Total geral (soma de $F{valor}) no summary, formatado como R$. Cria a variável de soma.',
     destino: 'summary',
@@ -73,6 +82,7 @@ export const BIBLIOTECA_DE_BLOCOS: BlocoReutilizavel[] = [
   },
   {
     id: 'bloco-assinatura',
+    versao: 1,
     rotulo: 'Bloco de assinatura',
     descricao: 'Linha de assinatura com nome e cargo (parâmetros), centralizados no summary.',
     destino: 'summary',
@@ -91,6 +101,7 @@ export const BIBLIOTECA_DE_BLOCOS: BlocoReutilizavel[] = [
   },
   {
     id: 'qr-de-pedido',
+    versao: 1,
     rotulo: 'QR de pedido',
     descricao: 'QR Code de 25mm bindado a $F{pedido.qrPayload} (URL de consulta, chave Pix etc.).',
     destino: 'detail',

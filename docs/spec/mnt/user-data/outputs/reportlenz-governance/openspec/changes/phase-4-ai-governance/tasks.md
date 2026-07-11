@@ -25,8 +25,8 @@
 - [x] 5.3 Auditoria: created/published/deprecated + `rendered_batch` (batch por `templateCodename` usa SÓ a versão published e audita jobId/total/idempotencyKey)
 
 ## 6. Biblioteca de blocos
-- [ ] 6.1 Blocos versionados (cabeçalho, rodapé com totais, assinatura, QR)
-- [ ] 6.2 Mescla de mini-contrato do bloco ao contrato do template + detecção de conflito
+- [x] 6.1 Blocos versionados: campo `versao` em cada bloco da biblioteca; inserção carimba `reportlenz.bloco.<id>=<versão>` nas properties (proveniência auditável no JRXML publicado)
+- [x] 6.2 Mescla de mini-contrato + detecção de conflito (implementada em phase-3/8.2: compatível reaproveita, incompatível renomeia e reescreve expressões) — avisos agora VISÍVEIS na UI (alert dispensável)
 
 ## 7. Aceite
 - [ ] 7.1 Critérios RFC-005 §7 e RFC-006 §7 verdes

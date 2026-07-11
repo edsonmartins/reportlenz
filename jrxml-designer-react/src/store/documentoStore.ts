@@ -155,6 +155,9 @@ export interface DocumentoState {
   inserirElemento: (elemento: Element) => void;
   /** Bloco reutilizável (Fase 3, bloco 8): mescla o mini-contrato e cola os elementos. */
   inserirBloco: (bloco: BlocoReutilizavel) => void;
+  /** Avisos da última mescla de mini-contrato (phase-4/6.2 — reaproveitamentos/renomeios). */
+  avisosDeBloco: string[];
+  limparAvisosDeBloco: () => void;
 }
 
 export const useDocumentoStore = create<DocumentoState>((set, get) => {
@@ -186,11 +189,11 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => {
   gesto: null,
 
   novoDocumento: (template) => {
-    set({ template, selecao: [], problemas: validarDocumento(template), passado: [], futuro: [], gesto: null, clipboard: null });
+    set({ template, selecao: [], problemas: validarDocumento(template), passado: [], futuro: [], gesto: null, clipboard: null, avisosDeBloco: [] });
   },
 
   fecharDocumento: () => {
-    set({ template: null, selecao: [], problemas: [], passado: [], futuro: [], gesto: null, clipboard: null });
+    set({ template: null, selecao: [], problemas: [], passado: [], futuro: [], gesto: null, clipboard: null, avisosDeBloco: [] });
   },
 
   mutarTemplate: (mutacao) => {
@@ -330,6 +333,13 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => {
     if (!template) return;
     const resultado = inserirBloco(template, bloco);
     aplicarTemplate(resultado.template, resultado.selecao);
+    // Conflitos/reaproveitamentos da mescla ficam VISÍVEIS (6.2) — nunca silenciosos.
+    set({ avisosDeBloco: resultado.avisos });
+  },
+
+  avisosDeBloco: [],
+  limparAvisosDeBloco: () => {
+    set({ avisosDeBloco: [] });
   },
   };
 });

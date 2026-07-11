@@ -3,7 +3,7 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { ActionIcon, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { useState } from 'react';
 import { AssistenteDrawer } from './assistente/AssistenteDrawer';
 import { Canvas } from './canvas/Canvas';
@@ -56,6 +56,22 @@ function ComandosDeSelecao() {
       {botao('▲', 'Trazer para frente (ordem de pintura do JRXML)', temSelecao, () => zOrderSelecao('frente'))}
       {botao('▼', 'Enviar para trás', temSelecao, () => zOrderSelecao('tras'))}
     </Group>
+  );
+}
+
+/** Avisos da mescla de mini-contrato ao inserir bloco (phase-4/6.2) — nunca silenciosos. */
+function AvisosDeBloco() {
+  const avisos = useDocumentoStore((s) => s.avisosDeBloco);
+  const limpar = useDocumentoStore((s) => s.limparAvisosDeBloco);
+  if (avisos.length === 0) return null;
+  return (
+    <Alert color="yellow" p="xs" m={4} withCloseButton onClose={limpar} data-testid="avisos-de-bloco">
+      {avisos.map((a, i) => (
+        <Text size="xs" key={i}>
+          • {a}
+        </Text>
+      ))}
+    </Alert>
   );
 }
 
@@ -203,6 +219,7 @@ export function App() {
         {template ? (
           <>
             <BarraDoCanvas />
+            <AvisosDeBloco />
             <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
               <DataContractPanel />
               <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>

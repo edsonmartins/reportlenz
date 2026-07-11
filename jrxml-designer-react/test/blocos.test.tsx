@@ -1,7 +1,7 @@
 import { MantineProvider } from '@mantine/core';
 import type { ReportTemplate } from '@reportlenz/jrxml-core';
 import { REFERENCIA_FATURA, serializeJrxml } from '@reportlenz/jrxml-core';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';
 import { BIBLIOTECA_DE_BLOCOS } from '../src/blocos/biblioteca';
@@ -98,6 +98,42 @@ describe('inserirBloco (8.1)', () => {
     expect(totalizador?.kind === 'textField' && totalizador.expression).toBe('$V{total_geral_2}');
     expect(avisos).toHaveLength(2);
     expect(validarDocumento(template)).toEqual([]);
+  });
+});
+
+describe('blocos versionados e avisos visíveis (Fase 4, bloco 6)', () => {
+  it('6.1: todo bloco tem versão e a inserção carimba a proveniência no JRXML', () => {
+    expect(BIBLIOTECA_DE_BLOCOS.every((b) => b.versao >= 1)).toBe(true);
+
+    const { template } = inserirBloco(structuredClone(REFERENCIA_FATURA), bloco('cabecalho-timbrado'));
+    expect(template.properties['reportlenz.bloco.cabecalho-timbrado']).toBe('1');
+    // Proveniência sobrevive à serialização — auditável no JRXML publicado.
+    expect(serializeJrxml(template)).toContain('reportlenz.bloco.cabecalho-timbrado');
+    expect(validarDocumento(template)).toEqual([]);
+  });
+
+  it('6.2: conflito na mescla fica VISÍVEL na UI (alert com os renomeios)', () => {
+    const comConflito = structuredClone(REFERENCIA_FATURA);
+    comConflito.dataContract.fields.push({ name: 'valor', type: 'string' });
+    useDocumentoStore.getState().fecharDocumento();
+    useCanvasStore.setState({ zoom: 1, mostrarGrid: false, passoGridMm: 5, snapAtivo: false, guiasDeSnap: null });
+    useDocumentoStore.getState().novoDocumento(comConflito);
+
+    render(
+      <MantineProvider>
+        <App />
+      </MantineProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '+ Inserir' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Rodapé com totais' }));
+
+    const alerta = screen.getByTestId('avisos-de-bloco');
+    expect(alerta.textContent).toContain('valor_2');
+    expect(useDocumentoStore.getState().problemas).toEqual([]);
+
+    // Dispensável pelo usuário.
+    fireEvent.click(within(alerta).getByRole('button'));
+    expect(screen.queryByTestId('avisos-de-bloco')).not.toBeInTheDocument();
   });
 });
 

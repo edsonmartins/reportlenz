@@ -348,7 +348,13 @@ export function inserirBloco(
   bloco: BlocoReutilizavel,
 ): { template: ReportTemplate; selecao: CaminhoDeElemento[]; avisos: string[] } {
   const { contrato, renomeios, avisos } = mesclarMiniContrato(template.dataContract, bloco.miniContrato);
-  let t: ReportTemplate = { ...template, dataContract: contrato };
+  let t: ReportTemplate = {
+    ...template,
+    dataContract: contrato,
+    // Proveniência versionada (phase-4/6.1 — RFC-006 §5): o JRXML publicado
+    // registra qual bloco/versão o compôs (property serializada, auditável).
+    properties: { ...template.properties, [`reportlenz.bloco.${bloco.id}`]: String(bloco.versao) },
+  };
 
   const caminho: CaminhoDeBanda =
     bloco.destino === 'detail' ? { tipo: 'detail', indice: 0 } : { tipo: 'secao', secao: bloco.destino };
