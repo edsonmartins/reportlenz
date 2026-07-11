@@ -20,7 +20,8 @@ import dev.reportlenz.render.pipeline.CompiladorJrxml;
  */
 class PublishControladorTest {
 
-    private final PublishControlador controlador = new PublishControlador(new CompiladorJrxml());
+    private final PublishControlador controlador =
+            new PublishControlador(new dev.reportlenz.render.publish.VerificadorDeGates(new CompiladorJrxml()));
 
     private static final Path FIXTURE_FATURA = Path.of("../tools/jr7-harness/fixtures/fatura.jrxml");
 

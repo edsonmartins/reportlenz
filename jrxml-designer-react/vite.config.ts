@@ -9,6 +9,8 @@ export default defineConfig({
     proxy: {
       '/render': 'http://localhost:8087',
       '/assist': 'http://localhost:8087',
+      '/publish': 'http://localhost:8087',
+      '/templates': 'http://localhost:8087',
     },
   },
 });

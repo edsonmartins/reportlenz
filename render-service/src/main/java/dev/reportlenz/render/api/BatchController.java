@@ -18,25 +18,30 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Batch assíncrono e idempotente (RFC-003 §4, tarefas 5.1/5.3).
  *
- * Nota de contrato: enquanto o registro de templates (ADR-009) não existe, o
- * lote recebe `jrxml` + `inputSchema` inline — o mesmo par que o registro
- * versionará; `templateId`+`version` entram quando o registro chegar.
+ * Com o registro de templates (ADR-009, phase-4/5.x), o lote aceita DUAS
+ * formas: `jrxml`+`inputSchema` inline (compatibilidade) ou
+ * `templateCodename` — que resolve a versão PUBLISHED do repositório (única
+ * usável em produção, RFC-006 §2) e audita `rendered_batch` (LGPD).
  */
 @RestController
 public class BatchController {
 
     private final RepositorioDeJobs repositorio;
     private final FilaDeRender fila;
+    private final dev.reportlenz.render.publish.RepositorioDeTemplates templates;
     private final JsonMapper mapper = JsonMapper.builder().build();
 
-    public BatchController(RepositorioDeJobs repositorio, FilaDeRender fila) {
+    public BatchController(RepositorioDeJobs repositorio, FilaDeRender fila,
+            dev.reportlenz.render.publish.RepositorioDeTemplates templates) {
         this.repositorio = repositorio;
         this.fila = fila;
+        this.templates = templates;
     }
 
     public record BatchRequest(
             String jrxml,
             Map<String, Object> inputSchema,
+            String templateCodename,
             List<Map<String, Object>> payloads,
             String idempotencyKey) {}
 
@@ -44,24 +49,47 @@ public class BatchController {
 
     @PostMapping("/render/batch")
     public ResponseEntity<?> submeter(@RequestBody BatchRequest request) {
-        if (request.jrxml() == null || request.jrxml().isBlank()
+        boolean porRegistro = request.templateCodename() != null && !request.templateCodename().isBlank();
+        if ((!porRegistro && (request.jrxml() == null || request.jrxml().isBlank()))
                 || request.payloads() == null || request.payloads().isEmpty()
                 || request.idempotencyKey() == null || request.idempotencyKey().isBlank()) {
             return ResponseEntity.badRequest()
                     .body(new TratadorDeErros.ErroResponse("REQUISICAO_INVALIDA",
-                            "jrxml, payloads (não vazio) e idempotencyKey são obrigatórios"));
+                            "jrxml OU templateCodename, payloads (não vazio) e idempotencyKey são obrigatórios"));
+        }
+
+        String jrxml = request.jrxml();
+        String inputSchemaJson = request.inputSchema() == null ? null : mapper.writeValueAsString(request.inputSchema());
+        dev.reportlenz.render.publish.RepositorioDeTemplates.Versao versaoPublicada = null;
+        if (porRegistro) {
+            versaoPublicada = templates.publicada(request.templateCodename()).orElse(null);
+            if (versaoPublicada == null) {
+                // Só published é usável pelo batch (RFC-006 §2) — draft/deprecated não rendem.
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new TratadorDeErros.ErroResponse("TEMPLATE_NAO_PUBLICADO",
+                                request.templateCodename() + " não tem versão published"));
+            }
+            jrxml = versaoPublicada.jrxml();
+            inputSchemaJson = versaoPublicada.inputSchemaJson();
         }
 
         var criado = repositorio.criarSeNovo(
                 request.idempotencyKey(),
-                request.jrxml(),
-                request.inputSchema() == null ? null : mapper.writeValueAsString(request.inputSchema()),
+                jrxml,
+                inputSchemaJson,
                 mapper.writeValueAsString(request.payloads()),
                 request.payloads().size());
 
         // Idempotência do lote: só o job NOVO entra na fila; reenvio devolve o mesmo jobId.
         if (criado.novo()) {
             fila.enfileirar(criado.jobId());
+            if (versaoPublicada != null) {
+                // Rastreabilidade LGPD (RFC-006 §4): qual versão gerou qual lote.
+                templates.auditar(versaoPublicada.id(), "rendered_batch", null, mapper.writeValueAsString(Map.of(
+                        "jobId", criado.jobId(),
+                        "total", request.payloads().size(),
+                        "idempotencyKey", request.idempotencyKey())));
+            }
         }
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new BatchResponse(criado.jobId()));
     }

@@ -50,8 +50,13 @@ describe('jrxml-designer-react · Publish Wizard — gates G1–G6 (Fase 4, bloc
     vi.unstubAllGlobals();
   });
 
-  it('tudo verde: seis gates confirmados e o pacote de integração é gerado', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(respostaJson(200, SERVICO_VERDE));
+  it('tudo verde: seis gates confirmados, versão publicada no repositório e pacote gerado', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (url === '/publish/verificar') return Promise.resolve(respostaJson(200, SERVICO_VERDE));
+      if (url.endsWith('/publicar')) return Promise.resolve(respostaJson(200, { status: 'published', version: 3 }));
+      if (url.includes('/templates/')) return Promise.resolve(respostaJson(200, { versionId: 'v', version: 3, novaVersao: true }));
+      return Promise.reject(new Error(`URL inesperada: ${url}`));
+    });
     vi.stubGlobal('fetch', fetchMock);
     renderApp();
     abrirWizard();
@@ -71,7 +76,13 @@ describe('jrxml-designer-react · Publish Wizard — gates G1–G6 (Fase 4, bloc
     const confirmar = screen.getByTestId('publish-confirmar');
     expect(confirmar).toBeEnabled();
     fireEvent.click(confirmar);
-    expect(screen.getByTestId('publish-ok')).toBeInTheDocument();
+
+    // Publish persistente (bloco 5): salvar draft + publicar no repositório.
+    await waitFor(() => expect(screen.getByTestId('publish-ok')).toBeInTheDocument());
+    const urls = fetchMock.mock.calls.map((c) => c[0] as string);
+    expect(urls).toContain('/templates/fatura_completa/versoes');
+    expect(urls).toContain('/templates/fatura_completa/versoes/3/publicar');
+    expect(screen.getByTestId('publish-ok').textContent).toContain('Versão 3 publicada');
   });
 
   it('G3 vermelho (expressão fora do contrato) BLOQUEIA o publish (4.3)', async () => {

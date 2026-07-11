@@ -37,6 +37,13 @@ public class TratadorDeErros {
                 .body(new ErroResponse("FALHA_DE_RENDER", e.getMessage()));
     }
 
+    /** published é imutável (RFC-006 §2) — mutação indevida → 409. */
+    @ExceptionHandler(dev.reportlenz.render.publish.RepositorioDeTemplates.VersaoImutavel.class)
+    public ResponseEntity<ErroResponse> versaoImutavel(dev.reportlenz.render.publish.RepositorioDeTemplates.VersaoImutavel e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResponse("VERSAO_IMUTAVEL", e.getMessage()));
+    }
+
     /** IA indisponível degrada sem quebrar o designer (RFC-005/ADR-014). */
     @ExceptionHandler(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel.class)
     public ResponseEntity<ErroResponse> iaIndisponivel(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel e) {

@@ -33,6 +33,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
   const [servico, setServico] = useState<VerificacaoDoServico | null>(null);
   const [erroDoServico, setErroDoServico] = useState<string | null>(null);
   const [publicado, setPublicado] = useState(false);
+  const [versaoPublicada, setVersaoPublicada] = useState<number | null>(null);
 
   useEffect(() => {
     if (!aberto || !template) return;
@@ -68,17 +69,47 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
 
   const tudoVerde = (resultado?.verde ?? false) && (servico?.verde ?? false);
 
-  const publicar = () => {
-    if (!tudoVerde || !template) return;
-    const pacote = buildIntegrationPackage(template, { version: 1 });
-    const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${pacote.registro.templateName}-v${pacote.registro.version}.reportlenz.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    setPublicado(true);
+  const publicar = async () => {
+    if (!tudoVerde || !template || !resultado) return;
+    setErroDoServico(null);
+    try {
+      // 1) registra/atualiza o draft no repositório (ADR-009 — versionamento conjunto).
+      const salvo = await fetch(`/templates/${template.name}/versoes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jrxml: resultado.jrxml, inputSchema: resultado.inputSchema }),
+      });
+      if (!salvo.ok) {
+        setErroDoServico(`salvar draft falhou (HTTP ${salvo.status})`);
+        return;
+      }
+      const versao = ((await salvo.json()) as { version: number }).version;
+
+      // 2) publica — o serviço reconfere os gates; published fica IMUTÁVEL.
+      const pub = await fetch(`/templates/${template.name}/versoes/${versao}/publicar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!pub.ok) {
+        setErroDoServico(`publish bloqueado pelo serviço (HTTP ${pub.status})`);
+        return;
+      }
+      setVersaoPublicada(versao);
+
+      // 3) pacote de integração da versão publicada (RFC-002 §6).
+      const pacote = buildIntegrationPackage(template, { version: versao });
+      const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${pacote.registro.templateName}-v${versao}.reportlenz.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setPublicado(true);
+    } catch (e) {
+      setErroDoServico(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const gateDoServico = (codigo: string) => servico?.gates.find((g) => g.gate === codigo);
@@ -130,14 +161,14 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
           <Text size="xs" c="dimmed">
             hash: {resultado?.jrxmlHash.slice(0, 16)}…
           </Text>
-          <Button size="compact-sm" disabled={!tudoVerde} onClick={publicar} data-testid="publish-confirmar">
-            Gerar pacote de integração
+          <Button size="compact-sm" disabled={!tudoVerde} onClick={() => void publicar()} data-testid="publish-confirmar">
+            Publicar e gerar pacote
           </Button>
         </Group>
         {publicado && (
           <Text size="xs" c="green" data-testid="publish-ok">
-            ✓ Pacote de integração gerado (registro + JRXML + inputSchema + tipos TS + record Java).
-            O registro persistente de versões (ADR-009) chega no próximo bloco.
+            ✓ Versão {versaoPublicada} publicada (imutável — nova edição cria nova versão) e pacote de
+            integração gerado (registro + JRXML + inputSchema + tipos TS + record Java).
           </Text>
         )}
       </Stack>

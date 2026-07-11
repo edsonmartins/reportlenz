@@ -20,9 +20,9 @@
 - [x] 4.3 Publish bloqueado se qualquer gate falhar — inclusive se a verificação autoritativa (POST /publish/verificar) estiver indisponível; PublishWizard com checklist G1–G6 e pacote de integração
 
 ## 5. Repositório / ciclo de vida
-- [ ] 5.1 Modelo `report_template` / `report_template_version` (ADR-009)
-- [ ] 5.2 Estados draft→published→deprecated; imutabilidade do published
-- [ ] 5.3 Auditoria (`report_template_audit`): publish, batch (rastreabilidade LGPD)
+- [x] 5.1 Modelo `report_template` / `report_template_version` + `report_template_audit` (ADR-009/RFC-006 §4) em SQLite (decisão: começar no SQLite; PostgreSQL quando escalar)
+- [x] 5.2 Estados draft→published→deprecated: draft mutável; published IMUTÁVEL (409 VERSAO_IMUTAVEL; nova edição = nova versão); supersede deprecia a anterior; publish reconfere gates (422 PUBLISH_BLOQUEADO) e save valida G1/G2 (400 SAVE_REPROVADO)
+- [x] 5.3 Auditoria: created/published/deprecated + `rendered_batch` (batch por `templateCodename` usa SÓ a versão published e audita jobId/total/idempotencyKey)
 
 ## 6. Biblioteca de blocos
 - [ ] 6.1 Blocos versionados (cabeçalho, rodapé com totais, assinatura, QR)

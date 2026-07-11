@@ -25,3 +25,37 @@ CREATE TABLE IF NOT EXISTS render_job_saida (
     erro       TEXT,                            -- mensagem (falha do item)
     PRIMARY KEY (job_id, idx)
 );
+
+-- ---------------------------------------------------------------------------
+-- Repositório de templates (ADR-009 / RFC-006 §2 e §4, tarefas phase-4/5.x).
+-- SQLite (decisão 2026-07-09/2026-07-10; migrar p/ PostgreSQL quando escalar).
+-- published é IMUTÁVEL: nova edição = nova versão draft.
+
+CREATE TABLE IF NOT EXISTS report_template (
+    id        TEXT PRIMARY KEY,
+    codename  TEXT NOT NULL UNIQUE,
+    criado_em TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS report_template_version (
+    id           TEXT PRIMARY KEY,
+    template_id  TEXT NOT NULL REFERENCES report_template(id),
+    version      INTEGER NOT NULL,
+    jrxml        TEXT NOT NULL,
+    input_schema TEXT NOT NULL,               -- JSON Schema do contrato (RFC-002)
+    jrxml_hash   TEXT NOT NULL,               -- sha256; chave do compile cache (ADR-008/G6)
+    status       TEXT NOT NULL,               -- draft | published | deprecated
+    criado_em    TEXT NOT NULL,
+    criado_por   TEXT,
+    UNIQUE (template_id, version)
+);
+
+-- Auditoria (RFC-006 §4): rastreabilidade LGPD de publish e batch.
+CREATE TABLE IF NOT EXISTS report_template_audit (
+    id         TEXT PRIMARY KEY,
+    version_id TEXT NOT NULL REFERENCES report_template_version(id),
+    action     TEXT NOT NULL,                 -- created | published | deprecated | rendered_batch
+    actor      TEXT,
+    at         TEXT NOT NULL,
+    meta       TEXT                           -- JSON (ex.: jobId, contagem, idempotencyKey)
+);
