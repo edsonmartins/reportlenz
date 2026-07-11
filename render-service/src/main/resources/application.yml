@@ -53,6 +53,8 @@ reportlenz:
     max-tokens: ${REPORTLENZ_LLM_MAX_TOKENS:16000}
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
+    # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
+    reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
   storage:
     # Padrão MEDIASTORE (integrall-commerce-api): LOCAL (default) ou MINIO
     provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}

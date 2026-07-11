@@ -78,15 +78,31 @@ public class ProcessadorDeLote implements SmartLifecycle {
         return rodando.get();
     }
 
+    /** Reentregas acima disto = mensagem venenosa: job vira failed e sai da fila. */
+    private static final long MAX_ENTREGAS = 5;
+
     private void consumir() {
         while (rodando.get()) {
             try {
-                String jobId = fila.aguardar(ESPERA_FILA);
-                if (jobId != null) {
-                    processar(jobId);
+                FilaDeRender.Mensagem mensagem = fila.aguardar(ESPERA_FILA);
+                if (mensagem == null) {
+                    continue;
                 }
+                if (mensagem.entregas() > MAX_ENTREGAS) {
+                    // Poison cap (change fila-redis-streams): não roda a N-ésima vez.
+                    log.error("[BATCH] job {} excedeu {} entregas — marcado failed e removido da fila",
+                            mensagem.jobId(), MAX_ENTREGAS);
+                    repositorio.atualizarStatus(mensagem.jobId(), "failed");
+                    fila.confirmar(mensagem.recordId());
+                    continue;
+                }
+                processar(mensagem.jobId());
+                // At-least-once: ACK só DEPOIS do processamento — worker que morre
+                // no meio deixa a mensagem pendente para outra instância reivindicar.
+                fila.confirmar(mensagem.recordId());
             } catch (Exception e) {
                 if (rodando.get()) {
+                    // Sem ACK: a mensagem fica pendente e será reentregue.
                     log.error("[BATCH] erro no consumo da fila: {}", e.getMessage(), e);
                 }
             }

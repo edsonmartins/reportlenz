@@ -18,7 +18,8 @@ reportlenz:
     # e os testes de "compila exatamente uma vez" quebram.
     prefixo: "reportlenz:compile:test:${random.uuid}:"
   fila:
-    nome: "reportlenz:render:fila:test"
+    nome: "reportlenz:render:fila:test:${random.uuid}"
+    reivindicar-apos-segundos: 1
   storage:
     provider: LOCAL
     local-path: target/test-saidas
