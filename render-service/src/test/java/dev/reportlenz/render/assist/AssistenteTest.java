@@ -21,7 +21,7 @@ class AssistenteTest {
 
     /** Cliente falso: devolve a resposta programada sem tocar rede. */
     private static ClienteDeInferencia clienteQueResponde(String resposta) {
-        var config = new ConfiguracaoDoAssistente(null, "chave-teste", null, null);
+        var config = new ConfiguracaoDoAssistente(null, "chave-teste", null, null, null);
         return new ClienteDeInferencia(config) {
             @Override
             public String completar(String sistema, String usuario) {
@@ -57,7 +57,7 @@ class AssistenteTest {
                 .gerarTemplate(new GerarTemplateRequest("fatura simples", Map.of(), null));
         assertThat(r.template().get("name")).isEqualTo("fatura_ia");
         assertThat(r.observacoes()).isEqualTo("esqueleto inicial");
-        assertThat(r.modelo()).isEqualTo("openai/gpt-4o-mini"); // default ADR-014
+        assertThat(r.modelo()).isEqualTo("google/gemini-2.5-flash"); // default ADR-014 (spike 1.1)
     }
 
     @Test
@@ -106,7 +106,7 @@ class AssistenteTest {
 
     @Test
     void semChaveConfiguradaDegradaComIaIndisponivel() {
-        var semChave = new ClienteDeInferencia(new ConfiguracaoDoAssistente(null, null, null, null));
+        var semChave = new ClienteDeInferencia(new ConfiguracaoDoAssistente(null, null, null, null, null));
         assertThatThrownBy(() -> semChave.completar("s", "u"))
                 .isInstanceOf(ErroDoAssistente.IaIndisponivel.class)
                 .hasMessageContaining("OPENROUTER_API_KEY");

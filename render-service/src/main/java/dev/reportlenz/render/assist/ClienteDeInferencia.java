@@ -40,6 +40,12 @@ public class ClienteDeInferencia {
         Map<String, Object> corpo = Map.of(
                 "model", config.model(),
                 "temperature", config.temperature(),
+                "max_tokens", config.maxTokens(),
+                // Saída SEMPRE JSON (spike 1.1: sem isso o modelo intercala prosa).
+                "response_format", Map.of("type", "json_object"),
+                // Reasoning desligado (spike 1.1): em modelos com thinking os
+                // tokens de raciocínio consomem o max_tokens e TRUNCAM o JSON.
+                "reasoning", Map.of("enabled", false),
                 "messages", List.of(
                         Map.of("role", "system", "content", sistema),
                         Map.of("role", "user", "content", usuario)));

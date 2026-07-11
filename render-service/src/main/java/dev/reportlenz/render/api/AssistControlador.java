@@ -119,7 +119,8 @@ public class AssistControlador {
         try {
             return json.readValue(texto, new TypeReference<Map<String, Object>>() {});
         } catch (RuntimeException e) {
-            throw new RespostaInvalida("resposta do modelo não é JSON válido", e);
+            String inicio = texto.length() > 160 ? texto.substring(0, 160) + "…" : texto;
+            throw new RespostaInvalida("resposta do modelo não é JSON válido — início: \"" + inicio + "\"", e);
         }
     }
 

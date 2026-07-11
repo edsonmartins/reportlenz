@@ -1,8 +1,8 @@
 # Tasks — phase-4-ai-governance
 
 ## 1. Spike de viabilidade (gate p/ ADR-010 Accepted)
-- [ ] 1.1 Medir taxa de JRXML 7 válido na primeira geração por modelo local
-- [ ] 1.2 Medir qualidade do binding ao contrato; decidir Accepted/ajuste
+- [x] 1.1 Taxa de draft VÁLIDO (gates G1–G6) na 1ª geração medida com o provedor do ADR-014: 75% (15/20 nas rodadas finais; 10 descrições pt-BR × 2, google/gemini-2.5-flash, reasoning off, max_tokens 16k) — partiu de 10-20% antes das correções do spike; 0 ocorrências de Pull em ~70 gerações
+- [x] 1.2 Binding: ~10 refs $F/$P/$V por draft, alucinação capturada por G3 (EXPR_UNKNOWN_REF) e exibida ANTES de carregar; decisão: ADR-014 confirmado Accepted (mitigação = draft + checker + biblioteca de blocos, como previa o ADR-010)
 
 ## 2. Assistente A — NL → JRXML
 - [x] 2.1 Serviço de inferência configurável — OpenRouter default, local (Ollama/vLLM) por base-url (ADR-014 emenda o ADR-010; decisão explícita do usuário em 2026-07-10); chave/modelo só no backend

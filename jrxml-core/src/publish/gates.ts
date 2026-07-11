@@ -81,7 +81,18 @@ export function avaliarGates(
     ...estruturais.filter((m) => m.code !== 'CONTRACT_PULL_FORBIDDEN' && m.code !== 'LEGACY_DIALECT'),
   ];
 
-  const g3 = validateContract(template).messages;
+  // Modelo pode vir de fonte NÃO confiável (draft de IA): exceção do
+  // validador vira erro de gate, nunca crash (achado do spike phase-4/1.1).
+  let g3: ParseError[];
+  try {
+    g3 = validateContract(template).messages;
+  } catch (e) {
+    g3 = [{
+      code: 'XML_MALFORMED',
+      message: `validação de contrato falhou: ${e instanceof Error ? e.message : String(e)}`,
+      path: '',
+    }];
+  }
 
   // G5: contrato vazio = relatório sem binding — nada a publicar como contrato.
   const contrato = template.dataContract;

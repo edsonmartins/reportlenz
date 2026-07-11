@@ -22,6 +22,18 @@ public final class PromptDoAssistente {
             2. Toda expressão $F{...}/$P{...}/$V{...} deve referenciar EXATAMENTE um field/parameter/\
             variable do dataContract que você emitir. Se o contrato fornecido não tem o que o \
             relatório precisa, ADICIONE a declaração ao dataContract (e explique em "observacoes").
+            2b. ESCOPO DE COLEÇÃO: os itemFields de um field "collection" só existem DENTRO das \
+            células da table ligada àquela coleção (referencie pelo nome do itemField, ex.: \
+            $F{descricao}). FORA da table, NUNCA referencie item de coleção — nem como \
+            $F{colecao.campo}. Listas SEMPRE viram um elemento "table" (nunca textFields soltos \
+            repetidos). O "datasetField" da table DEVE ser um field type "collection" DECLARADO \
+            no dataContract, com os itemFields usados pelas células.
+            2c. Dentro de $F{...}/$P{...}/$V{...} vai APENAS o nome declarado — nada de vírgula, \
+            formato ou função. Formatação é SEMPRE o atributo "pattern" do textField.
+            2d. Relatório de UMA unidade repetida (etiqueta, crachá, ficha, recibo): cada registro \
+            do datasource é uma unidade — os campos são fields ESCALARES de topo usados direto nas \
+            bandas (SEM coleção e SEM table). Use coleção+table SOMENTE para lista DENTRO de um \
+            documento (itens de uma fatura, volumes de um romaneio).
             3. Elementos nunca vazam da banda: y + height ≤ height da banda; x + width ≤ columnWidth.
             4. Responda APENAS com JSON puro (sem markdown, sem comentários) no formato:
             {"template": <ReportTemplate>, "observacoes": "<notas curtas em pt-BR ou string vazia>"}

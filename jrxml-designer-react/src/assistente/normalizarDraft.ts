@@ -62,11 +62,37 @@ function normalizarContrato(bruto: unknown): DataContract {
  * "consertados" aqui — a validação contínua acusa (o serializer recusa kind
  * desconhecido); consertar em silêncio esconderia o erro da IA do usuário.
  */
+const SECOES_UNICAS = ['title', 'background', 'pageHeader', 'columnHeader', 'columnFooter', 'pageFooter', 'summary', 'noData'] as const;
+
 export function normalizarDraft(bruto: unknown): ReportTemplate {
   if (!eObjeto(bruto)) {
     throw new Error('draft da IA não é um objeto — nada a carregar');
   }
-  const bands = eObjeto(bruto.bands) ? bruto.bands : {};
+  const bands = eObjeto(bruto.bands) ? { ...bruto.bands } : {};
+  // Banda sem `elements` (modelo omite em banda "vazia") ganha array vazio —
+  // o serializer itera elements incondicionalmente (achado do spike 1.1).
+  const comElements = (b: unknown): unknown =>
+    eObjeto(b) && !Array.isArray(b.elements) ? { ...b, elements: [] } : b;
+  // Modelos generalizam "banda = array" a partir do detail (achado do spike
+  // phase-4/1.1 com gemini): seção única em array vira o primeiro item.
+  for (const secao of SECOES_UNICAS) {
+    if (Array.isArray(bands[secao])) bands[secao] = (bands[secao] as unknown[])[0];
+    if (bands[secao] !== undefined) bands[secao] = comElements(bands[secao]);
+  }
+  if (Array.isArray(bands.detail)) {
+    bands.detail = (bands.detail as unknown[]).map(comElements);
+  }
+  if (Array.isArray(bands.groups)) {
+    bands.groups = (bands.groups as unknown[]).map((g) => {
+      if (!eObjeto(g)) return g;
+      const grupo = { ...g };
+      if (Array.isArray(grupo.header)) grupo.header = (grupo.header as unknown[])[0];
+      if (Array.isArray(grupo.footer)) grupo.footer = (grupo.footer as unknown[])[0];
+      if (grupo.header !== undefined) grupo.header = comElements(grupo.header);
+      if (grupo.footer !== undefined) grupo.footer = comElements(grupo.footer);
+      return grupo;
+    });
+  }
   return {
     name: typeof bruto.name === 'string' && bruto.name.trim() ? bruto.name.trim() : 'relatorio_ia',
     pageFormat: normalizarPagina(bruto.pageFormat),
