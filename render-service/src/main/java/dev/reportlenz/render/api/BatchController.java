@@ -29,13 +29,16 @@ public class BatchController {
     private final RepositorioDeJobs repositorio;
     private final FilaDeRender fila;
     private final dev.reportlenz.render.publish.RepositorioDeTemplates templates;
+    private final dev.reportlenz.render.storage.ArmazenamentoDeSaida armazenamento;
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     public BatchController(RepositorioDeJobs repositorio, FilaDeRender fila,
-            dev.reportlenz.render.publish.RepositorioDeTemplates templates) {
+            dev.reportlenz.render.publish.RepositorioDeTemplates templates,
+            dev.reportlenz.render.storage.ArmazenamentoDeSaida armazenamento) {
         this.repositorio = repositorio;
         this.fila = fila;
         this.templates = templates;
+        this.armazenamento = armazenamento;
     }
 
     public record BatchRequest(
@@ -106,7 +109,10 @@ public class BatchController {
                         estado.total(),
                         estado.concluidos(),
                         estado.falhas(),
-                        estado.saidas().stream().filter(s -> s.referencia() != null).map(s -> s.referencia()).toList(),
+                        // Presign NA CONSULTA (change presigned-urls-minio): a referência
+                        // persistida é canônica; a URL assinada nasce fresca a cada status.
+                        estado.saidas().stream().filter(s -> s.referencia() != null)
+                                .map(s -> armazenamento.linkDeDownload(s.referencia())).toList(),
                         estado.saidas().stream().filter(s -> s.erro() != null)
                                 .map(s -> Map.<String, Object>of("idx", s.idx(), "erro", s.erro())).toList())))
                 .orElse(ResponseEntity.notFound().build());

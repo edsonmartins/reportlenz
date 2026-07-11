@@ -66,3 +66,5 @@ reportlenz:
       bucket: ${MINIO_BUCKET:reportlenz-saidas}
       region: ${MINIO_REGION:us-east-1}
       insecure-tls: ${MINIO_INSECURE_TLS:false}
+      # Validade das URLs pré-assinadas (geradas na CONSULTA do job); 0 desliga
+      presign-horas: ${REPORTLENZ_STORAGE_PRESIGN_HORAS:24}

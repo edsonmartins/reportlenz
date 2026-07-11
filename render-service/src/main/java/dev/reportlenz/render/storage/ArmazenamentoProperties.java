@@ -30,6 +30,8 @@ public class ArmazenamentoProperties {
         private String region = "us-east-1";
         /** Aceita certificado TLS inválido (MinIO self-signed na rede interna). */
         private boolean insecureTls = false;
+        /** Validade (horas) das URLs pré-assinadas geradas na consulta; 0 desliga o presign. */
+        private long presignHoras = 24;
 
         public String getEndpoint() { return endpoint; }
         public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
@@ -43,6 +45,8 @@ public class ArmazenamentoProperties {
         public void setRegion(String region) { this.region = region; }
         public boolean isInsecureTls() { return insecureTls; }
         public void setInsecureTls(boolean insecureTls) { this.insecureTls = insecureTls; }
+        public long getPresignHoras() { return presignHoras; }
+        public void setPresignHoras(long presignHoras) { this.presignHoras = presignHoras; }
     }
 
     public Provider getProvider() { return provider; }

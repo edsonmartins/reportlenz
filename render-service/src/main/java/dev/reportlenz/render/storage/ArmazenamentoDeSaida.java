@@ -47,6 +47,7 @@ public class ArmazenamentoDeSaida {
     private final ArmazenamentoProperties properties;
     private Path raizLocal;
     private S3Client s3;
+    private software.amazon.awssdk.services.s3.presigner.S3Presigner presigner;
 
     public ArmazenamentoDeSaida(ArmazenamentoProperties properties) {
         this.properties = properties;
@@ -86,6 +87,21 @@ public class ArmazenamentoDeSaida {
                     .httpClient(http)
                     .build();
 
+            // Presigner (change presigned-urls-minio): assinar é operação LOCAL —
+            // criado ANTES do headBucket para sobreviver a MinIO fora do ar no
+            // boot (referências s3:// antigas continuam assináveis na consulta).
+            if (minio.getPresignHoras() > 0) {
+                presigner = software.amazon.awssdk.services.s3.presigner.S3Presigner.builder()
+                        .endpointOverride(URI.create(minio.getEndpoint()))
+                        .region(Region.of(minio.getRegion()))
+                        .credentialsProvider(StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(minio.getAccessKey(), minio.getSecretKey())))
+                        .serviceConfiguration(software.amazon.awssdk.services.s3.S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build())
+                        .build();
+            }
+
             garantirBucket(minio.getBucket());
             log.info("[STORAGE] MinIO inicializado com sucesso — bucket={}", minio.getBucket());
         } catch (Exception e) {
@@ -108,6 +124,39 @@ public class ArmazenamentoDeSaida {
     void encerrar() {
         if (s3 != null) {
             s3.close();
+        }
+        if (presigner != null) {
+            presigner.close();
+        }
+    }
+
+    /**
+     * URL de download para uma referência persistida (change
+     * presigned-urls-minio): `s3://bucket/chave` vira URL pré-assinada GERADA
+     * AGORA (consulta repetida = assinatura fresca); qualquer outra referência
+     * (LOCAL, publicBaseUrl) passa intacta — o que está no banco nunca expira.
+     */
+    public String linkDeDownload(String referencia) {
+        if (presigner == null || referencia == null || !referencia.startsWith("s3://")) {
+            return referencia;
+        }
+        try {
+            String caminho = referencia.substring("s3://".length());
+            int barra = caminho.indexOf('/');
+            if (barra <= 0) {
+                return referencia;
+            }
+            var pedido = software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest.builder()
+                    .signatureDuration(java.time.Duration.ofHours(properties.getMinio().getPresignHoras()))
+                    .getObjectRequest(software.amazon.awssdk.services.s3.model.GetObjectRequest.builder()
+                            .bucket(caminho.substring(0, barra))
+                            .key(caminho.substring(barra + 1))
+                            .build())
+                    .build();
+            return presigner.presignGetObject(pedido).url().toString();
+        } catch (Exception e) {
+            log.warn("[STORAGE] presign falhou para {} — devolvendo a referência crua: {}", referencia, e.getMessage());
+            return referencia;
         }
     }
 
