@@ -76,8 +76,10 @@ core       render+    casca      features    IA +
 headless   contrato   React      pro         governança
 ```
 
-- **Estado atual: Fases 0 a 3 concluídas** (aceites: notas 003, 005, 006 e 007 em `docs/design/`).
-  A UI Vue do fork está aposentada (nota 006). Próxima: **Fase 4** (`phase-4-ai-governance`).
+- **Estado atual: TODAS as fases (0 a 4) concluídas** (aceites: notas 003, 005, 006, 007 e 008 em
+  `docs/design/`). A UI Vue do fork está aposentada (nota 006). Evoluções futuras entram como novos
+  OpenSpec change packages (§9); pendências registradas: grade multi-registro Push (nota-007 §4, precisa
+  de ADR) e migração SQLite→PostgreSQL (ADR-009) quando escalar.
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").
 

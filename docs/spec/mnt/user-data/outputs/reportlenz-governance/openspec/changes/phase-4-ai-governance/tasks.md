@@ -29,5 +29,5 @@
 - [x] 6.2 Mescla de mini-contrato + detecção de conflito (implementada em phase-3/8.2: compatível reaproveita, incompatível renomeia e reescreve expressões) — avisos agora VISÍVEIS na UI (alert dispensável)
 
 ## 7. Aceite
-- [ ] 7.1 Critérios RFC-005 §7 e RFC-006 §7 verdes
-- [ ] 7.2 IA sem chamadas a nuvem por padrão; sem `<queryString>` em nenhuma saída
+- [x] 7.1 Critérios RFC-005 §7 e RFC-006 §7 verdes — mapa de evidências na nota-008 (X do Assistente A = 70% piso/75% média)
+- [x] 7.2 Nuvem por padrão via ADR-014 (emenda registrada; local por config); sem `<queryString>` em NENHUMA saída (0 em ~70 gerações + anti-Pull em 3 camadas)
