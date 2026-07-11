@@ -70,10 +70,10 @@ public class PipelineDeRender {
                         .observe(() -> compilador.compilar(fonte)));
         // Coerção JSON → classes declaradas (Double→BigDecimal, String→LocalDate…)
         // no registro-mestre E nos itens de coleção (datasets de tabela). Aceite 9.2.
-        Map<String, Object> registro = CoercaoDePayload.coagirRegistro(
-                comChavesAchatadas(payload), CoercaoDePayload.classesDeclaradas(report));
+        Map<String, Class<?>> classes = CoercaoDePayload.classesDeclaradas(report);
+        Map<String, Object> registro = CoercaoDePayload.coagirRegistro(comChavesAchatadas(payload), classes);
         Map<String, Object> parametros = parametrosDeclarados(report, registro);
-        JRDataSource datasource = new JRMapCollectionDataSource(List.of(registro));
+        JRDataSource datasource = new JRMapCollectionDataSource(linhasDoMestre(report, payload, registro, classes));
         try {
             return Observation.createNotStarted("render.fill", observacoes).observe(() -> {
                 try {
@@ -124,6 +124,37 @@ public class PipelineDeRender {
                         throw new FalhaDeRender("falha no export PNG: " + e.getMessage(), e);
                     }
                 });
+    }
+
+    /** Property do template que aponta a coleção-datasource (ADR-015). */
+    private static final String PROPRIEDADE_DATASOURCE = "reportlenz.datasource.campo";
+
+    /**
+     * Linhas do datasource-MESTRE (ADR-015, grade multi-registro): com a
+     * property ativa, cada ITEM da coleção do payload vira uma linha
+     * (achatado + coagido) — 9 etiquetas = 9 linhas na grade. Coleção ausente
+     * ou vazia → zero linhas (banda noData, `whenNoDataType=NoDataSection`).
+     * Sem a property: comportamento clássico (payload = um registro-mestre).
+     */
+    private List<Map<String, ?>> linhasDoMestre(
+            JasperReport report, Map<String, Object> payload, Map<String, Object> registro, Map<String, Class<?>> classes) {
+        String campo = report.getPropertiesMap().getProperty(PROPRIEDADE_DATASOURCE);
+        if (campo == null || campo.isBlank()) {
+            return List.of(registro);
+        }
+        Object colecao = payload.get(campo);
+        if (!(colecao instanceof List<?> itens)) {
+            return List.of();
+        }
+        java.util.ArrayList<Map<String, ?>> linhas = new java.util.ArrayList<>(itens.size());
+        for (Object item : itens) {
+            if (item instanceof Map<?, ?> mapa) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> registroDoItem = (Map<String, Object>) mapa;
+                linhas.add(CoercaoDePayload.coagirRegistro(comChavesAchatadas(registroDoItem), classes));
+            }
+        }
+        return linhas;
     }
 
     /**

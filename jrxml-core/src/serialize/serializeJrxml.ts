@@ -453,6 +453,8 @@ export function serializeJrxml(t: ReportTemplate): string {
     ['columnWidth', pf.columnWidth],
     ['columnSpacing', pf.columnSpacing === 0 ? undefined : pf.columnSpacing],
     ['printOrder', pf.printOrder === 'Horizontal' ? 'Horizontal' : undefined],
+    // Derivado: com banda noData declarada, o engine só a imprime com este modo.
+    ['whenNoDataType', t.bands.noData ? 'NoDataSection' : undefined],
     ['leftMargin', pf.leftMargin],
     ['rightMargin', pf.rightMargin],
     ['topMargin', pf.topMargin],

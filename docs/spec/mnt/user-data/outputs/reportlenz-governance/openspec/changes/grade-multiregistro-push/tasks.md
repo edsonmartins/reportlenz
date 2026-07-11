@@ -9,8 +9,8 @@
       erros orientando field escalar de topo → parameter
 
 ## 2. Render-service
-- [ ] 2.1 PipelineDeRender: datasource = `payload[campo]` (item achatado + coagido); topo → `$P{}` só
-- [ ] 2.2 Teste de qualidade: grade 3×3 de etiquetas via `/render/preview` (payload com 9 itens)
+- [x] 2.1 PipelineDeRender: datasource = `payload[campo]` (item achatado + coagido); topo → `$P{}` só
+- [x] 2.2 Teste de qualidade: grade 3×3 de etiquetas via `/render/preview` (payload com 9 itens)
 
 ## 3. Designer
 - [ ] 3.1 Aba Página: select "Fonte de linhas" (registro único | campo-coleção) com auto-explicação
