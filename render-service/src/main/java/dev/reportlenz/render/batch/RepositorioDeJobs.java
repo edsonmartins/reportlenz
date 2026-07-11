@@ -85,11 +85,12 @@ public class RepositorioDeJobs {
                 .collect(Collectors.toSet());
     }
 
-    /** Registra a saída de um item (INSERT OR IGNORE: item já feito não duplica). */
+    /** Registra a saída de um item (ON CONFLICT DO NOTHING: item já feito não duplica — SQL portável SQLite/PostgreSQL). */
     public void registrarSaida(String jobId, int idx, String referencia, String erro) {
         int inseridas = jdbc.sql("""
-                        INSERT OR IGNORE INTO render_job_saida (job_id, idx, referencia, erro)
+                        INSERT INTO render_job_saida (job_id, idx, referencia, erro)
                         VALUES (:job, :idx, :ref, :erro)
+                        ON CONFLICT (job_id, idx) DO NOTHING
                         """)
                 .param("job", jobId)
                 .param("idx", idx)

@@ -51,6 +51,12 @@
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.53.2.0</version>
     </dependency>
+    <!-- PostgreSQL (ADR-009/change migracao-postgresql): produção via REPORTLENZ_DB_URL -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
 
     <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
     <!-- Core do engine: modelo, load (Jackson), compile, fill -->

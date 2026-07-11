@@ -1,9 +1,12 @@
 spring:
   datasource:
-    url: jdbc:sqlite:target/test-reportlenz.db
-    driver-class-name: org.sqlite.JDBC
+    # SQLite por default; o CI roda a suíte TAMBÉM contra PostgreSQL apontando
+    # REPORTLENZ_DB_URL para o service container (change migracao-postgresql)
+    url: ${REPORTLENZ_DB_URL:jdbc:sqlite:target/test-reportlenz.db}
+    username: ${REPORTLENZ_DB_USER:}
+    password: ${REPORTLENZ_DB_PASSWORD:}
     hikari:
-      maximum-pool-size: 1
+      maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
   sql:
     init:
       mode: always

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS render_job (
 );
 
 -- Uma linha por item do lote; a PK (job_id, idx) torna o reprocessamento
--- idempotente: INSERT OR IGNORE não duplica saída de item já processado.
+-- idempotente: INSERT ... ON CONFLICT DO NOTHING não duplica saída de item já
 CREATE TABLE IF NOT EXISTS render_job_saida (
     job_id     TEXT NOT NULL,
     idx        INTEGER NOT NULL,

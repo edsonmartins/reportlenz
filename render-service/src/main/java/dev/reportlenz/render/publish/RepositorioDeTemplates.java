@@ -150,7 +150,9 @@ public class RepositorioDeTemplates {
 
     /** Trilha de auditoria (ex.: verificação nos testes e na API de governança). */
     public List<String> acoesAuditadas(String versionId) {
-        return jdbc.sql("SELECT action FROM report_template_audit WHERE version_id = :id ORDER BY at, rowid")
+        // Ordenação portável (PostgreSQL não tem rowid): `at` é ISO-8601 com ms;
+        // `id` desempata determinístico dentro do mesmo instante.
+        return jdbc.sql("SELECT action FROM report_template_audit WHERE version_id = :id ORDER BY at, id")
                 .param("id", versionId)
                 .query(String.class)
                 .list();
