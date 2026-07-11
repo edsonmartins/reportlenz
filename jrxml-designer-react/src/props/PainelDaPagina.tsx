@@ -4,8 +4,9 @@
  * estouro compara colunas × largura útil.
  */
 import { Alert, Group, NumberInput, Select, Stack, Text } from '@mantine/core';
+import { datasourceCampo } from '@reportlenz/jrxml-core';
 import { useDocumentoStore } from '../store/documentoStore';
-import { atualizarPagina } from '../store/mutacoes';
+import { atualizarPagina, definirFonteDeLinhas } from '../store/mutacoes';
 import { areaUtil } from '../canvas/geometria';
 
 export function PainelDaPagina() {
@@ -15,6 +16,7 @@ export function PainelDaPagina() {
 
   const pf = template.pageFormat;
   const util = areaUtil(pf);
+  const colecoes = template.dataContract.fields.filter((f) => f.type === 'collection');
   const larguraDasColunas = pf.columnCount * pf.columnWidth + (pf.columnCount - 1) * pf.columnSpacing;
   const estoura = larguraDasColunas > util.width + 0.001;
 
@@ -64,6 +66,19 @@ export function PainelDaPagina() {
         ]}
         value={pf.printOrder ?? 'Vertical'}
         onChange={(v) => mutarTemplate(atualizarPagina({ printOrder: v === 'Horizontal' ? 'Horizontal' : undefined }))}
+      />
+
+      <Select
+        size="xs"
+        label="Fonte de linhas"
+        aria-label="fonte de linhas"
+        description="Grade (ADR-015): cada item da coleção vira uma etiqueta; registro único = payload inteiro é uma linha"
+        data={[
+          { value: '', label: 'Registro único (padrão)' },
+          ...colecoes.map((f) => ({ value: f.name, label: `Coleção "${f.name}" (1 item = 1 linha)` })),
+        ]}
+        value={datasourceCampo(template) ?? ''}
+        onChange={(v) => mutarTemplate(definirFonteDeLinhas(v ?? undefined))}
       />
 
       <Text size="xs" c="dimmed">

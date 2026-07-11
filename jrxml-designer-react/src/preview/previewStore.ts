@@ -3,7 +3,7 @@
  * "Renderizar (Jasper)" envia JRXML + sampleData + inputSchema ao
  * `POST /render/preview` e recebe PNG por página — a VERDADE do engine (I-8).
  */
-import { buildInputSchema, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
+import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
 import { useDocumentoStore } from '../store/documentoStore';
 import { gerarDadosDeExemplo } from './dadosDeExemplo';
@@ -59,7 +59,7 @@ export const usePreviewStore = create<PreviewState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           jrxml: serializeJrxml(template),
-          sampleData: gerarDadosDeExemplo(contrato),
+          sampleData: gerarDadosDeExemplo(contrato, { datasourceCampo: datasourceCampo(template) }),
           inputSchema: buildInputSchema(contrato, { templateName: template.name, version: 1 }),
           format: 'png',
           page: pagina,

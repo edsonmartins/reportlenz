@@ -13,9 +13,9 @@
 - [x] 2.2 Teste de qualidade: grade 3×3 de etiquetas via `/render/preview` (payload com 9 itens)
 
 ## 3. Designer
-- [ ] 3.1 Aba Página: select "Fonte de linhas" (registro único | campo-coleção) com auto-explicação
-- [ ] 3.2 dadosDeExemplo: N itens (ex.: 9) quando a coleção-datasource está ativa; preview em grade
-- [ ] 3.3 REFERENCIA_ETIQUETA_A4 migrada para o novo arranjo (harness 4/4 + fixtures)
+- [x] 3.1 Aba Página: select "Fonte de linhas" (registro único | campo-coleção) com auto-explicação
+- [x] 3.2 dadosDeExemplo: N itens (ex.: 9) quando a coleção-datasource está ativa; preview em grade
+- [x] 3.3 REFERENCIA_ETIQUETA_A4 migrada para o novo arranjo (harness 4/4 + fixtures)
 
 ## 4. IA
 - [ ] 4.1 PromptDoAssistente: relatório de unidade repetida usa a property + coleção (re-medir spike

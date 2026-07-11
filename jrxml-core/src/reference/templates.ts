@@ -437,7 +437,11 @@ export const REFERENCIA_FORMULARIO: ReportTemplate = {
   },
 };
 
-/** Etiqueta A4 multi-coluna (laser, 3 colunas) com EAN-13 — térmica fora de escopo (ADR-011). */
+/**
+ * Etiqueta A4 multi-coluna (laser, 3 colunas) com EAN-13 — térmica fora de
+ * escopo (ADR-011). Grade multi-registro (ADR-015): a coleção `etiquetas`
+ * alimenta o mestre — um item por etiqueta; 9 itens = grade 3×3 numa folha.
+ */
 export const REFERENCIA_ETIQUETA_A4: ReportTemplate = {
   name: 'etiqueta_a4_3col',
   pageFormat: {
@@ -453,13 +457,24 @@ export const REFERENCIA_ETIQUETA_A4: ReportTemplate = {
     columnSpacing: 10,
     printOrder: 'Horizontal',
   },
-  properties: { 'reportlenz.template.tipo': 'etiqueta_a4' },
+  properties: {
+    'reportlenz.datasource.campo': 'etiquetas',
+    'reportlenz.template.tipo': 'etiqueta_a4',
+  },
   styles: [{ name: 'base', isDefault: true, fontName: 'DejaVu Sans', fontSize: 8 }],
   dataContract: {
     fields: [
-      { name: 'produto_nome', type: 'string' },
-      { name: 'preco', type: 'decimal' },
-      { name: 'ean', type: 'string' },
+      {
+        // Sem `description`: a coleção-datasource é sintetizada no parse
+        // (ADR-015) e metadados dela não sobrevivem ao round-trip.
+        name: 'etiquetas',
+        type: 'collection',
+        itemFields: [
+          { name: 'produto_nome', type: 'string' },
+          { name: 'preco', type: 'decimal' },
+          { name: 'ean', type: 'string' },
+        ],
+      },
     ],
     parameters: [],
     variables: [],
@@ -476,6 +491,11 @@ export const REFERENCIA_ETIQUETA_A4: ReportTemplate = {
         ],
       },
     ],
+    noData: {
+      height: 20,
+      splitType: 'Stretch',
+      elements: [{ kind: 'staticText', bounds: { x: 0, y: 0, width: 178, height: 16 }, text: 'Sem etiquetas no payload' }],
+    },
     groups: [],
   },
 };

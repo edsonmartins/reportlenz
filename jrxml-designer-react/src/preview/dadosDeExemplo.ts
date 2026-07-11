@@ -36,9 +36,9 @@ function inserirAninhado(destino: Record<string, unknown>, caminho: string, valo
   atual[partes[partes.length - 1]!] = valor;
 }
 
-function valorDeField(f: FieldDecl, indice = 0): unknown {
+function valorDeField(f: FieldDecl, indice = 0, itens = 2): unknown {
   if (f.type === 'collection') {
-    return [0, 1].map((i) => {
+    return Array.from({ length: itens }, (_, i) => {
       const item: Record<string, unknown> = {};
       for (const sub of f.itemFields ?? []) {
         inserirAninhado(item, sub.name, valorDeField(sub, i));
@@ -49,14 +49,23 @@ function valorDeField(f: FieldDecl, indice = 0): unknown {
   return valorDeExemplo(f.type, f.name.split('.').pop() ?? f.name, indice);
 }
 
+export interface OpcoesDeExemplo {
+  /**
+   * Coleção-datasource da grade (ADR-015): ganha 9 itens de amostra para o
+   * preview mostrar a GRADE de verdade (3×3 numa folha A4 típica).
+   */
+  datasourceCampo?: string;
+}
+
 /** Payload de amostra que satisfaz o contrato (validável pelo inputSchema). */
-export function gerarDadosDeExemplo(contrato: DataContract): Record<string, unknown> {
+export function gerarDadosDeExemplo(contrato: DataContract, opcoes: OpcoesDeExemplo = {}): Record<string, unknown> {
   const payload: Record<string, unknown> = {};
   for (const p of contrato.parameters) {
     inserirAninhado(payload, p.name, valorDeExemplo(p.type, p.name.split('.').pop() ?? p.name));
   }
   for (const f of contrato.fields) {
-    inserirAninhado(payload, f.name, valorDeField(f));
+    const itens = f.name === opcoes.datasourceCampo ? 9 : 2;
+    inserirAninhado(payload, f.name, valorDeField(f, 0, itens));
   }
   return payload;
 }

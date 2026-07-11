@@ -2,7 +2,6 @@ package dev.reportlenz.render;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,12 +19,7 @@ import dev.reportlenz.render.pipeline.CacheDeCompilacaoEmMemoria;
 import dev.reportlenz.render.pipeline.CompiladorJrxml;
 import dev.reportlenz.render.pipeline.PipelineDeRender;
 import io.micrometer.observation.ObservationRegistry;
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 /**
  * Aceite da Fase 3 (phase-3/9.2): os templates de referência do jrxml-core
@@ -126,49 +120,41 @@ class ReferenciasDeQualidadeTest {
     }
 
     /**
-     * Grade de etiquetas (RFC-004 §10 / cenário "Grade de etiquetas"): o
-     * template 3 colunas × printOrder Horizontal dispõe N registros em grade
-     * numa única folha A4. O datasource multi-registro é montado direto no
-     * engine — a alimentação de grade via payload Push é pendência de ADR
-     * (registrada na nota de aceite 007).
+     * Grade de etiquetas (RFC-004 §10 / ADR-015): o template de referência usa
+     * `reportlenz.datasource.campo=etiquetas` — o PRÓPRIO pipeline Push dispõe
+     * os 9 itens do payload em grade 3×3 numa única folha A4 (encerra a
+     * pendência da nota-007 §4).
      */
     @Test
     @EnabledIf("fixturesDisponiveis")
-    void etiquetaA4_dispoeGradeDeEtiquetasNumaFolha() throws Exception {
-        List<Map<String, ?>> etiquetas = new ArrayList<>();
+    void etiquetaA4_gradeDe9ItensViaPipelinePushNumaFolha() throws Exception {
+        List<Map<String, Object>> etiquetas = new ArrayList<>();
         for (int i = 1; i <= 9; i++) {
             etiquetas.add(Map.of(
                     "produto_nome", "Café Torrado Premium " + i + "kg",
-                    "preco", new java.math.BigDecimal("34.90").add(java.math.BigDecimal.valueOf(i)),
+                    "preco", 34.90 + i, // Double → BigDecimal pela coerção POR ITEM
                     "ean", "7891000315507")); // EAN-13 válido (dígito verificador correto)
         }
-        JasperReport report = net.sf.jasperreports.engine.JasperCompileManager.compileReport(
-                JRXmlLoader.load(new ByteArrayInputStream(fixture("etiqueta_a4").getBytes(java.nio.charset.StandardCharsets.UTF_8))));
-        Map<String, Object> params = new HashMap<>();
-        params.put(JRParameter.REPORT_LOCALE, java.util.Locale.of("pt", "BR"));
-        JasperPrint print = JasperFillManager.fillReport(report, params, new JRMapCollectionDataSource(etiquetas));
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("etiquetas", etiquetas);
 
+        JasperPrint print = pipeline.preencher(fixture("etiqueta_a4"), payload);
         // 9 etiquetas de 90pt em 3 colunas: cabem 3 linhas de grade → 1 página.
         assertThat(print.getPages()).hasSize(1);
-        byte[] pdf = net.sf.jasperreports.engine.JasperExportManager.exportReportToPdf(print);
-        String texto = textoDoPdf(pdf);
+        String texto = textoDoPdf(pipeline.exportarPdf(print));
         for (int i = 1; i <= 9; i++) {
             assertThat(texto).contains("Café Torrado Premium " + i + "kg");
         }
         assertThat(texto).contains("R$ 35,90");
     }
 
-    /** O caminho Push do pipeline também produz a etiqueta (1 registro = 1 etiqueta). */
+    /** Payload sem etiquetas → banda noData (whenNoDataType=NoDataSection). */
     @Test
     @EnabledIf("fixturesDisponiveis")
-    void etiquetaA4_viaPipelinePushRendeUmaEtiqueta() throws Exception {
+    void etiquetaA4_semItensCaiNaBandaNoData() throws Exception {
         Map<String, Object> payload = new HashMap<>();
-        payload.put("produto_nome", "Açúcar Cristal 5kg");
-        payload.put("preco", 18.75); // Double → BigDecimal pela coerção
-        payload.put("ean", "7891000315507");
-
+        payload.put("etiquetas", List.of());
         String texto = textoDoPdf(pipeline.renderizarPdf(fixture("etiqueta_a4"), payload));
-        assertThat(texto).contains("Açúcar Cristal 5kg");
-        assertThat(texto).contains("R$ 18,75");
+        assertThat(texto).contains("Sem etiquetas no payload");
     }
 }

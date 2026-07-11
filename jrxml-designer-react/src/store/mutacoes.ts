@@ -372,6 +372,25 @@ export function inserirBloco(
 }
 
 // ---------------------------------------------------------------------------
+// Grade multi-registro (ADR-015, change grade-multiregistro-push)
+
+/**
+ * Define a fonte de linhas do mestre (3.1): um campo-coleção do contrato
+ * (`reportlenz.datasource.campo`) ou registro único (remove a property).
+ */
+export function definirFonteDeLinhas(campo: string | undefined) {
+  return (template: ReportTemplate): ReportTemplate => {
+    const properties = { ...template.properties };
+    if (campo === undefined || campo === '') {
+      delete properties['reportlenz.datasource.campo'];
+    } else {
+      properties['reportlenz.datasource.campo'] = campo;
+    }
+    return { ...template, properties };
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Grupos com subtotais (Fase 3, bloco 5)
 
 const ALTURA_BANDA_DE_GRUPO = 20;
