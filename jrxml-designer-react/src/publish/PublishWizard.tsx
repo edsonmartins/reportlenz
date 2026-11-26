@@ -15,6 +15,7 @@ import type { ResultadoDosGates } from '@reportlenz/jrxml-core';
 import { avaliarGates, buildIntegrationPackage } from '@reportlenz/jrxml-core';
 import { useEffect, useState } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
+import { apiFetch } from '../auth/apiFetch';
 
 interface GateDoServico {
   gate: string;
@@ -55,7 +56,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     if (!local.jrxml) return;
     void (async () => {
       try {
-        const resposta = await fetch('/publish/verificar', {
+        const resposta = await apiFetch('/publish/verificar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jrxml: local.jrxml, inputSchema: local.inputSchema, jrxmlHash: local.jrxmlHash }),
@@ -80,7 +81,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     setErroDoServico(null);
     try {
       // 1) registra/atualiza o draft no repositório (ADR-009 — versionamento conjunto).
-      const salvo = await fetch(`/templates/${template.name}/versoes`, {
+      const salvo = await apiFetch(`/templates/${template.name}/versoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jrxml: resultado.jrxml, inputSchema: resultado.inputSchema }),
@@ -92,7 +93,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
       const versao = ((await salvo.json()) as { version: number }).version;
 
       // 2) publica — o serviço reconfere os gates; published fica IMUTÁVEL.
-      const pub = await fetch(`/templates/${template.name}/versoes/${versao}/publicar`, {
+      const pub = await apiFetch(`/templates/${template.name}/versoes/${versao}/publicar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),

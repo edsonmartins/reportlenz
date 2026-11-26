@@ -12,6 +12,7 @@ import type { ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { useState } from 'react';
 import { useDocumentoStore, validarDocumento } from '../store/documentoStore';
 import { normalizarDraft } from './normalizarDraft';
+import { apiFetch } from '../auth/apiFetch';
 
 interface RespostaDoAssistente {
   template: unknown;
@@ -51,7 +52,7 @@ export function AssistenteDrawer({ aberto, onFechar }: { aberto: boolean; onFech
     setErro(null);
     setRascunho(null);
     try {
-      const resposta = await fetch('/assist/gerar-template', {
+      const resposta = await apiFetch('/assist/gerar-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

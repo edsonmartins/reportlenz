@@ -6,6 +6,7 @@
 import { ActionIcon, Alert, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { useState } from 'react';
 import { AssistenteDrawer } from './assistente/AssistenteDrawer';
+import { UsuarioDaSessao } from './auth/PortaoDeSessao';
 import { Canvas } from './canvas/Canvas';
 import { BIBLIOTECA_DE_BLOCOS } from './blocos/biblioteca';
 import { PRESETS_DE_ELEMENTO } from './palette/inserir';
@@ -181,6 +182,7 @@ function BarraDoCanvas() {
             Publicar…
           </Button>
         </Tooltip>
+        <UsuarioDaSessao />
       </div>
       <AssistenteDrawer aberto={assistenteAberto} onFechar={() => setAssistenteAberto(false)} />
       <PublishWizard aberto={publishAberto} onFechar={() => setPublishAberto(false)} />

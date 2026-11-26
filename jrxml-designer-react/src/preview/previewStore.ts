@@ -7,6 +7,7 @@ import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } fr
 import { create } from 'zustand';
 import { useDocumentoStore } from '../store/documentoStore';
 import { gerarDadosDeExemplo } from './dadosDeExemplo';
+import { apiFetch } from '../auth/apiFetch';
 
 interface ErroDoServico {
   codigo?: string;
@@ -54,7 +55,7 @@ export const usePreviewStore = create<PreviewState>((set, get) => ({
     set({ carregando: true, erro: null, violacoes: [], pagina });
     try {
       const contrato = extractContract(template);
-      const resposta = await fetch('/render/preview', {
+      const resposta = await apiFetch('/render/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

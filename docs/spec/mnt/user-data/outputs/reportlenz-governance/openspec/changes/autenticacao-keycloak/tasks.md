@@ -9,7 +9,7 @@
 - [x] 2.5 Testes de segurança: 401 sem token, 403 por papel (designer×publicar, designer×batch),
       client role do service account, ator forjado ignorado, rendered_batch com service account,
       actuator fora da porta pública
-- [ ] 3.1 SPA: `/config.json` runtime + módulo auth (oidc-client-ts, popup PKCE, InMemoryWebStorage,
+- [x] 3.1 SPA: `/config.json` runtime + módulo auth (oidc-client-ts, popup PKCE, InMemoryWebStorage,
       signinSilent no load) + `apiFetch` com Bearer em todas as chamadas
-- [ ] 3.2 SPA: estado "Entrar"/usuário/sair no App; 401 → volta a "Entrar"; testes (sem login no modo dev,
+- [x] 3.2 SPA: estado "Entrar"/usuário/sair no App; 401 → volta a "Entrar"; testes (sem login no modo dev,
       Bearer nas chamadas, nada em web storage)
