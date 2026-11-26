@@ -114,10 +114,18 @@ export const useSessaoStore = create<EstadoDeSessao>((set, get) => {
 
     sair: async () => {
       const atual = gerente;
-      aplicar(null);
-      if (atual) {
+      if (!atual) {
+        aplicar(null);
+        return;
+      }
+      try {
+        // Redireciona COM o usuário ainda em memória: o oidc-client-ts envia o
+        // id_token_hint e o Keycloak encerra a sessão sem a tela de confirmação
+        // "Logging out" (achado do E2E). A navegação descarta a memória da página.
+        await atual.signoutRedirect();
+      } catch {
         await atual.removeUser();
-        await atual.signoutRedirect().catch(() => undefined);
+        aplicar(null);
       }
     },
 
