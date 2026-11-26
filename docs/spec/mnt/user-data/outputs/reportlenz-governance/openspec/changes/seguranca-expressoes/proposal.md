@@ -10,7 +10,7 @@ anti-Pull (I-2/I-3). Decisão em ADR-016.
 - **Gate G7 — Segurança de expressão:** allowlist léxica de todas as expressões + verificações
   estruturais (sem import/scriptlet/factory/customizer), aplicada no compile (antes do cache gravar).
 - Preview com violação → 400 `EXPRESSAO_PROIBIDA`; publish → G7 vermelho (bloqueia).
-- **Contexto Jasper restrito** no fill/export: subreport por localização recusado, repositório de arquivos
+- **Contexto Jasper restrito** no fill/export: subreport por localização recusado, filesystem
   desligado, URLs só por prefixo permitido (`REPORTLENZ_RECURSOS_URLS_PERMITIDAS`).
 - **Batch só com template publicado:** `jrxml` bruto → 400 `JRXML_BRUTO_PROIBIDO`.
 

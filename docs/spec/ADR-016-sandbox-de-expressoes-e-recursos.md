@@ -57,16 +57,22 @@ vermelho** no publish (bloqueia).
 
 ### 2. Repositório de recursos restrito no fill/export
 
-O fill e o export usam um `JasperReportsContext` próprio:
+O fill e o export usam um `JasperReportsContext` próprio cujo PRIMEIRO serviço de repositório é uma
+política explícita (`PoliticaDeRecursos`):
 
-- **Subreport por localização é recusado** (nenhum `ReportResource` é carregado de arquivo/URL/classpath).
-  Subreports seguem possíveis quando a expressão entrega o próprio objeto (não é o caso do V1); a
-  resolução por codename publicado fica para um change futuro.
-- **Repositório de arquivos desligado** (`net.sf.jasperreports.default.file.repository.enabled=false`).
-- **Filtro de URL ligado** (`net.sf.jasperreports.repository.url.filter.enabled=true`); só passam URLs
-  cujo prefixo está em `reportlenz.recursos.urls-permitidas` (env `REPORTLENZ_RECURSOS_URLS_PERMITIDAS`,
-  lista separada por vírgula; default vazio = nenhuma URL externa).
-- Classpath continua resolvendo recursos do próprio engine (fontes DejaVu do `jasperreports-fonts`).
+- **Subreport por localização é recusado** (qualquer `ReportResource` — `.jasper` seria desserialização
+  Java de um arquivo apontado pelo payload). A resolução por codename publicado fica para um change futuro.
+- **URL só http(s)** cujo prefixo esteja em `reportlenz.recursos.urls-permitidas` (env
+  `REPORTLENZ_RECURSOS_URLS_PERMITIDAS`, lista separada por vírgula; default vazio = nenhuma URL externa).
+  Qualquer outro esquema (`file:`, `jar:`, `ftp:`…) é recusado.
+- **Caminho sem esquema só se for recurso do engine no classpath** (`net/sf/jasperreports/…`, ex.: fontes
+  DejaVu do `jasperreports-fonts`), sem `..`. Caminho absoluto/relativo do filesystem é recusado.
+- Recusa → `RECURSO_RECUSADO` (fill falha; imagem com `onErrorType=Blank` sai em branco).
+
+**Achado na implementação:** as propriedades nativas `net.sf.jasperreports.default.file.repository.enabled`
+e `net.sf.jasperreports.repository.url.filter.enabled` NÃO bastam — só atuam sobre URLs `file:`; um caminho
+absoluto simples (`/etc/hosts`) continuava sendo lido via `resolveFile`. Por isso a política é própria e
+coberta por testes com controle (o mesmo recurso carrega no contexto default do engine).
 
 ### 3. Batch só com template publicado
 

@@ -52,11 +52,21 @@ public class PipelineDeRender {
     private final CompiladorJrxml compilador;
     private final CacheDeCompilacao cache;
     private final ObservationRegistry observacoes;
+    /** ADR-016 §2: fill/export num contexto que não carrega recursos arbitrários. */
+    private final ContextoJasperRestrito recursos;
 
-    public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache, ObservationRegistry observacoes) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache, ObservationRegistry observacoes,
+            ContextoJasperRestrito recursos) {
         this.compilador = compilador;
         this.cache = cache;
         this.observacoes = observacoes;
+        this.recursos = recursos;
+    }
+
+    /** Uso fora do Spring (testes): contexto restrito sem URLs externas. */
+    public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache, ObservationRegistry observacoes) {
+        this(compilador, cache, observacoes, ContextoJasperRestrito.semUrls());
     }
 
     /**
@@ -77,7 +87,7 @@ public class PipelineDeRender {
         try {
             return Observation.createNotStarted("render.fill", observacoes).observe(() -> {
                 try {
-                    return JasperFillManager.fillReport(report, parametros, datasource);
+                    return JasperFillManager.getInstance(recursos.contexto()).fill(report, parametros, datasource);
                 } catch (Exception e) {
                     throw new FalhaDeRender("falha no fill: " + e.getMessage(), e);
                 }
@@ -99,7 +109,7 @@ public class PipelineDeRender {
                 .lowCardinalityKeyValue("formato", "pdf")
                 .observe(() -> {
                     try {
-                        return JasperExportManager.exportReportToPdf(print);
+                        return JasperExportManager.getInstance(recursos.contexto()).exportToPdf(print);
                     } catch (Exception e) {
                         throw new FalhaDeRender("falha no export PDF: " + e.getMessage(), e);
                     }
@@ -116,7 +126,7 @@ public class PipelineDeRender {
                 .lowCardinalityKeyValue("formato", "png")
                 .observe(() -> {
                     try {
-                        Image imagem = JasperPrintManager.printPageToImage(print, pagina, ZOOM_PREVIEW_PNG);
+                        Image imagem = JasperPrintManager.getInstance(recursos.contexto()).printToImage(print, pagina, ZOOM_PREVIEW_PNG);
                         ByteArrayOutputStream saida = new ByteArrayOutputStream();
                         ImageIO.write((BufferedImage) imagem, "png", saida);
                         return saida.toByteArray();

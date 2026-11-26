@@ -55,6 +55,11 @@ reportlenz:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
     # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
     reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
+  recursos:
+    # ADR-016 §2: prefixos de URL que imagens podem buscar (ex.: https://cdn.cliente.com.br/),
+    # separados por vírgula; vazio = nenhuma URL externa. Arquivo local e subreport por
+    # localização são SEMPRE recusados.
+    urls-permitidas: ${REPORTLENZ_RECURSOS_URLS_PERMITIDAS:}
   storage:
     # Padrão MEDIASTORE (integrall-commerce-api): LOCAL (default) ou MINIO
     provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}
