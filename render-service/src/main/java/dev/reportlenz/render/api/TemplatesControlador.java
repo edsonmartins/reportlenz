@@ -1,5 +1,7 @@
 package dev.reportlenz.render.api;
 
+import dev.reportlenz.render.seguranca.IdentidadeAtual;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +39,7 @@ public class TemplatesControlador {
         this.verificador = verificador;
     }
 
+    /** `actor` é IGNORADO (ADR-017 §3): o ator é sempre a identidade do token. */
     public record SalvarRequest(String jrxml, Map<String, Object> inputSchema, String actor) {}
 
     public record SalvarResponse(String versionId, int version, boolean novaVersao, String jrxmlHash) {}
@@ -60,10 +63,11 @@ public class TemplatesControlador {
                 request.jrxml(),
                 request.inputSchema() == null ? "{}" : json.writeValueAsString(request.inputSchema()),
                 gates.jrxmlHash(),
-                request.actor());
+                IdentidadeAtual.ator());
         return ResponseEntity.ok(new SalvarResponse(salva.versionId(), salva.version(), salva.novaVersao(), gates.jrxmlHash()));
     }
 
+    /** `actor` é IGNORADO (ADR-017 §3): o ator é sempre a identidade do token. */
     public record AcaoRequest(String actor) {}
 
     @PostMapping("/templates/{codename}/versoes/{version}/publicar")
@@ -81,7 +85,7 @@ public class TemplatesControlador {
                     "mensagem", "gates de governança reprovaram — publish bloqueado",
                     "gates", gates.gates()));
         }
-        repositorio.publicar(versao, request == null ? null : request.actor());
+        repositorio.publicar(versao, IdentidadeAtual.ator());
         return ResponseEntity.ok(Map.of("status", "published", "version", version));
     }
 
@@ -92,7 +96,7 @@ public class TemplatesControlador {
         if (versao == null) {
             return naoEncontrada(codename, version);
         }
-        repositorio.deprecar(versao, request == null ? null : request.actor());
+        repositorio.deprecar(versao, IdentidadeAtual.ator());
         return ResponseEntity.ok(Map.of("status", "deprecated", "version", version));
     }
 

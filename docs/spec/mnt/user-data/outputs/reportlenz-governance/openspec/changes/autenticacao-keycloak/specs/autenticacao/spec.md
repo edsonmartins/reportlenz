@@ -48,7 +48,11 @@ O actuator SHALL ser servido somente na porta de management.
 
 #### Scenario: Scrape na porta pública
 - **WHEN** `GET /actuator/prometheus` chega na porta da aplicação
-- **THEN** a resposta não expõe métricas (401/404)
+- **THEN** a resposta não expõe métricas (401 sem token, 403 com token) — só a porta de management serve
+
+#### Scenario: Emissor indisponível
+- **WHEN** o Keycloak está fora do ar e chega uma requisição com Bearer
+- **THEN** a resposta é 401 (não 500), com WARN no log, e a próxima requisição tenta o discovery de novo
 
 ### Requirement: Modo dev sem autenticação só explícito
 Com `reportlenz.seguranca.habilitada=false` o serviço SHALL permitir as chamadas, gravar ator `dev-local` e

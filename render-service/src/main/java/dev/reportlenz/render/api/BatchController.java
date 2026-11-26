@@ -1,5 +1,7 @@
 package dev.reportlenz.render.api;
 
+import dev.reportlenz.render.seguranca.IdentidadeAtual;
+
 import java.util.List;
 import java.util.Map;
 
@@ -94,7 +96,7 @@ public class BatchController {
         if (criado.novo()) {
             fila.enfileirar(criado.jobId());
             // Rastreabilidade LGPD (RFC-006 §4): qual versão gerou qual lote.
-            templates.auditar(versaoPublicada.id(), "rendered_batch", null, mapper.writeValueAsString(Map.of(
+            templates.auditar(versaoPublicada.id(), "rendered_batch", IdentidadeAtual.ator(), mapper.writeValueAsString(Map.of(
                     "jobId", criado.jobId(),
                     "total", request.payloads().size(),
                     "idempotencyKey", request.idempotencyKey())));

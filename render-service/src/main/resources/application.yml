@@ -24,6 +24,10 @@ server:
   port: 8087
 
 management:
+  server:
+    # ADR-017 §4: actuator SÓ nesta porta (rede interna: probes + scrape); na
+    # porta da aplicação o actuator é negado.
+    port: ${REPORTLENZ_MANAGEMENT_PORT:8088}
   endpoints:
     web:
       exposure:
@@ -38,6 +42,13 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  seguranca:
+    # ADR-017: resource server JWT do realm Keycloak. false SÓ em dev local
+    # (libera tudo, ator "dev-local"); habilitada sem issuer → boot falha.
+    habilitada: ${REPORTLENZ_SEGURANCA_HABILITADA:true}
+    issuer: ${REPORTLENZ_OIDC_ISSUER:}
+    # client cujos client roles também valem como papéis (resource_access.<client>.roles)
+    client-id: ${REPORTLENZ_OIDC_CLIENT_ID:reportlenz}
   compile-cache:
     # Compartilhado via Redis (ADR-008/change cache-compilacao-redis): chave =
     # sha256(jrxml); false volta ao in-memory puro por instância
