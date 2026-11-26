@@ -29,6 +29,23 @@ public sealed class ErroDeRender extends RuntimeException {
         }
     }
 
+    /**
+     * Expressão/estrutura fora da allowlist do gate G7 (ADR-016): o JRXML
+     * tentaria executar código fora do vocabulário de valor — 400.
+     */
+    public static final class ExpressaoProibida extends ErroDeRender {
+        private final java.util.List<String> violacoes;
+
+        public ExpressaoProibida(java.util.List<String> violacoes) {
+            super("EXPRESSAO_PROIBIDA: " + String.join("; ", violacoes));
+            this.violacoes = java.util.List.copyOf(violacoes);
+        }
+
+        public java.util.List<String> violacoes() {
+            return violacoes;
+        }
+    }
+
     /** Falha durante fill/export (template válido, render não concluiu). */
     public static final class FalhaDeRender extends ErroDeRender {
         public FalhaDeRender(String mensagem, Throwable causa) {

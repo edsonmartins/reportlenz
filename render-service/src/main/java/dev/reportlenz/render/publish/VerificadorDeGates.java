@@ -13,6 +13,7 @@ import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
 
 import dev.reportlenz.render.pipeline.CompiladorJrxml;
+import dev.reportlenz.render.pipeline.ErroDeRender.ExpressaoProibida;
 import dev.reportlenz.render.pipeline.ErroDeRender.JrxmlInvalido;
 import dev.reportlenz.render.pipeline.ErroDeRender.PullProibido;
 import tools.jackson.databind.json.JsonMapper;
@@ -20,7 +21,7 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Verificação autoritativa dos gates de publish (RFC-006 §3, ADR-013):
  * G1 = load+compile pela Library 7.0.7 REAL, G2 = anti-Pull do compilador,
- * G5 = inputSchema aceito como JSON Schema 2020-12, G6 = sha256 recalculado.
+ * G7 = segurança de expressão (ADR-016), G5 = inputSchema aceito como JSON Schema 2020-12, G6 = sha256 recalculado.
  * Usada pelo endpoint de verificação (bloco 4) e pelo publish persistente
  * (bloco 5) — nenhuma versão vira `published` sem `verde=true` daqui.
  */
@@ -46,6 +47,7 @@ public class VerificadorDeGates {
         // G1 (Library é a verdade) e G2 (anti-Pull do compilador).
         List<String> g1 = new ArrayList<>();
         List<String> g2 = new ArrayList<>();
+        List<String> g7 = new ArrayList<>();
         if (jrxml.isBlank()) {
             g1.add("SCHEMA_INVALID: jrxml vazio");
         } else {
@@ -53,12 +55,16 @@ public class VerificadorDeGates {
                 compilador.compilar(jrxml);
             } catch (PullProibido e) {
                 g2.add(e.getMessage());
+            } catch (ExpressaoProibida e) {
+                g7.addAll(e.violacoes());
             } catch (JrxmlInvalido e) {
                 g1.add("SCHEMA_INVALID: " + e.getMessage());
             }
         }
         gates.add(new Gate("G1", g1.isEmpty(), g1));
         gates.add(new Gate("G2", g2.isEmpty(), g2));
+        // G7 (ADR-016): segurança de expressão — allowlist léxica + estrutura.
+        gates.add(new Gate("G7", g7.isEmpty(), g7));
 
         // G5: inputSchema presente e aceito como JSON Schema 2020-12.
         List<String> g5 = new ArrayList<>();
