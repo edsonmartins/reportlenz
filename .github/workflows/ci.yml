@@ -118,9 +118,18 @@ jobs:
   # Serviço de render (RFC-003): build + testes (incl. smoke da matriz JR7, nota 004).
   # A suíte roda DUAS vezes: SQLite (default zero-config) e PostgreSQL
   # (produção — ADR-009, change migracao-postgresql), com o MESMO SQL portável.
+  # ADR-018 §6: fixtures do harness + MinIO presentes e NENHUM teste pulado.
   render-service:
     name: render-service · build + testes
     runs-on: ubuntu-latest
+    env:
+      # Imagem S3-compatível dos testes de storage. As imagens oficiais da MinIO
+      # deixaram de ser publicadas (Docker Hub/quay); troque aqui se a política
+      # de imagens da empresa exigir outra.
+      MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+      MINIO_ENDPOINT: http://localhost:9000
+      MINIO_ACCESS_KEY: reportlenz
+      MINIO_SECRET_KEY: reportlenz-ci-segredo
     services:
       # Fila do batch (tarefas 5.x) — em dev usa o Redis local/da infra (REDIS_HOST)
       redis:
@@ -143,6 +152,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fixtures do harness (ReferenciasDeQualidade, ContratoCruzado, Publish,
+      # CicloDeVida, SegurancaDeExpressoes) — sem eles esses testes eram pulados.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Emitir fixtures do jrxml-core
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --dir jrxml-core build
+          pnpm --dir jrxml-core emit:fixtures
+
+      # services: do Actions não aceita o "command" (server /data) — docker run.
+      - name: Subir MinIO (S3) para os testes de storage
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER="$MINIO_ACCESS_KEY" -e MINIO_ROOT_PASSWORD="$MINIO_SECRET_KEY" \
+            "$MINIO_IMAGE" server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && exit 0
+            sleep 2
+          done
+          docker logs minio
+          exit 1
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -153,6 +191,9 @@ jobs:
         working-directory: render-service
         run: mvn -q -B test
 
+      - name: Nenhum teste pulado (SQLite)
+        run: tools/ci/verificar-sem-skips.sh
+
       - name: Testes no PostgreSQL (produção)
         working-directory: render-service
         env:
@@ -161,3 +202,6 @@ jobs:
           REPORTLENZ_DB_PASSWORD: reportlenz
           REPORTLENZ_DB_POOL: "5"
         run: mvn -q -B test
+
+      - name: Nenhum teste pulado (PostgreSQL)
+        run: tools/ci/verificar-sem-skips.sh
