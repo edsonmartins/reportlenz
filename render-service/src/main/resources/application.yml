@@ -68,6 +68,10 @@ reportlenz:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
     # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
     reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
+  limites:
+    # ADR-018 §2: corpo máximo (413) e itens por lote (400)
+    max-request-mb: ${REPORTLENZ_MAX_REQUEST_MB:25}
+    batch-max-itens: ${REPORTLENZ_BATCH_MAX_ITENS:20000}
   retencao:
     # ADR-018 §1 (LGPD): payload zerado ao terminar o job; jobs terminados há mais
     # de N dias são purgados (banco + PDFs no storage) pela rotina diária.

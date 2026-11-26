@@ -34,9 +34,14 @@ public class BatchController {
     private final dev.reportlenz.render.storage.ArmazenamentoDeSaida armazenamento;
     private final JsonMapper mapper = JsonMapper.builder().build();
 
+    /** ADR-018 §2: teto de itens por lote (payloads ficam num único JSON no banco). */
+    private final int maxItens;
+
     public BatchController(RepositorioDeJobs repositorio, FilaDeRender fila,
             dev.reportlenz.render.publish.RepositorioDeTemplates templates,
-            dev.reportlenz.render.storage.ArmazenamentoDeSaida armazenamento) {
+            dev.reportlenz.render.storage.ArmazenamentoDeSaida armazenamento,
+            @org.springframework.beans.factory.annotation.Value("${reportlenz.limites.batch-max-itens:20000}") int maxItens) {
+        this.maxItens = maxItens;
         this.repositorio = repositorio;
         this.fila = fila;
         this.templates = templates;
@@ -73,6 +78,13 @@ public class BatchController {
             return ResponseEntity.badRequest()
                     .body(new TratadorDeErros.ErroResponse("REQUISICAO_INVALIDA",
                             "templateCodename, payloads (não vazio) e idempotencyKey são obrigatórios"));
+        }
+
+        if (request.payloads().size() > maxItens) {
+            return ResponseEntity.badRequest()
+                    .body(new TratadorDeErros.ErroResponse("LOTE_GRANDE_DEMAIS",
+                            request.payloads().size() + " itens; o máximo por lote é " + maxItens
+                                    + " (REPORTLENZ_BATCH_MAX_ITENS) — divida em lotes menores"));
         }
 
         var versaoPublicada = templates.publicada(request.templateCodename()).orElse(null);
