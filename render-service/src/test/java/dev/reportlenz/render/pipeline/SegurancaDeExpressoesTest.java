@@ -18,7 +18,7 @@ class SegurancaDeExpressoesTest {
 
     private final CompiladorJrxml compilador = new CompiladorJrxml();
 
-    private static String jrxmlCom(String expressao) {
+    static String jrxmlCom(String expressao) {
         return jrxmlCom(expressao, "", "");
     }
 
@@ -85,24 +85,37 @@ class SegurancaDeExpressoesTest {
                         e -> assertThat(e.violacoes()).anyMatch(v -> v.contains("\"Runtime\"")));
     }
 
+    /**
+     * FONTE ÚNICA do vocabulário legítimo: o G7 aceita (aqui) e o filtro de
+     * classes do engine renderiza (FiltroDeClassesTest, ADR-021) — tipo novo no
+     * G7 sem a classe na whitelist quebra a paridade.
+     */
+    static java.util.stream.Stream<String> vocabularioLegitimo() {
+        return java.util.stream.Stream.of(
+                "\"Cliente: \" + $F{nome}",
+                "$F{nome} != null ? $F{nome}.toUpperCase() : \"—\"",
+                "$F{valor}.multiply($F{qtd}).setScale(2, java.math.RoundingMode.HALF_UP).toString()",
+                "$F{valor}.divide($F{qtd}, 2, java.math.RoundingMode.HALF_UP).toPlainString()",
+                "$F{valor}.add(java.math.BigDecimal.ONE).toString()",
+                "DATEFORMAT($F{data}, \"dd/MM/yyyy\")",
+                "TEXT($F{valor}, \"¤ #,##0.00\")",
+                "new java.text.SimpleDateFormat(\"dd/MM/yyyy\").format($F{data})",
+                "String.valueOf($V{PAGE_NUMBER}) + \" de \" + $V{PAGE_NUMBER}",
+                "$V{REPORT_COUNT} % 2 == 0 ? \"par\" : \"ímpar\"",
+                "$P{titulo}.equals(\"Fatura\") ? \"F\" : 'x' + \"\"",
+                "java.text.NumberFormat.getCurrencyInstance($P{REPORT_LOCALE}).format($F{valor})",
+                "\"a // não é comentário dentro de string\"",
+                "\"https://exemplo.com.br/logo.png\"",
+                "java.time.LocalDate.of(2026, 1, 15).format(java.time.format.DateTimeFormatter.ofPattern(\"dd/MM/yyyy\"))",
+                "String.valueOf(java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.of(2026, 1, 1), java.time.LocalDate.of(2026, 1, 15)))",
+                "String.valueOf(Math.max(1, 2)) + Integer.valueOf(3) + Long.valueOf(4L)",
+                "java.util.Objects.requireNonNullElse($F{nome}, \"—\")",
+                "java.text.MessageFormat.format(\"{0} itens\", 3)",
+                "Boolean.valueOf(true).toString() + Character.valueOf('x') + Double.valueOf(1.5)");
+    }
+
     @ParameterizedTest(name = "aceita: {0}")
-    @ValueSource(strings = {
-            // Scenario: Vocabulário legítimo continua válido (Assistente B / designer)
-            "\"Cliente: \" + $F{nome}",
-            "$F{nome} != null ? $F{nome}.toUpperCase() : \"—\"",
-            "$F{valor}.multiply($F{qtd}).setScale(2, java.math.RoundingMode.HALF_UP).toString()",
-            "$F{valor}.divide($F{qtd}, 2, java.math.RoundingMode.HALF_UP).toPlainString()",
-            "$F{valor}.add(java.math.BigDecimal.ONE).toString()",
-            "DATEFORMAT($F{data}, \"dd/MM/yyyy\")",
-            "TEXT($F{valor}, \"¤ #,##0.00\")",
-            "new java.text.SimpleDateFormat(\"dd/MM/yyyy\").format($F{data})",
-            "String.valueOf($V{PAGE_NUMBER}) + \" de \" + $V{PAGE_NUMBER}",
-            "$V{REPORT_COUNT} % 2 == 0 ? \"par\" : \"ímpar\"",
-            "$P{titulo}.equals(\"Fatura\") ? \"F\" : 'x' + \"\"",
-            "java.text.NumberFormat.getCurrencyInstance($P{REPORT_LOCALE}).format($F{valor})",
-            "\"a // não é comentário dentro de string\"",
-            "\"https://exemplo.com.br/logo.png\""
-    })
+    @org.junit.jupiter.params.provider.MethodSource("vocabularioLegitimo")
     void aceitaVocabularioLegitimo(String expressao) {
         assertThat(compilador.compilar(jrxmlCom(expressao))).isNotNull();
     }

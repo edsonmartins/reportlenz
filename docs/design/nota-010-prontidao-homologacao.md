@@ -51,7 +51,10 @@ implantação.
 
 ## 4. Riscos residuais (requisitos de implantação)
 
-1. **Redis privado e com senha:** o compile cache guarda `JasperReport` serializado (ADR-016).
+1. **Redis privado e com senha:** o compile cache guarda `JasperReport` serializado (ADR-016). **Rebaixado
+   pelo ADR-021 (2026-11-26):** com o filtro de classes do engine ligado, um relatório envenenado no cache não
+   executa código fora da whitelist (bloqueio no fill, testado). Redis privado e com senha continua
+   obrigatório, porque o conteúdo do relatório ainda pode ser adulterado.
 2. **Render-service com egress restrito** e filesystem só com `/app/data` gravável (defesa em
    profundidade além do G7).
 3. **URLs pré-assinadas** usam o host de `MINIO_ENDPOINT`, que precisa ser resolvível por quem baixa os

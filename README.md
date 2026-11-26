@@ -127,6 +127,9 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
 - **Subreport só por template publicado (ADR-020):** a expressão é o literal `"repo:<codename>"` (versão
   publicada atual) ou `"repo:<codename>@<n>"` (versão fixa). O gate **G8** bloqueia o publish se o filho não
   estiver publicado ou se houver ciclo. Publique o filho antes do pai (ex.: `fatura_entregas` antes de `fatura`).
+- **Filtro de classes do engine (ADR-021):** segunda barreira, no fill. Classe fora da whitelist em
+  `render-service/src/main/resources/jasperreports.properties` falha com "Class X is not visible to reports".
+  Tipo novo no G7 precisa entrar nessa whitelist; o `FiltroDeClassesTest` cobra essa paridade.
 - **Batch só de template publicado:** `jrxml` bruto no lote dá 400 `JRXML_BRUTO_PROIBIDO`.
 - **Auditoria:** o ator é sempre o usuário do token (`preferred_username`), nunca o corpo da requisição.
 - **LGPD:** o payload é zerado quando o job termina; jobs e PDFs são purgados após 30 dias. A auditoria de
@@ -134,8 +137,9 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
 
 **Riscos residuais (requisitos de implantação):**
 
-1. **Redis privado e com senha.** O compile cache guarda `JasperReport` serializado; quem escreve no Redis
-   obtém execução de código no render-service.
+1. **Redis privado e com senha.** O compile cache guarda `JasperReport` serializado. O filtro de classes do
+   engine (ADR-021) impede que um relatório adulterado execute código fora da whitelist, mas o conteúdo do
+   relatório ainda pode ser trocado.
 2. **Render-service sem privilégios e com egress restrito** (defesa em profundidade além do G7): usuário
    não-root (já na imagem), filesystem só com `/app/data` gravável e saída de rede só para Keycloak,
    Redis, PostgreSQL, S3, o provedor de IA e os prefixos de imagem liberados.
