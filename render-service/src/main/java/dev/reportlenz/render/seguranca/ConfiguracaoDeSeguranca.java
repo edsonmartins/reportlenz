@@ -53,12 +53,21 @@ public class ConfiguracaoDeSeguranca {
     private final String issuer;
     private final String clientId;
     private final int portaDeManagement;
+    /** ADR-019 §3: endereço INTERNO das chaves; o `iss` continua sendo o público. */
+    private final String jwkSetUri;
 
+    public ConfiguracaoDeSeguranca(boolean habilitada, String issuer, String clientId, int portaDeManagement) {
+        this(habilitada, issuer, clientId, portaDeManagement, "");
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public ConfiguracaoDeSeguranca(
             @Value("${reportlenz.seguranca.habilitada:true}") boolean habilitada,
             @Value("${reportlenz.seguranca.issuer:}") String issuer,
             @Value("${reportlenz.seguranca.client-id:reportlenz}") String clientId,
-            @Value("${management.server.port:-1}") int portaDeManagement) {
+            @Value("${management.server.port:-1}") int portaDeManagement,
+            @Value("${reportlenz.seguranca.jwk-set-uri:}") String jwkSetUri) {
+        this.jwkSetUri = jwkSetUri == null ? "" : jwkSetUri.strip();
         this.habilitada = habilitada;
         this.issuer = issuer == null ? "" : issuer.strip();
         this.clientId = clientId;
@@ -104,7 +113,8 @@ public class ConfiguracaoDeSeguranca {
                         .requestMatchers(HttpMethod.GET, "/render/batch/*").hasAuthority(BATCH)
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(o -> o.jwt(j -> j.jwtAuthenticationConverter(conversor())));
-        log.info("[SEGURANCA] resource server JWT: issuer={}, client={}, management={}", issuer, clientId,
+        log.info("[SEGURANCA] resource server JWT: issuer={}, jwks={}, client={}, management={}", issuer,
+                jwkSetUri.isEmpty() ? "discovery" : jwkSetUri, clientId,
                 portaDeManagement > 0 ? portaDeManagement : "mesma porta (actuator negado)");
         return http.build();
     }
@@ -117,11 +127,22 @@ public class ConfiguracaoDeSeguranca {
                 throw new org.springframework.security.oauth2.jwt.BadJwtException("autenticação desligada (dev)");
             };
         }
-        JwtDecoder adiado = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(issuer));
+        JwtDecoder adiado;
+        if (!jwkSetUri.isEmpty()) {
+            // Chaves pela rede interna, mas o token TEM de ter o iss público (+ exp/nbf).
+            var nimbus = org.springframework.security.oauth2.jwt.NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+            nimbus.setJwtValidator(org.springframework.security.oauth2.jwt.JwtValidators.createDefaultWithIssuer(issuer));
+            adiado = nimbus;
+        } else {
+            adiado = new SupplierJwtDecoder(() -> JwtDecoders.fromIssuerLocation(issuer));
+        }
         return token -> {
             try {
                 return adiado.decode(token);
-            } catch (org.springframework.security.oauth2.jwt.JwtDecoderInitializationException e) {
+            } catch (org.springframework.security.oauth2.jwt.BadJwtException e) {
+                throw e;
+            } catch (org.springframework.security.oauth2.jwt.JwtException
+                    | org.springframework.security.oauth2.jwt.JwtDecoderInitializationException e) {
                 // Keycloak fora do ar no discovery: 401 (não 500) e nova tentativa na
                 // próxima requisição — o SupplierJwtDecoder não memoriza falhas.
                 log.warn("[SEGURANCA] emissor {} indisponível para validar o token: {}", issuer, raiz(e));

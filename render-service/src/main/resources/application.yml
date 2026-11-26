@@ -50,6 +50,9 @@ reportlenz:
     # (libera tudo, ator "dev-local"); habilitada sem issuer → boot falha.
     habilitada: ${REPORTLENZ_SEGURANCA_HABILITADA:true}
     issuer: ${REPORTLENZ_OIDC_ISSUER:}
+    # ADR-019 §3: JWKS pela rede interna (ex.: http://keycloak:8080/realms/reportlenz/protocol/openid-connect/certs);
+    # vazio = discovery pelo issuer. O iss do token continua validado contra o issuer público.
+    jwk-set-uri: ${REPORTLENZ_OIDC_JWK_SET_URI:}
     # client cujos client roles também valem como papéis (resource_access.<client>.roles)
     client-id: ${REPORTLENZ_OIDC_CLIENT_ID:reportlenz}
   compile-cache:

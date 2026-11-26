@@ -1,7 +1,7 @@
 # Tasks — empacotamento-deploy
 
 - [x] 1.1 ADR-019 + pacote OpenSpec (proposal/spec/tasks)
-- [ ] 2.1 JWKS interno opcional (REPORTLENZ_OIDC_JWK_SET_URI) com validação do issuer público; testes
+- [x] 2.1 JWKS interno opcional (REPORTLENZ_OIDC_JWK_SET_URI) com validação do issuer público; testes
 - [ ] 2.2 Dockerfile do render-service (multi-stage, JRE 21, não-root, fontconfig, healthcheck 8088)
 - [ ] 2.3 Dockerfile do designer (workspace pnpm → nginx, proxy reverso, /config.json por env, headers)
 - [ ] 2.4 deploy/: realm Keycloak, compose de homologação, .env.exemplo
