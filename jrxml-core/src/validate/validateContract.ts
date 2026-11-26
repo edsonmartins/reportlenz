@@ -24,6 +24,7 @@ import type { ColunaDeTabela, Element, TableCell } from '../model/elements.js';
 import { eGrupoDeColunas } from '../model/elements.js';
 import { colecaoDoDatasource, datasourceCampo } from '../model/datasource.js';
 import type { ReportTemplate } from '../model/report.js';
+import { lerReferenciaDeSubreport } from './referenciaDeSubreport.js';
 
 /** Parâmetros built-in do engine JasperReports (sempre disponíveis). */
 export const BUILTIN_PARAMETERS: ReadonlySet<string> = new Set([
@@ -126,7 +127,14 @@ function checkElement(ctx: Ctx, el: Element, scope: Scope, path: string): void {
       if (ctx.gradeAtiva) {
         report(ctx, 'INVALID_ATTRIBUTE', 'subreport não é suportado com reportlenz.datasource.campo ativo (ADR-015, restrição V1)', path);
       }
-      checkExpr(ctx, el.templateExpression, scope, path);
+      if (!lerReferenciaDeSubreport(el.templateExpression)) {
+        report(
+          ctx,
+          'SUBREPORT_REF_INVALID',
+          'o template do subreport deve ser o literal "repo:<codename>" (ou "repo:<codename>@<versão>") de um template publicado (ADR-020)',
+          path,
+        );
+      }
       checkExpr(ctx, el.dataSourceExpression, scope, path);
       el.parameters.forEach((p, i) => checkExpr(ctx, p.expression, scope, `${path}/parameters[${i}]`));
       return;

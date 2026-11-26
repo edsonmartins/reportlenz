@@ -26,6 +26,7 @@ interface GateDoServico {
 /** Títulos dos gates avaliados só no serviço (sem equivalente no jrxml-core). */
 const TITULOS_DO_SERVICO: Record<string, string> = {
   G7: 'Segurança de expressão — só vocabulário permitido (ADR-016)',
+  G8: 'Subreports — templates referenciados publicados e sem ciclo (ADR-020)',
 };
 
 interface VerificacaoDoServico {
@@ -59,7 +60,13 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
         const resposta = await apiFetch('/publish/verificar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jrxml: local.jrxml, inputSchema: local.inputSchema, jrxmlHash: local.jrxmlHash }),
+          // codename: o G8 (ADR-020) detecta ciclo de subreports de volta a este template.
+          body: JSON.stringify({
+            jrxml: local.jrxml,
+            inputSchema: local.inputSchema,
+            jrxmlHash: local.jrxmlHash,
+            codename: template.name,
+          }),
         });
         if (!resposta.ok) {
           setErroDoServico(`serviço de render respondeu HTTP ${resposta.status}`);
@@ -122,7 +129,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
   const gateDoServico = (codigo: string) => servico?.gates.find((g) => g.gate === codigo);
 
   return (
-    <Modal opened={aberto} onClose={onFechar} title="Publicar — gates de governança (G1–G7)"
+    <Modal opened={aberto} onClose={onFechar} title="Publicar — gates de governança (G1–G8)"
       size={560} transitionProps={{ duration: 0 }}>
       <Stack gap={6}>
         {resultado?.gates.map((g) => {

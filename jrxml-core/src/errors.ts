@@ -19,6 +19,8 @@ export type ErrorCode =
   | 'UNSUPPORTED_ELEMENT'
   /** Classe Java sem mapeamento para os tipos do contrato. */
   | 'UNSUPPORTED_TYPE'
+  /** Subreport sem o literal `"repo:<codename>[@n]"` (ADR-020). */
+  | 'SUBREPORT_REF_INVALID'
   /** Atributo obrigatório ausente ou com valor inválido. */
   | 'INVALID_ATTRIBUTE';
 
