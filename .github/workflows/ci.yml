@@ -124,8 +124,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Imagem S3-compatível dos testes de storage. As imagens oficiais da MinIO
-      # deixaram de ser publicadas (Docker Hub/quay); troque aqui se a política
-      # de imagens da empresa exigir outra.
+      # deixaram de ser publicadas (Docker Hub/quay); pgsty/minio aprovada em
+      # 2026-11-26 (nota-010) — tag FIXA, atualize deliberadamente.
       MINIO_IMAGE: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
       MINIO_ENDPOINT: http://localhost:9000
       MINIO_ACCESS_KEY: reportlenz

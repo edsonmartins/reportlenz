@@ -21,7 +21,8 @@ das variáveis de ambiente, e a UI só alcança o backend pelo proxy de desenvol
      única, sem CORS). O `/config.json` é gerado no start a partir de `OIDC_AUTHORITY`/`OIDC_CLIENT_ID`
      (vazio = modo dev).
 2. **Compose de homologação** (`deploy/`): PostgreSQL, Redis **com senha**, S3 (MinIO, imagem
-   configurável), Keycloak com o realm `reportlenz` importado, render-service e designer. Só designer
+   configurável em `MINIO_IMAGE`; `pgsty/minio` com tag fixa, aprovada em 2026-11-26 — as imagens
+   oficiais deixaram de ser publicadas), Keycloak com o realm `reportlenz` importado, render-service e designer. Só designer
    (8080) e Keycloak (8180) ficam expostos ao host; render-service, actuator, Redis, PostgreSQL e MinIO
    ficam na rede interna.
 3. **Issuer público × JWKS interno:** o token traz o issuer **público** (o endereço que o navegador usa no
