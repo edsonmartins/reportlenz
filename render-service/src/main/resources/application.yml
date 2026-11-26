@@ -37,7 +37,8 @@ management:
         include: health,info,metrics,prometheus
   tracing:
     sampling:
-      probability: ${OTEL_SAMPLING:1.0}
+      # ADR-018 §5: 10% por padrão (100% custa caro em produção)
+      probability: ${OTEL_SAMPLING:0.1}
   otlp:
     tracing:
       # Tempo (ou collector OTLP) — configurar na infra
@@ -64,6 +65,8 @@ reportlenz:
     model: ${REPORTLENZ_LLM_MODEL:google/gemini-2.5-flash}
     temperature: ${REPORTLENZ_LLM_TEMPERATURE:0.2}
     max-tokens: ${REPORTLENZ_LLM_MAX_TOKENS:16000}
+    # ADR-018 §3: chamadas por usuário por minuto (Redis, entre instâncias); 0 = sem limite
+    limite-por-minuto: ${REPORTLENZ_ASSIST_LIMITE_POR_MINUTO:10}
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
     # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle

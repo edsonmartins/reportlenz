@@ -23,6 +23,9 @@ reportlenz:
     # PostgreSQL no CI) compartilham o Redis — sem isso o cache chega quente
     # e os testes de "compila exatamente uma vez" quebram.
     prefixo: "reportlenz:compile:test:${random.uuid}:"
+  assist:
+    # Prefixo único por execução (mesma lição do compile cache: o Redis é compartilhado)
+    limite-prefixo: "reportlenz:assist:limite:test:${random.uuid}:"
   fila:
     nome: "reportlenz:render:fila:test:${random.uuid}"
     reivindicar-apos-segundos: 1
