@@ -4,7 +4,8 @@
  * Duas camadas de gates, AMBAS obrigatórias:
  * 1. design-time: `avaliarGates` (jrxml-core) — G1 estrutural, G2, G3, G4, G5, G6;
  * 2. autoritativa: `POST /publish/verificar` — G1 = load+compile pela Library
- *    7.0.7 real (ADR-013), G2/G5/G6 reconferidos pelo serviço.
+ *    7.0.7 real (ADR-013), G2/G5/G6 reconferidos pelo serviço e G7 (segurança
+ *    de expressão, ADR-016) avaliado SÓ no serviço — exibido a partir da resposta.
  * O botão de publicar SÓ habilita com tudo verde ("Pass 5 = autoridade sobre
  * done", I-5). O resultado hoje é o pacote de integração (RFC-002 §6); a
  * persistência do registro (ADR-009) chega no bloco 5.
@@ -20,6 +21,11 @@ interface GateDoServico {
   verde: boolean;
   erros: string[];
 }
+
+/** Títulos dos gates avaliados só no serviço (sem equivalente no jrxml-core). */
+const TITULOS_DO_SERVICO: Record<string, string> = {
+  G7: 'Segurança de expressão — só vocabulário permitido (ADR-016)',
+};
 
 interface VerificacaoDoServico {
   verde: boolean;
@@ -115,7 +121,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
   const gateDoServico = (codigo: string) => servico?.gates.find((g) => g.gate === codigo);
 
   return (
-    <Modal opened={aberto} onClose={onFechar} title="Publicar — gates de governança (G1–G6)"
+    <Modal opened={aberto} onClose={onFechar} title="Publicar — gates de governança (G1–G7)"
       size={560} transitionProps={{ duration: 0 }}>
       <Stack gap={6}>
         {resultado?.gates.map((g) => {
@@ -142,6 +148,26 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
             </Group>
           );
         })}
+
+        {/* Gates que SÓ o serviço avalia (ex.: G7 — segurança de expressão, ADR-016). */}
+        {servico?.gates
+          .filter((g) => !resultado?.gates.some((local) => local.gate === g.gate))
+          .map((g) => (
+            <Group key={g.gate} gap={8} align="flex-start" data-testid={`gate-${g.gate}`} data-verde={g.verde || undefined}>
+              <Badge color={g.verde ? 'green' : 'red'} variant="filled" w={44}>
+                {g.gate}
+              </Badge>
+              <div style={{ flex: 1 }}>
+                <Text size="xs">{TITULOS_DO_SERVICO[g.gate] ?? 'Gate do serviço de render'}</Text>
+                {!g.verde &&
+                  g.erros.slice(0, 3).map((e, i) => (
+                    <Text size="xs" c="red.7" key={i}>
+                      • {e}
+                    </Text>
+                  ))}
+              </div>
+            </Group>
+          ))}
 
         {erroDoServico && (
           <Alert color="red" p="xs" data-testid="publish-sem-autoridade">

@@ -106,6 +106,19 @@ class PreviewControllerTest {
                 .andExpect(jsonPath("$.codigo").value("CONTRACT_PULL_FORBIDDEN"));
     }
 
+    /** Scenario (render-seguranca, ADR-016): Execução de comando no servidor. */
+    @Test
+    void cenarioDoSpec_expressaoComRuntimeRetorna400ExpressaoProibida() throws Exception {
+        String rce = JRXML_PUSH.replace("\"Olá, \" + $F{nome}", "Runtime.getRuntime().exec(\"id\").toString()");
+        org.assertj.core.api.Assertions.assertThat(rce).isNotEqualTo(JRXML_PUSH);
+        mvc.perform(post("/render/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo(rce, "x", "pdf")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("EXPRESSAO_PROIBIDA"))
+                .andExpect(jsonPath("$.violacoes[0]").value(org.hamcrest.Matchers.containsString("Runtime")));
+    }
+
     @Test
     void cenarioDoSpec_payloadForaDoContratoRetorna422SemRender() throws Exception {
         String inputSchema = """

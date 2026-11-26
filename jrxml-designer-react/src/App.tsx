@@ -176,7 +176,7 @@ function BarraDoCanvas() {
             Renderizar (Jasper)
           </Button>
         </Tooltip>
-        <Tooltip label="Gates G1–G6 (RFC-006): publish só com todos verdes, confirmados pela Library real">
+        <Tooltip label="Gates G1–G7 (RFC-006, ADR-016): publish só com todos verdes, confirmados pela Library real">
           <Button size="compact-xs" variant="light" onClick={() => setPublishAberto(true)}>
             Publicar…
           </Button>

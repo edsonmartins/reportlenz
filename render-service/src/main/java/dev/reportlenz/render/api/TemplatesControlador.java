@@ -43,15 +43,16 @@ public class TemplatesControlador {
 
     @PostMapping("/templates/{codename}/versoes")
     public ResponseEntity<?> salvar(@PathVariable String codename, @RequestBody SalvarRequest request) {
-        // Validação dupla no save (ADR-009 regra 2): G1 (Library) e G2 (anti-Pull).
+        // Validação dupla no save (ADR-009 regra 2): G1 (Library), G2 (anti-Pull) e
+        // G7 (segurança de expressão, ADR-016) — draft inseguro nem é persistido.
         var gates = verificador.verificar(request.jrxml(), request.inputSchema(), null);
         var reprovadosNoSave = gates.gates().stream()
-                .filter(g -> ("G1".equals(g.gate()) || "G2".equals(g.gate())) && !g.verde())
+                .filter(g -> java.util.Set.of("G1", "G2", "G7").contains(g.gate()) && !g.verde())
                 .toList();
         if (!reprovadosNoSave.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                     "codigo", "SAVE_REPROVADO",
-                    "mensagem", "o draft não passa nos gates de save (G1/G2)",
+                    "mensagem", "o draft não passa nos gates de save (G1/G2/G7)",
                     "gates", reprovadosNoSave));
         }
         var salva = repositorio.salvarDraft(

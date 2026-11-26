@@ -18,10 +18,10 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Batch assíncrono e idempotente (RFC-003 §4, tarefas 5.1/5.3).
  *
- * Com o registro de templates (ADR-009, phase-4/5.x), o lote aceita DUAS
- * formas: `jrxml`+`inputSchema` inline (compatibilidade) ou
- * `templateCodename` — que resolve a versão PUBLISHED do repositório (única
- * usável em produção, RFC-006 §2) e audita `rendered_batch` (LGPD).
+ * O lote aceita SOMENTE `templateCodename` (ADR-016 §3): resolve a versão
+ * PUBLISHED do repositório (RFC-006 §2), que passou pelos gates G1–G7, e
+ * audita `rendered_batch` (LGPD). O modo `jrxml` inline foi removido —
+ * pedido com `jrxml` bruto → 400 `JRXML_BRUTO_PROIBIDO`.
  */
 @RestController
 public class BatchController {
@@ -41,6 +41,10 @@ public class BatchController {
         this.armazenamento = armazenamento;
     }
 
+    /**
+     * `jrxml`/`inputSchema` permanecem no record só para recusar explicitamente
+     * o modo bruto (400 JRXML_BRUTO_PROIBIDO, ADR-016) em vez de ignorá-los.
+     */
     public record BatchRequest(
             String jrxml,
             Map<String, Object> inputSchema,
@@ -52,29 +56,32 @@ public class BatchController {
 
     @PostMapping("/render/batch")
     public ResponseEntity<?> submeter(@RequestBody BatchRequest request) {
+        // ADR-016 §3: lote SÓ de template publicado — JRXML bruto não passou pelos
+        // gates G1–G7 nem gera trilha de auditoria por versão (RFC-006 §4).
         boolean porRegistro = request.templateCodename() != null && !request.templateCodename().isBlank();
-        if ((!porRegistro && (request.jrxml() == null || request.jrxml().isBlank()))
+        if (!porRegistro && request.jrxml() != null && !request.jrxml().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(new TratadorDeErros.ErroResponse("JRXML_BRUTO_PROIBIDO",
+                            "batch aceita apenas templateCodename com versão published (ADR-016); "
+                                    + "publique o template antes de renderizar em lote"));
+        }
+        if (!porRegistro
                 || request.payloads() == null || request.payloads().isEmpty()
                 || request.idempotencyKey() == null || request.idempotencyKey().isBlank()) {
             return ResponseEntity.badRequest()
                     .body(new TratadorDeErros.ErroResponse("REQUISICAO_INVALIDA",
-                            "jrxml OU templateCodename, payloads (não vazio) e idempotencyKey são obrigatórios"));
+                            "templateCodename, payloads (não vazio) e idempotencyKey são obrigatórios"));
         }
 
-        String jrxml = request.jrxml();
-        String inputSchemaJson = request.inputSchema() == null ? null : mapper.writeValueAsString(request.inputSchema());
-        dev.reportlenz.render.publish.RepositorioDeTemplates.Versao versaoPublicada = null;
-        if (porRegistro) {
-            versaoPublicada = templates.publicada(request.templateCodename()).orElse(null);
-            if (versaoPublicada == null) {
-                // Só published é usável pelo batch (RFC-006 §2) — draft/deprecated não rendem.
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(new TratadorDeErros.ErroResponse("TEMPLATE_NAO_PUBLICADO",
-                                request.templateCodename() + " não tem versão published"));
-            }
-            jrxml = versaoPublicada.jrxml();
-            inputSchemaJson = versaoPublicada.inputSchemaJson();
+        var versaoPublicada = templates.publicada(request.templateCodename()).orElse(null);
+        if (versaoPublicada == null) {
+            // Só published é usável pelo batch (RFC-006 §2) — draft/deprecated não rendem.
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new TratadorDeErros.ErroResponse("TEMPLATE_NAO_PUBLICADO",
+                            request.templateCodename() + " não tem versão published"));
         }
+        String jrxml = versaoPublicada.jrxml();
+        String inputSchemaJson = versaoPublicada.inputSchemaJson();
 
         var criado = repositorio.criarSeNovo(
                 request.idempotencyKey(),
@@ -86,13 +93,11 @@ public class BatchController {
         // Idempotência do lote: só o job NOVO entra na fila; reenvio devolve o mesmo jobId.
         if (criado.novo()) {
             fila.enfileirar(criado.jobId());
-            if (versaoPublicada != null) {
-                // Rastreabilidade LGPD (RFC-006 §4): qual versão gerou qual lote.
-                templates.auditar(versaoPublicada.id(), "rendered_batch", null, mapper.writeValueAsString(Map.of(
-                        "jobId", criado.jobId(),
-                        "total", request.payloads().size(),
-                        "idempotencyKey", request.idempotencyKey())));
-            }
+            // Rastreabilidade LGPD (RFC-006 §4): qual versão gerou qual lote.
+            templates.auditar(versaoPublicada.id(), "rendered_batch", null, mapper.writeValueAsString(Map.of(
+                    "jobId", criado.jobId(),
+                    "total", request.payloads().size(),
+                    "idempotencyKey", request.idempotencyKey())));
         }
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new BatchResponse(criado.jobId()));
     }

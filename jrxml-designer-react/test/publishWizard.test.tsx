@@ -130,4 +130,23 @@ describe('jrxml-designer-react · Publish Wizard — gates G1–G6 (Fase 4, bloc
     expect(screen.getByTestId('gate-G1')).not.toHaveAttribute('data-verde');
     expect(screen.getByTestId('publish-confirmar')).toBeDisabled();
   });
+
+  it('G7 do serviço vermelho (expressão fora da allowlist, ADR-016): aparece no checklist e bloqueia', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respostaJson(200, {
+      verde: false,
+      gates: [
+        ...SERVICO_VERDE.gates,
+        { gate: 'G7', verde: false, erros: ['identificador "Runtime" não permitido em: Runtime.getRuntime()'] },
+      ],
+      jrxmlHash: 'abc',
+    })));
+    renderApp();
+    abrirWizard();
+
+    await waitFor(() => expect(screen.getByTestId('gate-G7')).toBeInTheDocument());
+    expect(screen.getByTestId('gate-G7')).not.toHaveAttribute('data-verde');
+    expect(screen.getByText(/Segurança de expressão/)).toBeInTheDocument();
+    expect(screen.getByText(/"Runtime" não permitido/)).toBeInTheDocument();
+    expect(screen.getByTestId('publish-confirmar')).toBeDisabled();
+  });
 });
