@@ -3,6 +3,7 @@ import '@mantine/core/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { PortaoDeSessao } from './auth/PortaoDeSessao';
 
 const raiz = document.getElementById('root');
 if (!raiz) {
@@ -12,7 +13,9 @@ if (!raiz) {
 createRoot(raiz).render(
   <StrictMode>
     <MantineProvider defaultColorScheme="light">
-      <App />
+      <PortaoDeSessao>
+        <App />
+      </PortaoDeSessao>
     </MantineProvider>
   </StrictMode>,
 );

@@ -117,6 +117,15 @@ class CicloDeVidaDoTemplateTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("SAVE_REPROVADO"));
 
+        // Save recusa expressão insegura (G7, ADR-016) — draft inseguro nem é persistido.
+        String inseguro = Files.readString(FIXTURE_FATURA)
+                .replace("<![CDATA[$F{descricao}]]>", "<![CDATA[Runtime.getRuntime().toString()]]>");
+        mvc.perform(post("/templates/{c}/versoes", codename)
+                        .contentType(MediaType.APPLICATION_JSON).content(salvarBody(inseguro)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("SAVE_REPROVADO"))
+                .andExpect(jsonPath("$.gates[0].gate").value("G7"));
+
         // Draft sem inputSchema salva (G5 não é gate de save), mas o PUBLISH bloqueia.
         String semSchema = json.writeValueAsString(Map.of("jrxml", Files.readString(FIXTURE_FATURA)));
         mvc.perform(post("/templates/{c}/versoes", codename)

@@ -67,12 +67,38 @@ public class RepositorioDeJobs {
                 .optional();
     }
 
+    /**
+     * Muda o status. Ao TERMINAR (`done`/`failed`, inclusive poison cap) os
+     * payloads — dados pessoais — viram `[]` (ADR-018 §1): status e saídas
+     * continuam consultáveis; reprocessar = reenviar a idempotencyKey.
+     */
     public void atualizarStatus(String jobId, String status) {
-        jdbc.sql("UPDATE render_job SET status = :status, atualizado_em = :agora WHERE id = :id")
+        boolean terminal = "done".equals(status) || "failed".equals(status);
+        jdbc.sql(terminal
+                        ? "UPDATE render_job SET status = :status, atualizado_em = :agora, payloads = '[]' WHERE id = :id"
+                        : "UPDATE render_job SET status = :status, atualizado_em = :agora WHERE id = :id")
                 .param("status", status)
                 .param("agora", Instant.now().toString())
                 .param("id", jobId)
                 .update();
+    }
+
+    /** Jobs TERMINADOS cuja última atualização é anterior ao limite (purga, ADR-018 §1). */
+    public List<String> terminadosAntesDe(Instant limite) {
+        // atualizado_em é ISO-8601 UTC (Instant.toString): ordem lexicográfica = cronológica.
+        return jdbc.sql("""
+                        SELECT id FROM render_job
+                        WHERE status IN ('done', 'failed') AND atualizado_em < :limite
+                        """)
+                .param("limite", limite.toString())
+                .query(String.class)
+                .list();
+    }
+
+    /** Remove o job e suas saídas (a chave de idempotência fica livre). */
+    public void apagar(String jobId) {
+        jdbc.sql("DELETE FROM render_job_saida WHERE job_id = :id").param("id", jobId).update();
+        jdbc.sql("DELETE FROM render_job WHERE id = :id").param("id", jobId).update();
     }
 
     /** Índices já processados (reprocessamento idempotente pula estes). */

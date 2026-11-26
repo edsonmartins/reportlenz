@@ -9,6 +9,7 @@ import { ActionIcon, Alert, Button, Code, Popover, Stack, Text, Textarea, Toolti
 import { useState } from 'react';
 import type { EscopoDeExpressao } from './sugestoes';
 import { validarExpressaoInline } from './sugestoes';
+import { apiFetch } from '../auth/apiFetch';
 
 interface GerarExpressaoIAProps {
   escopo: EscopoDeExpressao;
@@ -33,7 +34,7 @@ export function GerarExpressaoIA({ escopo, onUsar }: GerarExpressaoIAProps) {
     setErro(null);
     setSugerida(null);
     try {
-      const resposta = await fetch('/assist/gerar-expressao', {
+      const resposta = await apiFetch('/assist/gerar-expressao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ descricao: pedido, escopo }),

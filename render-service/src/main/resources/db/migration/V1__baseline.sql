@@ -1,3 +1,8 @@
+-- V1 — baseline (ADR-018): o DDL que o antigo schema.sql aplicava a cada boot.
+-- IF NOT EXISTS mantém a migration idempotente sobre bancos legados (criados
+-- pelo schema.sql): com baseline-on-migrate + baseline-version=0 ela roda por
+-- cima sem tocar nos dados. SQL portável SQLite/PostgreSQL (ADR-009).
+
 -- Estado durável do batch (RFC-003 §4, tarefas phase-1/5.x) — SQLite.
 -- A idempotência do lote é a UNIQUE em idempotency_key: reenvio com a mesma
 -- chave reaproveita o job existente, sem documentos duplicados.

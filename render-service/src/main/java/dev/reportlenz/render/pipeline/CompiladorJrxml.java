@@ -20,7 +20,8 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
  *
  * O gate recusa as três formas de Pull (nota de design 002): query no
  * relatório principal, query em subDataset e conexão JDBC de subreport
- * (`connectionExpression`). A tarefa 2.2 envolve este componente com o
+ * (`connectionExpression`). Em seguida o gate G7 (ADR-016) recusa expressões
+ * fora da allowlist. A tarefa 2.2 envolve este componente com o
  * compile cache por sha256(jrxml) — a compilação em si não muda.
  */
 @Component
@@ -37,6 +38,9 @@ public class CompiladorJrxml {
         }
 
         verificarAntiPull(design, jrxml);
+        // G7 (ADR-016): expressões são Java compilado sem sandbox — allowlist ANTES
+        // do compile; como o cache só grava o que compilou, nada inseguro é cacheado.
+        VerificadorDeExpressoes.verificar(design, jrxml);
 
         try {
             return JasperCompileManager.compileReport(design);

@@ -3,6 +3,8 @@ package dev.reportlenz.render.batch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,7 +33,8 @@ import dev.reportlenz.render.pipeline.CompiladorJrxml;
  * Fluxo completo do batch (tarefas phase-1/5.1-5.3): 202 + fila Redis +
  * worker + estado SQLite + saídas no storage. Cenários do spec:
  * 'Lote de N comprovantes' (compile único, N documentos) e
- * 'Reenvio com mesma idempotencyKey' (sem duplicados).
+ * 'Reenvio com mesma idempotencyKey' (sem duplicados). Desde o ADR-016 o
+ * lote só aceita template publicado ('Batch com JRXML bruto' → 400).
  *
  * Requer Redis acessível (local em dev; service container no CI).
  */
@@ -66,15 +69,33 @@ class BatchFlowTest {
         return '"' + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\t", "\\t") + '"';
     }
 
-    private String corpoDoLote(String idempotencyKey, String... nomes) {
+    /**
+     * ADR-016 §3: o batch só aceita template PUBLISHED — cada teste publica o
+     * seu (codename único) e zera as invocações do spy, para que a contagem de
+     * compile reflita só o lote (o publish compila nos gates, fora do cache).
+     */
+    private String publicarTemplate() throws Exception {
+        String codename = "batch_" + UUID.randomUUID().toString().replace("-", "");
+        mvc.perform(post("/templates/{c}/versoes", codename).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jrxml\":" + jsonString(JRXML) + ",\"inputSchema\":" + INPUT_SCHEMA + "}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/templates/{c}/versoes/1/publicar", codename)).andExpect(status().isOk());
+        clearInvocations(compilador);
+        return codename;
+    }
+
+    private String corpoDoLote(String idempotencyKey, String... nomes) throws Exception {
+        return corpoDoLoteDe(publicarTemplate(), idempotencyKey, nomes);
+    }
+
+    private String corpoDoLoteDe(String codename, String idempotencyKey, String... nomes) {
         StringBuilder payloads = new StringBuilder("[");
         for (int i = 0; i < nomes.length; i++) {
             if (i > 0) payloads.append(',');
             payloads.append("{\"nome\":").append(jsonString(nomes[i])).append('}');
         }
         payloads.append(']');
-        return "{\"jrxml\":" + jsonString(JRXML)
-                + ",\"inputSchema\":" + INPUT_SCHEMA
+        return "{\"templateCodename\":" + jsonString(codename)
                 + ",\"payloads\":" + payloads
                 + ",\"idempotencyKey\":" + jsonString(idempotencyKey) + "}";
     }
@@ -137,8 +158,7 @@ class BatchFlowTest {
 
     @Test
     void itemForaDoContratoViraFalhaRegistradaSemDerrubarOLote() throws Exception {
-        String corpo = "{\"jrxml\":" + jsonString(JRXML)
-                + ",\"inputSchema\":" + INPUT_SCHEMA
+        String corpo = "{\"templateCodename\":" + jsonString(publicarTemplate())
                 + ",\"payloads\":[{\"nome\":\"Fabio\"},{\"apelido\":\"sem nome\"}]"
                 + ",\"idempotencyKey\":" + jsonString("lote-falha-" + UUID.randomUUID()) + "}";
         String jobId = submeter(corpo);
@@ -153,9 +173,36 @@ class BatchFlowTest {
 
     @Test
     void requisicaoSemIdempotencyKeyRetorna400() throws Exception {
-        String corpo = "{\"jrxml\":" + jsonString(JRXML) + ",\"payloads\":[{\"nome\":\"x\"}]}";
+        String corpo = "{\"templateCodename\":" + jsonString(publicarTemplate()) + ",\"payloads\":[{\"nome\":\"x\"}]}";
         mvc.perform(post("/render/batch").contentType(MediaType.APPLICATION_JSON).content(corpo))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("REQUISICAO_INVALIDA"));
+    }
+
+    /** Scenario (render-seguranca): Batch com JRXML bruto — 400, nenhum job criado. */
+    @Test
+    void cenarioDoSpec_batchComJrxmlBrutoRetorna400ENaoCriaJob() throws Exception {
+        String chave = "lote-bruto-" + UUID.randomUUID();
+        String corpo = "{\"jrxml\":" + jsonString(JRXML)
+                + ",\"inputSchema\":" + INPUT_SCHEMA
+                + ",\"payloads\":[{\"nome\":\"x\"}]"
+                + ",\"idempotencyKey\":" + jsonString(chave) + "}";
+        mvc.perform(post("/render/batch").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("JRXML_BRUTO_PROIBIDO"));
+        verify(compilador, never()).compilar(anyString());
+        // A mesma chave, agora com template publicado, cria um job NOVO (o bruto não reservou a chave).
+        String jobId = submeter(corpoDoLote(chave, "y"));
+        aguardarConclusao(jobId);
+    }
+
+    @Test
+    void templateSemVersaoPublicadaRetorna409() throws Exception {
+        String corpo = "{\"templateCodename\":\"nao_existe_" + UUID.randomUUID().toString().replace("-", "") + "\""
+                + ",\"payloads\":[{\"nome\":\"x\"}],\"idempotencyKey\":\"k-" + UUID.randomUUID() + "\"}";
+        mvc.perform(post("/render/batch").contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("TEMPLATE_NAO_PUBLICADO"));
     }
 
     @Test

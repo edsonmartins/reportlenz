@@ -48,7 +48,10 @@ O Spring **monta o datasource** a partir do payload (modo Push, ADR-003), **vali
 // response: 200 application/pdf  (ou image/png multi-página)
 // 422 se sampleData não satisfaz o contrato
 // 400 se JRXML inválido (XSD) ou contém <queryString> (anti-Pull)
+// 400 EXPRESSAO_PROIBIDA se alguma expressão/estrutura sai da allowlist (G7, ADR-016)
 ```
+- Fill/export rodam num contexto Jasper restrito (ADR-016 §2): subreport por localização, filesystem e
+  URLs fora de `REPORTLENZ_RECURSOS_URLS_PERMITIDAS` são recusados (`RECURSO_RECUSADO`).
 
 ### `POST /render/batch` (async)
 ```jsonc
@@ -60,7 +63,10 @@ O Spring **monta o datasource** a partir do payload (modo Push, ADR-003), **vali
   "idempotencyKey": "rq-comprovantes-2026-06-28"
 }
 // response: 202 { "jobId": "uuid" }
+// 400 JRXML_BRUTO_PROIBIDO se vier `jrxml` inline (ADR-016 §3) · 409 TEMPLATE_NAO_PUBLICADO
 ```
+- Implementação: o template é identificado por `templateCodename` e o lote usa SEMPRE a versão
+  `published` (RFC-006 §2), que passou pelos gates G1–G7 e é auditada (`rendered_batch`).
 - Enfileira N jobs; workers processam **assíncrono e idempotente** (chave por job).
 - Compile cache compartilhado: compila o template uma vez, preenche N vezes.
 

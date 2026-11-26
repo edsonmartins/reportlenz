@@ -1,5 +1,7 @@
 package dev.reportlenz.render.api;
 
+import dev.reportlenz.render.seguranca.IdentidadeAtual;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,21 +39,23 @@ public class TemplatesControlador {
         this.verificador = verificador;
     }
 
+    /** `actor` é IGNORADO (ADR-017 §3): o ator é sempre a identidade do token. */
     public record SalvarRequest(String jrxml, Map<String, Object> inputSchema, String actor) {}
 
     public record SalvarResponse(String versionId, int version, boolean novaVersao, String jrxmlHash) {}
 
     @PostMapping("/templates/{codename}/versoes")
     public ResponseEntity<?> salvar(@PathVariable String codename, @RequestBody SalvarRequest request) {
-        // Validação dupla no save (ADR-009 regra 2): G1 (Library) e G2 (anti-Pull).
+        // Validação dupla no save (ADR-009 regra 2): G1 (Library), G2 (anti-Pull) e
+        // G7 (segurança de expressão, ADR-016) — draft inseguro nem é persistido.
         var gates = verificador.verificar(request.jrxml(), request.inputSchema(), null);
         var reprovadosNoSave = gates.gates().stream()
-                .filter(g -> ("G1".equals(g.gate()) || "G2".equals(g.gate())) && !g.verde())
+                .filter(g -> java.util.Set.of("G1", "G2", "G7").contains(g.gate()) && !g.verde())
                 .toList();
         if (!reprovadosNoSave.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                     "codigo", "SAVE_REPROVADO",
-                    "mensagem", "o draft não passa nos gates de save (G1/G2)",
+                    "mensagem", "o draft não passa nos gates de save (G1/G2/G7)",
                     "gates", reprovadosNoSave));
         }
         var salva = repositorio.salvarDraft(
@@ -59,10 +63,11 @@ public class TemplatesControlador {
                 request.jrxml(),
                 request.inputSchema() == null ? "{}" : json.writeValueAsString(request.inputSchema()),
                 gates.jrxmlHash(),
-                request.actor());
+                IdentidadeAtual.ator());
         return ResponseEntity.ok(new SalvarResponse(salva.versionId(), salva.version(), salva.novaVersao(), gates.jrxmlHash()));
     }
 
+    /** `actor` é IGNORADO (ADR-017 §3): o ator é sempre a identidade do token. */
     public record AcaoRequest(String actor) {}
 
     @PostMapping("/templates/{codename}/versoes/{version}/publicar")
@@ -80,7 +85,7 @@ public class TemplatesControlador {
                     "mensagem", "gates de governança reprovaram — publish bloqueado",
                     "gates", gates.gates()));
         }
-        repositorio.publicar(versao, request == null ? null : request.actor());
+        repositorio.publicar(versao, IdentidadeAtual.ator());
         return ResponseEntity.ok(Map.of("status", "published", "version", version));
     }
 
@@ -91,7 +96,7 @@ public class TemplatesControlador {
         if (versao == null) {
             return naoEncontrada(codename, version);
         }
-        repositorio.deprecar(versao, request == null ? null : request.actor());
+        repositorio.deprecar(versao, IdentidadeAtual.ator());
         return ResponseEntity.ok(Map.of("status", "deprecated", "version", version));
     }
 

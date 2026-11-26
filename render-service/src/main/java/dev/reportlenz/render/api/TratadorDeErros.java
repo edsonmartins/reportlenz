@@ -31,6 +31,13 @@ public class TratadorDeErros {
                 .body(new ErroResponse("JRXML_INVALIDO", e.getMessage()));
     }
 
+    /** G7 (ADR-016): expressão/estrutura fora da allowlist — erro do template. */
+    @ExceptionHandler(ErroDeRender.ExpressaoProibida.class)
+    public ResponseEntity<ErroValidacaoResponse> expressaoProibida(ErroDeRender.ExpressaoProibida e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroValidacaoResponse("EXPRESSAO_PROIBIDA", e.getMessage(), e.violacoes()));
+    }
+
     @ExceptionHandler(ErroDeRender.FalhaDeRender.class)
     public ResponseEntity<ErroResponse> falhaDeRender(ErroDeRender.FalhaDeRender e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

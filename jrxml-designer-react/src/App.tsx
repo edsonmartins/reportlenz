@@ -6,6 +6,7 @@
 import { ActionIcon, Alert, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { useState } from 'react';
 import { AssistenteDrawer } from './assistente/AssistenteDrawer';
+import { UsuarioDaSessao } from './auth/PortaoDeSessao';
 import { Canvas } from './canvas/Canvas';
 import { BIBLIOTECA_DE_BLOCOS } from './blocos/biblioteca';
 import { PRESETS_DE_ELEMENTO } from './palette/inserir';
@@ -176,11 +177,12 @@ function BarraDoCanvas() {
             Renderizar (Jasper)
           </Button>
         </Tooltip>
-        <Tooltip label="Gates G1–G6 (RFC-006): publish só com todos verdes, confirmados pela Library real">
+        <Tooltip label="Gates G1–G7 (RFC-006, ADR-016): publish só com todos verdes, confirmados pela Library real">
           <Button size="compact-xs" variant="light" onClick={() => setPublishAberto(true)}>
             Publicar…
           </Button>
         </Tooltip>
+        <UsuarioDaSessao />
       </div>
       <AssistenteDrawer aberto={assistenteAberto} onFechar={() => setAssistenteAberto(false)} />
       <PublishWizard aberto={publishAberto} onFechar={() => setPublishAberto(false)} />

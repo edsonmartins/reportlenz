@@ -88,4 +88,27 @@ class PublishControladorTest {
         assertThat(r.gates().stream().filter(g -> List.of("G1", "G2", "G5").contains(g.gate())))
                 .allMatch(PublishControlador.Gate::verde);
     }
+
+    /** Scenario (render-seguranca, ADR-016): Verificação de publish com expressão proibida. */
+    @Test
+    void expressaoForaDaAllowlistReprovaG7() {
+        String inseguro = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <jasperReport name="x" pageWidth="595" pageHeight="842" columnWidth="555" \
+                leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30">
+                \t<title height="30">
+                \t\t<element kind="textField" x="0" y="0" width="555" height="20">
+                \t\t\t<expression><![CDATA[java.sql.DriverManager.getConnection("jdbc:x").toString()]]></expression>
+                \t\t</element>
+                \t</title>
+                </jasperReport>
+                """;
+        VerificarResponse r = controlador.verificar(new VerificarRequest(inseguro, SCHEMA_MINIMO, null));
+        assertThat(r.verde()).isFalse();
+        PublishControlador.Gate g7 = r.gates().stream().filter(g -> g.gate().equals("G7")).findFirst().orElseThrow();
+        assertThat(g7.verde()).isFalse();
+        assertThat(String.join("; ", g7.erros())).contains("java.sql.DriverManager");
+        // G1 não é culpado: o JRXML carrega; o que reprova é a segurança.
+        assertThat(r.gates().stream().filter(g -> g.gate().equals("G1")).findFirst().orElseThrow().verde()).isTrue();
+    }
 }

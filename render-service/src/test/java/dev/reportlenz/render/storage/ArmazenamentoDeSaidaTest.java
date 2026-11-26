@@ -83,4 +83,41 @@ class ArmazenamentoDeSaidaTest {
         assertThat(ref).startsWith("s3://");
         assertThat(ref).contains(job);
     }
+
+    /** Retenção (ADR-018 §1): a purga remove os objetos do job no MinIO. */
+    @Test
+    @EnabledIfEnvironmentVariable(named = "MINIO_ENDPOINT", matches = ".+")
+    void integracaoReal_removerSaidasDoJobApagaObjetosNoMinio() {
+        var p = new ArmazenamentoProperties();
+        p.setProvider(ArmazenamentoProperties.Provider.MINIO);
+        p.setLocalPath("target/test-storage-minio-fallback");
+        p.getMinio().setEndpoint(System.getenv("MINIO_ENDPOINT"));
+        p.getMinio().setAccessKey(System.getenv("MINIO_ACCESS_KEY"));
+        p.getMinio().setSecretKey(System.getenv("MINIO_SECRET_KEY"));
+        p.getMinio().setBucket(System.getenv().getOrDefault("MINIO_BUCKET_REPORTLENZ", "reportlenz-saidas"));
+        p.getMinio().setInsecureTls("true".equalsIgnoreCase(System.getenv().getOrDefault("MINIO_INSECURE_TLS", "false")));
+        p.getMinio().setPresignHoras(0);
+
+        var storage = new ArmazenamentoDeSaida(p);
+        storage.iniciar();
+        String job = "ret-" + UUID.randomUUID();
+        assertThat(storage.salvar(job, "0.pdf", "%PDF-a".getBytes())).startsWith("s3://");
+        assertThat(storage.salvar(job, "1.pdf", "%PDF-b".getBytes())).startsWith("s3://");
+
+        storage.removerSaidasDoJob(job);
+
+        try (var s3 = software.amazon.awssdk.services.s3.S3Client.builder()
+                .endpointOverride(java.net.URI.create(p.getMinio().getEndpoint()))
+                .region(software.amazon.awssdk.regions.Region.of(p.getMinio().getRegion()))
+                .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
+                        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(
+                                p.getMinio().getAccessKey(), p.getMinio().getSecretKey())))
+                .forcePathStyle(true)
+                .build()) {
+            var restantes = s3.listObjectsV2(software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder()
+                    .bucket(p.getMinio().getBucket()).prefix(job + "/").build()).contents();
+            assertThat(restantes).isEmpty();
+        }
+        storage.encerrar();
+    }
 }

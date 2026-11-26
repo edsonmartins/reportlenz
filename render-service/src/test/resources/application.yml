@@ -7,16 +7,25 @@ spring:
     password: ${REPORTLENZ_DB_PASSWORD:}
     hikari:
       maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
-  sql:
-    init:
-      mode: always
+  flyway:
+    # ADR-018: schema por migrations (db/migration). Bancos criados pelo antigo
+    # schema.sql não têm histórico: baseline 0 faz o V1 (IF NOT EXISTS) rodar por cima.
+    baseline-on-migrate: true
+    baseline-version: "0"
 
 reportlenz:
+  seguranca:
+    # Suíte funcional roda no modo dev (ADR-017 §5); a SegurancaTest religa a
+    # autenticação com JWTs de teste.
+    habilitada: false
   compile-cache:
     # Prefixo ÚNICO por execução: rodadas consecutivas da suíte (SQLite e
     # PostgreSQL no CI) compartilham o Redis — sem isso o cache chega quente
     # e os testes de "compila exatamente uma vez" quebram.
     prefixo: "reportlenz:compile:test:${random.uuid}:"
+  assist:
+    # Prefixo único por execução (mesma lição do compile cache: o Redis é compartilhado)
+    limite-prefixo: "reportlenz:assist:limite:test:${random.uuid}:"
   fila:
     nome: "reportlenz:render:fila:test:${random.uuid}"
     reivindicar-apos-segundos: 1

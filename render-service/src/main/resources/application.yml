@@ -16,14 +16,20 @@ spring:
     hikari:
       # 1 = seguro p/ SQLite (evita SQLITE_BUSY); PostgreSQL em produção usa 10+
       maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
-  sql:
-    init:
-      mode: always
+  flyway:
+    # ADR-018: schema por migrations (db/migration). Bancos criados pelo antigo
+    # schema.sql não têm histórico: baseline 0 faz o V1 (IF NOT EXISTS) rodar por cima.
+    baseline-on-migrate: true
+    baseline-version: "0"
 
 server:
   port: 8087
 
 management:
+  server:
+    # ADR-017 §4: actuator SÓ nesta porta (rede interna: probes + scrape); na
+    # porta da aplicação o actuator é negado.
+    port: ${REPORTLENZ_MANAGEMENT_PORT:8088}
   endpoints:
     web:
       exposure:
@@ -31,13 +37,24 @@ management:
         include: health,info,metrics,prometheus
   tracing:
     sampling:
-      probability: ${OTEL_SAMPLING:1.0}
+      # ADR-018 §5: 10% por padrão (100% custa caro em produção)
+      probability: ${OTEL_SAMPLING:0.1}
   otlp:
     tracing:
       # Tempo (ou collector OTLP) — configurar na infra
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  seguranca:
+    # ADR-017: resource server JWT do realm Keycloak. false SÓ em dev local
+    # (libera tudo, ator "dev-local"); habilitada sem issuer → boot falha.
+    habilitada: ${REPORTLENZ_SEGURANCA_HABILITADA:true}
+    issuer: ${REPORTLENZ_OIDC_ISSUER:}
+    # ADR-019 §3: JWKS pela rede interna (ex.: http://keycloak:8080/realms/reportlenz/protocol/openid-connect/certs);
+    # vazio = discovery pelo issuer. O iss do token continua validado contra o issuer público.
+    jwk-set-uri: ${REPORTLENZ_OIDC_JWK_SET_URI:}
+    # client cujos client roles também valem como papéis (resource_access.<client>.roles)
+    client-id: ${REPORTLENZ_OIDC_CLIENT_ID:reportlenz}
   compile-cache:
     # Compartilhado via Redis (ADR-008/change cache-compilacao-redis): chave =
     # sha256(jrxml); false volta ao in-memory puro por instância
@@ -51,10 +68,26 @@ reportlenz:
     model: ${REPORTLENZ_LLM_MODEL:google/gemini-2.5-flash}
     temperature: ${REPORTLENZ_LLM_TEMPERATURE:0.2}
     max-tokens: ${REPORTLENZ_LLM_MAX_TOKENS:16000}
+    # ADR-018 §3: chamadas por usuário por minuto (Redis, entre instâncias); 0 = sem limite
+    limite-por-minuto: ${REPORTLENZ_ASSIST_LIMITE_POR_MINUTO:10}
   fila:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
     # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
     reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
+  limites:
+    # ADR-018 §2: corpo máximo (413) e itens por lote (400)
+    max-request-mb: ${REPORTLENZ_MAX_REQUEST_MB:25}
+    batch-max-itens: ${REPORTLENZ_BATCH_MAX_ITENS:20000}
+  retencao:
+    # ADR-018 §1 (LGPD): payload zerado ao terminar o job; jobs terminados há mais
+    # de N dias são purgados (banco + PDFs no storage) pela rotina diária.
+    dias: ${REPORTLENZ_RETENCAO_DIAS:30}
+    cron: ${REPORTLENZ_RETENCAO_CRON:0 30 3 * * *}
+  recursos:
+    # ADR-016 §2: prefixos de URL que imagens podem buscar (ex.: https://cdn.cliente.com.br/),
+    # separados por vírgula; vazio = nenhuma URL externa. Arquivo local e subreport por
+    # localização são SEMPRE recusados.
+    urls-permitidas: ${REPORTLENZ_RECURSOS_URLS_PERMITIDAS:}
   storage:
     # Padrão MEDIASTORE (integrall-commerce-api): LOCAL (default) ou MINIO
     provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}

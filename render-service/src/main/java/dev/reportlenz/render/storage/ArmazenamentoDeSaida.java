@@ -183,6 +183,33 @@ public class ArmazenamentoDeSaida {
         return salvarLocal(job, nome, conteudo);
     }
 
+    /**
+     * Apaga TODAS as saídas de um job (purga de retenção, ADR-018 §1): objetos
+     * `job/` no MinIO e o diretório LOCAL (que também recebe o fallback).
+     */
+    public void removerSaidasDoJob(String jobId) {
+        String job = sanitizar(jobId);
+        if (s3 != null) {
+            String bucket = properties.getMinio().getBucket();
+            var pedido = software.amazon.awssdk.services.s3.model.ListObjectsV2Request.builder()
+                    .bucket(bucket).prefix(job + "/").build();
+            for (var objeto : s3.listObjectsV2Paginator(pedido).contents()) {
+                s3.deleteObject(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
+                        .bucket(bucket).key(objeto.key()).build());
+            }
+        }
+        Path dir = raizLocal.resolve(job);
+        if (Files.isDirectory(dir)) {
+            try (var arquivos = Files.walk(dir)) {
+                for (Path p : arquivos.sorted(java.util.Comparator.reverseOrder()).toList()) {
+                    Files.deleteIfExists(p);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException("falha ao remover saídas do job " + job, e);
+            }
+        }
+    }
+
     private String salvarLocal(String job, String nome, byte[] conteudo) {
         try {
             Path dir = raizLocal.resolve(job);
