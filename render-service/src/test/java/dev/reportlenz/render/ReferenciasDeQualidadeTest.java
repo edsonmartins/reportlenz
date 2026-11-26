@@ -77,6 +77,36 @@ class ReferenciasDeQualidadeTest {
         assertThat(texto).contains("R$ 2.495,75"); // $F{total} do payload no resumo
     }
 
+    /**
+     * ADR-020 — cenário "Fatura com entregas": a referência Fatura inclui
+     * "repo:fatura_entregas"; com o filho resolvido pelo registro (aqui, o
+     * fixture compilado pelo MESMO compilador com G7), as entregas aparecem.
+     */
+    @Test
+    @EnabledIf("fixturesDisponiveis")
+    void fatura_comEntregas_rendeOSubreportPorCodename() throws Exception {
+        CompiladorJrxml compilador = new CompiladorJrxml();
+        String filho = fixture("fatura_entregas");
+        var comSubreports = new PipelineDeRender(compilador, new CacheDeCompilacaoEmMemoria(), ObservationRegistry.NOOP,
+                new dev.reportlenz.render.pipeline.ContextoJasperRestrito(List.of(), uri -> {
+                    assertThat(uri).isEqualTo("repo:fatura_entregas");
+                    return compilador.compilar(filho);
+                }));
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("categoria", "Serviços");
+        payload.put("cliente_nome", "Padaria São João Ltda.");
+        payload.put("itens", List.of(Map.of("descricao", "Revisão", "valor", 10.0)));
+        payload.put("total", 10.0);
+        payload.put("entregas", List.of(
+                Map.of("endereco", "Rua das Flores, 100", "previsao", "15/01/2026"),
+                Map.of("endereco", "Av. Brasil, 2000", "previsao", "16/01/2026")));
+
+        String texto = textoDoPdf(comSubreports.renderizarPdf(fixture("fatura"), payload));
+
+        assertThat(texto).contains("Entregas de Padaria São João Ltda.");
+        assertThat(texto).contains("Rua das Flores, 100", "15/01/2026", "Av. Brasil, 2000");
+    }
+
     @Test
     @EnabledIf("fixturesDisponiveis")
     void comprovante_rendeComDataPtBrCabecalhoMescladoEQr() throws Exception {

@@ -29,7 +29,13 @@ public class PublishControlador {
         this.verificador = verificador;
     }
 
-    public record VerificarRequest(String jrxml, Map<String, Object> inputSchema, String jrxmlHash) {}
+    /** `codename` (opcional): permite ao G8 detectar ciclo de subreports (ADR-020). */
+    public record VerificarRequest(String jrxml, Map<String, Object> inputSchema, String jrxmlHash, String codename) {
+
+        public VerificarRequest(String jrxml, Map<String, Object> inputSchema, String jrxmlHash) {
+            this(jrxml, inputSchema, jrxmlHash, null);
+        }
+    }
 
     public record Gate(String gate, boolean verde, List<String> erros) {}
 
@@ -37,7 +43,7 @@ public class PublishControlador {
 
     @PostMapping("/publish/verificar")
     public VerificarResponse verificar(@RequestBody VerificarRequest request) {
-        var r = verificador.verificar(request.jrxml(), request.inputSchema(), request.jrxmlHash());
+        var r = verificador.verificar(request.jrxml(), request.inputSchema(), request.jrxmlHash(), request.codename());
         return new VerificarResponse(
                 r.verde(),
                 r.gates().stream().map(g -> new Gate(g.gate(), g.verde(), g.erros())).toList(),

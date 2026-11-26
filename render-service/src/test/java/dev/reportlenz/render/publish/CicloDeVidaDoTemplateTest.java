@@ -49,6 +49,23 @@ class CicloDeVidaDoTemplateTest {
             "type", "object",
             "properties", Map.of("titulo", Map.of("type", "string")));
 
+    /**
+     * ADR-020: a fatura referencia "repo:fatura_entregas" — o G8 exige o filho
+     * publicado antes. Idempotente (o banco de teste é compartilhado entre execuções).
+     */
+    @org.junit.jupiter.api.BeforeEach
+    void publicarSubreportDaFatura() throws Exception {
+        if (fixturesDisponiveis() && repositorio.publicada("fatura_entregas").isEmpty()) {
+            String filho = Files.readString(FIXTURE_FATURA.resolveSibling("fatura_entregas.jrxml"));
+            String corpo = mvc.perform(post("/templates/{c}/versoes", "fatura_entregas")
+                            .contentType(MediaType.APPLICATION_JSON).content(salvarBody(filho)))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+            int versao = json.readTree(corpo).get("version").asInt();
+            mvc.perform(post("/templates/{c}/versoes/{v}/publicar", "fatura_entregas", versao))
+                    .andExpect(status().isOk());
+        }
+    }
+
     private String salvarBody(String jrxml) {
         return json.writeValueAsString(Map.of("jrxml", jrxml, "inputSchema", SCHEMA, "actor", "edson"));
     }

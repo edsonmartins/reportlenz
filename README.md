@@ -123,7 +123,10 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
 
 - **Expressões sob allowlist (G7, ADR-016):** expressões JR são Java compilado. O serviço só aceita o
   vocabulário de valor e recusa o resto com `EXPRESSAO_PROIBIDA` (preview) ou com o G7 vermelho (publish).
-  Subreport por localização, arquivos locais e URLs fora da lista são recusados no fill.
+  Arquivos locais e URLs fora da lista são recusados no fill.
+- **Subreport só por template publicado (ADR-020):** a expressão é o literal `"repo:<codename>"` (versão
+  publicada atual) ou `"repo:<codename>@<n>"` (versão fixa). O gate **G8** bloqueia o publish se o filho não
+  estiver publicado ou se houver ciclo. Publique o filho antes do pai (ex.: `fatura_entregas` antes de `fatura`).
 - **Batch só de template publicado:** `jrxml` bruto no lote dá 400 `JRXML_BRUTO_PROIBIDO`.
 - **Auditoria:** o ator é sempre o usuário do token (`preferred_username`), nunca o corpo da requisição.
 - **LGPD:** o payload é zerado quando o job termina; jobs e PDFs são purgados após 30 dias. A auditoria de

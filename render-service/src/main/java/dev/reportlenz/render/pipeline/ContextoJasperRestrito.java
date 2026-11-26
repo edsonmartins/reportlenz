@@ -29,7 +29,8 @@ import net.sf.jasperreports.repo.Resource;
  * cobrem URLs `file:`/http — um caminho absoluto simples (`/etc/hosts`) ainda
  * seria lido (verificado no RecursosRestritosTest). Por isso:
  *
- * - subreport por localização (`.jasper` = desserialização Java) → recusado;
+ * - subreport: só `repo:<codename>[@n]` do registro de templates (ADR-020);
+ *   arquivo/URL/classpath (`.jasper` = desserialização Java) → recusado;
  * - URL só http(s) com prefixo em `reportlenz.recursos.urls-permitidas`;
  * - caminho sem esquema só se for recurso do ENGINE no classpath
  *   (`net/sf/jasperreports/…`, ex.: fontes DejaVu), sem `..`;
@@ -42,13 +43,29 @@ public class ContextoJasperRestrito {
 
     private final SimpleJasperReportsContext contexto;
 
-    public ContextoJasperRestrito(@Value("${reportlenz.recursos.urls-permitidas:}") List<String> urlsPermitidas) {
+    /** Sem resolução de subreport (`repo:` recusado) — testes e uso fora do Spring. */
+    public ContextoJasperRestrito(List<String> urlsPermitidas) {
+        this(urlsPermitidas, (java.util.function.Function<String, net.sf.jasperreports.engine.JasperReport>) null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ContextoJasperRestrito(@Value("${reportlenz.recursos.urls-permitidas:}") List<String> urlsPermitidas,
+            ResolvedorDeSubreports resolvedor) {
+        this(urlsPermitidas, resolvedor::compilar);
+    }
+
+    /**
+     * @param subreports resolve `repo:<codename>[@n]` em JasperReport (ADR-020);
+     *                   null = subreport sempre recusado
+     */
+    public ContextoJasperRestrito(List<String> urlsPermitidas,
+            java.util.function.Function<String, net.sf.jasperreports.engine.JasperReport> subreports) {
         List<String> prefixos = urlsPermitidas.stream()
                 .filter(p -> p != null && !p.isBlank()).map(String::strip).toList();
         this.contexto = new SimpleJasperReportsContext(DefaultJasperReportsContext.getInstance());
         // Ordem importa: a política decide ANTES do default tentar resolver.
         contexto.setExtensions(RepositoryService.class,
-                List.of(new PoliticaDeRecursos(prefixos), new DefaultRepositoryService(contexto)));
+                List.of(new PoliticaDeRecursos(prefixos, subreports), new DefaultRepositoryService(contexto)));
         log.info("[RECURSOS] contexto restrito: arquivos=off, subreport por localização=off, prefixos de URL={}",
                 prefixos.size());
     }
@@ -69,9 +86,12 @@ public class ContextoJasperRestrito {
         private static final String CLASSPATH_DO_ENGINE = "net/sf/jasperreports/";
 
         private final List<String> prefixos;
+        private final java.util.function.Function<String, net.sf.jasperreports.engine.JasperReport> subreports;
 
-        PoliticaDeRecursos(List<String> prefixos) {
+        PoliticaDeRecursos(List<String> prefixos,
+                java.util.function.Function<String, net.sf.jasperreports.engine.JasperReport> subreports) {
             this.prefixos = List.copyOf(prefixos);
+            this.subreports = subreports;
         }
 
         @Override
@@ -92,7 +112,14 @@ public class ContextoJasperRestrito {
         @Override
         public <K extends Resource> K getResource(RepositoryContext context, String uri, Class<K> resourceType) {
             if (resourceType != null && ReportResource.class.isAssignableFrom(resourceType)) {
-                throw recusa("subreport por localização não é permitido", uri);
+                // ADR-020: o ÚNICO subreport aceito é o template publicado do registro.
+                if (subreports != null && resourceType.isAssignableFrom(ReportResource.class)
+                        && ReferenciaDeSubreport.daLocalizacao(uri) != null) {
+                    ReportResource recurso = new ReportResource();
+                    recurso.setValue(subreports.apply(uri.strip()));
+                    return resourceType.cast(recurso);
+                }
+                throw recusa("subreport só por template publicado (\"repo:<codename>\", ADR-020)", uri);
             }
             if (uri == null || uri.isBlank()) {
                 throw recusa("localização vazia", uri);
