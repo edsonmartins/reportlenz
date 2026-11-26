@@ -16,9 +16,11 @@ spring:
     hikari:
       # 1 = seguro p/ SQLite (evita SQLITE_BUSY); PostgreSQL em produção usa 10+
       maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
-  sql:
-    init:
-      mode: always
+  flyway:
+    # ADR-018: schema por migrations (db/migration). Bancos criados pelo antigo
+    # schema.sql não têm histórico: baseline 0 faz o V1 (IF NOT EXISTS) rodar por cima.
+    baseline-on-migrate: true
+    baseline-version: "0"
 
 server:
   port: 8087
@@ -66,6 +68,11 @@ reportlenz:
     nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
     # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
     reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
+  retencao:
+    # ADR-018 §1 (LGPD): payload zerado ao terminar o job; jobs terminados há mais
+    # de N dias são purgados (banco + PDFs no storage) pela rotina diária.
+    dias: ${REPORTLENZ_RETENCAO_DIAS:30}
+    cron: ${REPORTLENZ_RETENCAO_CRON:0 30 3 * * *}
   recursos:
     # ADR-016 §2: prefixos de URL que imagens podem buscar (ex.: https://cdn.cliente.com.br/),
     # separados por vírgula; vazio = nenhuma URL externa. Arquivo local e subreport por
