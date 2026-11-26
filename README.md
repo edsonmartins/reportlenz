@@ -138,5 +138,6 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
    Redis, PostgreSQL, S3, o provedor de IA e os prefixos de imagem liberados.
 3. **URLs pré-assinadas usam o host de `MINIO_ENDPOINT`.** Quem baixa os PDFs (o backend de domínio)
    precisa resolver esse host. No compose de homologação, `minio:9000` só é visível dentro da rede.
-4. **Imagem do S3:** as imagens oficiais da MinIO deixaram de ser publicadas; `MINIO_IMAGE` aponta para um
-   rebuild comunitário. Troque pela imagem aprovada pela política da empresa, ou use um S3 gerenciado.
+4. **Imagem do S3:** as imagens oficiais da MinIO deixaram de ser publicadas. `MINIO_IMAGE` usa
+   `pgsty/minio` (rebuild comunitário), **aprovada pelo responsável em 2026-11-26**. Mantenha a tag
+   fixada e atualize-a de forma deliberada (sem `latest`).

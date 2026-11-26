@@ -57,8 +57,8 @@ implantação.
 3. **URLs pré-assinadas** usam o host de `MINIO_ENDPOINT`, que precisa ser resolvível por quem baixa os
    PDFs.
 4. **Imagem S3:** as imagens oficiais da MinIO não são mais publicadas. CI e compose usam
-   `pgsty/minio` (rebuild comunitário), trocável numa variável. **Decisão pendente do responsável**: aprovar
-   essa imagem ou indicar S3 gerenciado ou outra imagem.
+   `pgsty/minio:RELEASE.2026-08-04T00-00-00Z` (rebuild comunitário). **Aprovada pelo responsável em
+   2026-11-26**, com a tag fixada; atualizações de versão são deliberadas.
 5. **Registry privado** para a imagem do render-service (JAR LGPLv3 embutido, ADR-006).
 6. **Audiência do token não é validada:** qualquer client do realm com o papel é aceito. Aceitável num realm
    dedicado; restringir `aud` se o realm for compartilhado.
