@@ -65,10 +65,10 @@ implantação.
 
 ## 5. Achados fora do escopo (para o backlog da homologação)
 
-- **Preview de etiqueta com EAN13 falha com os dados de exemplo:** `dadosDeExemplo.ts` gera
-  `"ean exemplo"` para campos string, e o barcode4j exige dígitos (`Invalid characters found`).
-  Pré-existente (reproduzido no navegador com a referência "Etiqueta A4"); a mudança desta rodada no
-  preview foi só `fetch` → `apiFetch`.
+- ~~**Preview de etiqueta com EAN13 falha com os dados de exemplo**~~ → **corrigido (2026-11-26):** campos que
+  alimentam barcode diretamente recebem valor válido para a simbologia (EAN-13/EAN-8 com dígito verificador
+  GS1, I2of5 com nº par de dígitos, Code39 em maiúsculas). Engine real: antes HTTP 500 com "Valid are 0-9
+  only", depois HTTP 200 com o PNG da grade.
 - **Subreport por codename publicado:** com a recusa de subreport por localização (ADR-016), o elemento
   subreport só funciona quando a expressão entrega o objeto. A resolução `repo:<codename>` fica para um
   change futuro.
