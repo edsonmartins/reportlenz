@@ -1,0 +1,75 @@
+{
+  "realm": "reportlenz",
+  "displayName": "ReportLenz",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      { "name": "reportlenz-designer", "description": "Preview, IA, verificação de gates e drafts (ADR-017)" },
+      { "name": "reportlenz-publicador", "description": "Publicar e deprecar versões de template (ADR-017)" },
+      { "name": "reportlenz-batch", "description": "Submeter e consultar lotes — service account do backend de domínio (ADR-017)" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "reportlenz",
+      "name": "ReportLenz Designer",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["${DESIGNER_URL}/oidc-callback.html"],
+      "webOrigins": ["${DESIGNER_URL}"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "${DESIGNER_URL}"
+      }
+    },
+    {
+      "clientId": "reportlenz-batch",
+      "name": "ReportLenz Batch (backend de domínio)",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${REPORTLENZ_BATCH_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-reportlenz-batch",
+      "enabled": true,
+      "serviceAccountClientId": "reportlenz-batch",
+      "realmRoles": ["default-roles-reportlenz", "reportlenz-batch"]
+    },
+    {
+      "username": "designer.homolog",
+      "enabled": true,
+      "email": "designer.homolog@reportlenz.invalid",
+      "emailVerified": true,
+      "firstName": "Designer",
+      "lastName": "Homologação",
+      "credentials": [{ "type": "password", "value": "${HOMOLOG_SENHA_DESIGNER}", "temporary": true }],
+      "realmRoles": ["default-roles-reportlenz", "reportlenz-designer"]
+    },
+    {
+      "username": "publicador.homolog",
+      "enabled": true,
+      "email": "publicador.homolog@reportlenz.invalid",
+      "emailVerified": true,
+      "firstName": "Publicador",
+      "lastName": "Homologação",
+      "credentials": [{ "type": "password", "value": "${HOMOLOG_SENHA_PUBLICADOR}", "temporary": true }],
+      "realmRoles": ["default-roles-reportlenz", "reportlenz-designer", "reportlenz-publicador"]
+    }
+  ]
+}

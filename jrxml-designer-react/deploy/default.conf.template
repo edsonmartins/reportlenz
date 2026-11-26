@@ -1,0 +1,39 @@
+# Designer + proxy reverso (ADR-019 §1). Variáveis ${...} vêm do ambiente
+# (envsubst do entrypoint oficial do nginx); $variaveis_do_nginx não são tocadas.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    server_tokens off;
+    client_max_body_size ${MAX_REQUEST_MB}m;
+
+    # SAMEORIGIN/frame-ancestors 'self': a renovação silenciosa do OIDC usa um
+    # iframe da PRÓPRIA origem (oidc-callback.html). connect/frame-src liberam o Keycloak.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ${OIDC_ORIGEM}; frame-src 'self' ${OIDC_ORIGEM}; frame-ancestors 'self'; form-action 'self' ${OIDC_ORIGEM}; object-src 'none'; base-uri 'self'" always;
+
+    # API do render-service (o actuator NÃO é encaminhado — porta 8088 é interna).
+    location ~ ^/(render|assist|publish|templates)(/|$) {
+        proxy_pass ${RENDER_SERVICE_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 180s;
+    }
+
+    location = /config.json {
+        expires -1;
+    }
+
+    location /assets/ {
+        expires 1y;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
