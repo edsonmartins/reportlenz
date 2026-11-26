@@ -6,7 +6,7 @@
 import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
 import { create } from 'zustand';
 import { useDocumentoStore } from '../store/documentoStore';
-import { gerarDadosDeExemplo } from './dadosDeExemplo';
+import { camposDeCodigoDeBarras, gerarDadosDeExemplo } from './dadosDeExemplo';
 import { apiFetch } from '../auth/apiFetch';
 
 interface ErroDoServico {
@@ -60,7 +60,10 @@ export const usePreviewStore = create<PreviewState>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           jrxml: serializeJrxml(template),
-          sampleData: gerarDadosDeExemplo(contrato, { datasourceCampo: datasourceCampo(template) }),
+          sampleData: gerarDadosDeExemplo(contrato, {
+            datasourceCampo: datasourceCampo(template),
+            codigosDeBarras: camposDeCodigoDeBarras(template),
+          }),
           inputSchema: buildInputSchema(contrato, { templateName: template.name, version: 1 }),
           format: 'png',
           page: pagina,
