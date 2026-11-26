@@ -79,8 +79,14 @@ headless   contrato   React      pro         governança
 - **Estado atual: TODAS as fases (0 a 4) concluídas** (aceites: notas 003, 005, 006, 007 e 008 em
   `docs/design/`) **+ changes `grade-multiregistro-push` (ADR-015, nota 009) e `migracao-postgresql`
   (ADR-009: SQL portável; SQLite default dev, PostgreSQL produção via `REPORTLENZ_DB_URL`; CI valida os
-  dois) aceitos**. A UI Vue do fork está aposentada (nota 006). Evoluções futuras entram como novos
-  OpenSpec change packages (§9); sem pendências estruturais registradas.
+  dois) aceitos**. A UI Vue do fork está aposentada (nota 006).
+- **Homologação (2026-11-26, nota 010):** changes `seguranca-expressoes` (ADR-016, gate **G7** de
+  segurança de expressão + contexto Jasper restrito + batch só de template publicado),
+  `autenticacao-keycloak` (ADR-017, JWT/papéis/ator do token), `endurecimento-operacional` (ADR-018,
+  retenção LGPD, limites, rate limit da IA, **Flyway** — schema novo entra como `db/migration/V<n>__*.sql`)
+  e `empacotamento-deploy` (ADR-019, imagens + `deploy/`). Testes Spring rodam com
+  `reportlenz.seguranca.habilitada=false` exceto as suítes de segurança; o CI exige **zero testes pulados**.
+  Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").
 
@@ -155,6 +161,8 @@ começar (granularidade session-sized é um princípio, não sugestão).
 - [ ] **G4 — Dialeto:** sem construções 6.x.
 - [ ] **G5 — Contrato:** `inputSchema` presente e válido (onde aplicável).
 - [ ] **G6 — Hash:** `jrxml_hash` consistente (onde aplicável).
+- [ ] **G7 — Segurança de expressão (ADR-016):** expressões só com o vocabulário da allowlist do
+  `VerificadorDeExpressoes`; sem import/scriptlet/factory/customizer (avaliado só no serviço).
 - [ ] Testes verdes (Vitest / Spring / componente).
 - [ ] Commit descreve o que satisfaz qual critério.
 

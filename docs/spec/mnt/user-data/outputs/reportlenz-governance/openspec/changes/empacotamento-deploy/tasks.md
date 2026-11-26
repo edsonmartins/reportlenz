@@ -6,5 +6,5 @@
 - [x] 2.3 Dockerfile do designer (workspace pnpm → nginx, proxy reverso, /config.json por env, headers)
 - [x] 2.4 deploy/: realm Keycloak, compose de homologação, .env.exemplo
 - [x] 2.5 README na raiz (dev, homologação, variáveis, operação, riscos residuais)
-- [ ] 3.1 E2E do ambiente com tokens reais (preview, verificar, publicar, lote, auditoria, actuator)
-- [ ] 3.2 nota-010 (prontidão para homologação) + estado no guia operacional
+- [x] 3.1 E2E do ambiente com tokens reais (preview, verificar, publicar, lote, auditoria, actuator)
+- [x] 3.2 nota-010 (prontidão para homologação) + estado no guia operacional
