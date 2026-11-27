@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import { REFERENCE_TEMPLATES } from '@archbase/reportlenz-jrxml-core';
 import { identidades, tokenDeApi } from '../apoio/keycloak';
 import { publicarPelaApi } from '../apoio/registro';
 import { abrirModelo, entrarComo } from '../apoio/sessao';

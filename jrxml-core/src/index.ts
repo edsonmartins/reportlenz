@@ -1,5 +1,5 @@
 /**
- * @reportlenz/jrxml-core — núcleo headless do ReportLenz (RFC-001).
+ * @archbase/reportlenz-jrxml-core — núcleo headless do ReportLenz (RFC-001).
  *
  * Invariantes deste pacote:
  * - I-7: TypeScript puro — sem Vue, React ou APIs de DOM.

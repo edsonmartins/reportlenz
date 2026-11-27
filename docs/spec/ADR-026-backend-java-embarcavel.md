@@ -80,6 +80,18 @@ estão sempre ligados.
 
 ### 4. Publicação
 
+> **Emenda (2026-11-27):**
+> - O processo segue o do archflow:
+>   - perfil `maven-central` com POM achatado (`flatten`, modo `ossrh`);
+>   - o `reportlenz-parent` não é publicado;
+>   - opt-in `reportlenz.publish.skip`;
+>   - Maven 3.9 fixo;
+>   - recusa de versão já publicada;
+>   - workflow Central Dry Run.
+> - Os segredos usam os nomes do archflow: `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_TOKEN`,
+>   `GPG_PRIVATE_KEY` e `MAVEN_GPG_PASSPHRASE`.
+> - O `groupId` `dev.reportlenz` foi mantido por decisão do usuário.
+
 - Maven Central, com sources, javadoc e assinatura GPG via `central-publishing-maven-plugin`, num job no
   mesmo `release.yml` disparado por tag.
 - O namespace do `groupId` precisa estar **verificado** no Central. Hoje é `dev.reportlenz`, que exige o

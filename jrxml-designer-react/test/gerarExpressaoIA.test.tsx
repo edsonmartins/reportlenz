@@ -1,5 +1,5 @@
 import { MantineProvider } from '@mantine/core';
-import { REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import { REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ExpressionEditor } from '../src/expression/ExpressionEditor';

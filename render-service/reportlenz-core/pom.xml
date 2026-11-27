@@ -21,6 +21,11 @@
 
   <artifactId>reportlenz-core</artifactId>
   <packaging>jar</packaging>
+
+  <properties>
+    <!-- Publicado no Maven Central (opt-in — ver reportlenz-parent). -->
+    <reportlenz.publish.skip>false</reportlenz.publish.skip>
+  </properties>
   <name>ReportLenz · núcleo de render</name>
   <description>Render JRXML 7 contract-first com JasperReports 7.0.7: G7, filtro de classes, PDF/PNG, gates — sem Spring</description>
 

@@ -1,5 +1,5 @@
 import { MantineProvider } from '@mantine/core';
-import { REFERENCIA_DANFE, REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import { REFERENCIA_DANFE, REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { App } from '../src/App';

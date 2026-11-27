@@ -8,8 +8,8 @@
  * dígitos, Code39 em maiúsculas) — "ean exemplo" fazia o engine recusar o
  * render (barcode4j: "Valid are 0-9 only").
  */
-import type { BarcodeType, DataContract, FieldDecl, ReportTemplate, ScalarType } from '@reportlenz/jrxml-core';
-import { CENARIOS, REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import type { BarcodeType, DataContract, FieldDecl, ReportTemplate, ScalarType } from '@archbase/reportlenz-jrxml-core';
+import { CENARIOS, REFERENCE_TEMPLATES } from '@archbase/reportlenz-jrxml-core';
 
 /** Campo (nome como aparece em $F{}/$P{}) → simbologia que ele alimenta. */
 export type CamposDeCodigoDeBarras = Record<string, BarcodeType>;

@@ -9,7 +9,7 @@
  *   (`valor` → `valor_2`) e registra o renomeio para reescrever as
  *   expressões do bloco (`$F{valor}` → `$F{valor_2}`).
  */
-import type { DataContract, Element, FieldDecl, ParamDecl, VariableDecl } from '@reportlenz/jrxml-core';
+import type { DataContract, Element, FieldDecl, ParamDecl, VariableDecl } from '@archbase/reportlenz-jrxml-core';
 import type { MiniContrato } from './biblioteca';
 
 /** Renomeios por espaço de nomes das expressões ($F / $P / $V). */

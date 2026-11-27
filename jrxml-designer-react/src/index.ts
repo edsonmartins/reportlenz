@@ -1,5 +1,5 @@
 /**
- * @reportlenz/designer-react — API pública (ADR-025).
+ * @archbase/reportlenz-designer-react — API pública (ADR-025).
  *
  * Requer, na aplicação: React 19 e Mantine 9 (`MantineProvider` + o CSS do
  * `@mantine/core`). O render-service é acessado em `apiBaseUrl` com o token

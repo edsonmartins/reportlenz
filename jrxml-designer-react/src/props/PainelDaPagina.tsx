@@ -4,7 +4,7 @@
  * estouro compara colunas × largura útil.
  */
 import { Alert, Group, NumberInput, Select, Stack, Text } from '@mantine/core';
-import { datasourceCampo } from '@reportlenz/jrxml-core';
+import { datasourceCampo } from '@archbase/reportlenz-jrxml-core';
 import { useDocumentoStore } from '../store/documentoStore';
 import { atualizarPagina, definirFonteDeLinhas } from '../store/mutacoes';
 import { areaUtil } from '../canvas/geometria';

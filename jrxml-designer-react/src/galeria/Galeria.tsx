@@ -5,8 +5,8 @@
  * (os mesmos validados pelo harness na Library real).
  */
 import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
-import type { ReportTemplate } from '@reportlenz/jrxml-core';
-import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import type { ReportTemplate } from '@archbase/reportlenz-jrxml-core';
+import { REFERENCE_TEMPLATES } from '@archbase/reportlenz-jrxml-core';
 import { useInstancia } from '../instancia';
 import { useDocumentoStore } from '../store/documentoStore';
 

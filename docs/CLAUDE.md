@@ -99,7 +99,7 @@ headless   contrato   React      pro         governança
     sob as barras.
   - `preview-em-aba` (ADR-024): abas Editor / Preview (Jasper), com o preview em tela cheia; supersede o
     "lado a lado" da RFC-004 §7.
-  - `componente-embutivel` (ADR-025): `@reportlenz/designer-react` (npm público).
+  - `componente-embutivel` (ADR-025): `@archbase/reportlenz-designer-react` (npm público).
     - Estado **por instância**: fábricas de store + `ProvedorDeInstancia`; fora de provider vale a
       instância padrão. Em componente, use `useInstancia()` em vez de `useXStore.getState()`.
     - Token por `getAccessToken`; OIDC só na SPA (`src/spa`, `src/auth`), fora do pacote.
@@ -116,6 +116,12 @@ headless   contrato   React      pro         governança
       obrigatório).
     - Recurso novo condicional: `@RecursoRegistro`/`@RecursoBatch`/`@RecursoAssistente`.
     - Migração nova em `classpath:reportlenz/db/migration`.
+  - Publicação (`release.yml`, tag `v*`):
+    - **npm:** escopo `@archbase` (`@archbase/reportlenz-*`), no processo do archbase-react.
+    - **Maven Central:** `dev.reportlenz`, no processo do archflow (perfil `maven-central`, POM achatado,
+      opt-in `reportlenz.publish.skip`).
+    - Ensaio: workflow Central Dry Run.
+    - A versão vem da tag. Nunca republique uma versão.
 
   Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.

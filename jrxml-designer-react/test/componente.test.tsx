@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
-import { REFERENCIA_DANFE, REFERENCIA_FATURA, REFERENCIA_FORMULARIO, serializeJrxml } from '@reportlenz/jrxml-core';
-import type { ReportTemplate } from '@reportlenz/jrxml-core';
+import { REFERENCIA_DANFE, REFERENCIA_FATURA, REFERENCIA_FORMULARIO, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
+import type { ReportTemplate } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -51,7 +51,7 @@ function comMantine(ui: React.ReactNode) {
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe('@reportlenz/designer-react · <ReportLenzDesigner> modo registro', () => {
+describe('@archbase/reportlenz-designer-react · <ReportLenzDesigner> modo registro', () => {
   it('abre a versão mais recente do codename com o token da aplicação em toda chamada', async () => {
     const f = servico(registroDoFormulario);
     comMantine(<ReportLenzDesigner apiBaseUrl={BASE} getAccessToken={() => 'tok-app'} codename="cadastro" />);
@@ -101,7 +101,7 @@ describe('@reportlenz/designer-react · <ReportLenzDesigner> modo registro', () 
   });
 });
 
-describe('@reportlenz/designer-react · <ReportLenzDesigner> modo controlado', () => {
+describe('@archbase/reportlenz-designer-react · <ReportLenzDesigner> modo controlado', () => {
   function Hospedeiro({ aoMudar }: { aoMudar: (t: ReportTemplate, jrxml: string) => void }) {
     const [template, setTemplate] = useState<ReportTemplate | string>(serializeJrxml(REFERENCIA_FATURA));
     return (
@@ -172,7 +172,7 @@ describe('@reportlenz/designer-react · <ReportLenzDesigner> modo controlado', (
   });
 });
 
-describe('@reportlenz/designer-react · <ReportLenzPreview>', () => {
+describe('@archbase/reportlenz-designer-react · <ReportLenzPreview>', () => {
   it('renderiza a versão PUBLICADA mais recente com o payload da aplicação', async () => {
     const f = servico(registroDoFormulario, (url) => (url === `${BASE}/render/preview` ? png(2) : undefined));
     comMantine(<ReportLenzPreview apiBaseUrl={BASE} getAccessToken={() => 'tok'} codename="cadastro" payload={{ nome: 'Maria' }} />);

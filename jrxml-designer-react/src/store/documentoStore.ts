@@ -10,8 +10,8 @@
  * o modelo do core não tem ids de runtime, e caminhos sobrevivem a
  * serialize/parse.
  */
-import type { Band, Element, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
-import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
+import type { Band, Element, ParseError, ReportTemplate } from '@archbase/reportlenz-jrxml-core';
+import { serializeJrxml, validateContract, validateSchema } from '@archbase/reportlenz-jrxml-core';
 import { createStore } from 'zustand/vanilla';
 import { hookDoStore } from '../instancia';
 import type { BlocoReutilizavel } from '../blocos/biblioteca';

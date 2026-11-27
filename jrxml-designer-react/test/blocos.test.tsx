@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
-import type { ReportTemplate } from '@reportlenz/jrxml-core';
-import { REFERENCIA_FATURA, serializeJrxml } from '@reportlenz/jrxml-core';
+import type { ReportTemplate } from '@archbase/reportlenz-jrxml-core';
+import { REFERENCIA_FATURA, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';

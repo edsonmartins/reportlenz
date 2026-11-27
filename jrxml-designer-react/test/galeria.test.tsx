@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';
-import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import { REFERENCE_TEMPLATES } from '@archbase/reportlenz-jrxml-core';
 import { MODELOS, criarTemplateEmBranco } from '../src/galeria/Galeria';
 import { validarDocumento, useDocumentoStore } from '../src/store/documentoStore';
 

@@ -23,8 +23,8 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import type { BarcodeElement, Element, StyleProps } from '@reportlenz/jrxml-core';
-import { BARCODES_LINEARES } from '@reportlenz/jrxml-core';
+import type { BarcodeElement, Element, StyleProps } from '@archbase/reportlenz-jrxml-core';
+import { BARCODES_LINEARES } from '@archbase/reportlenz-jrxml-core';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';

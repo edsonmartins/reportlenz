@@ -14,7 +14,7 @@ import type { FaixaDeBanda } from './bandas';
 import { chaveDaBanda } from './bandas';
 import { ElementoCanvas } from './ElementoCanvas';
 import { areaUtil, ptParaPx, pxParaPt } from './geometria';
-import type { PageFormat } from '@reportlenz/jrxml-core';
+import type { PageFormat } from '@archbase/reportlenz-jrxml-core';
 
 const ALTURA_DO_HANDLE = 6;
 

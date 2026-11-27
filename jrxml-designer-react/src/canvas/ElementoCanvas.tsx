@@ -6,8 +6,8 @@
  *
  * O desenho aqui é APROXIMAÇÃO (I-8): a verdade é o render Jasper (bloco 5).
  */
-import type { Bounds, Element } from '@reportlenz/jrxml-core';
-import { contarColunasFolha } from '@reportlenz/jrxml-core';
+import type { Bounds, Element } from '@archbase/reportlenz-jrxml-core';
+import { contarColunasFolha } from '@archbase/reportlenz-jrxml-core';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { useRef } from 'react';
 import type { CaminhoDeElemento } from '../store/documentoStore';

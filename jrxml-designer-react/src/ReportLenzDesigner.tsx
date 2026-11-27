@@ -12,8 +12,8 @@
  * - **controlado**: `template` + `onChange` — a aplicação guarda o template.
  */
 import { Alert, Group, Loader, Text } from '@mantine/core';
-import type { ReportTemplate } from '@reportlenz/jrxml-core';
-import { parseJrxml, serializeJrxml } from '@reportlenz/jrxml-core';
+import type { ReportTemplate } from '@archbase/reportlenz-jrxml-core';
+import { parseJrxml, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { criarClienteDaApi, type ObterToken } from './api/cliente';
 import { AreaDeTrabalho } from './designer/AreaDeTrabalho';

@@ -6,7 +6,7 @@
  * puro e concentra todas as conversões — nenhum componente faz aritmética de
  * unidades por conta própria.
  */
-import type { PageFormat } from '@reportlenz/jrxml-core';
+import type { PageFormat } from '@archbase/reportlenz-jrxml-core';
 
 /** 1 polegada = 72 pt = 25,4 mm. */
 export const PT_POR_MM = 72 / 25.4;

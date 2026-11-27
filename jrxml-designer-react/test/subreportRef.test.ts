@@ -1,4 +1,4 @@
-import { validateContract } from '@reportlenz/jrxml-core';
+import { validateContract } from '@archbase/reportlenz-jrxml-core';
 import { describe, expect, it } from 'vitest';
 import { PRESETS_DE_ELEMENTO } from '../src/palette/inserir';
 import { useDocumentoStore } from '../src/store/documentoStore';

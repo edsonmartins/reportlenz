@@ -12,8 +12,8 @@
  */
 import '@mantine/core/styles.css';
 import { Badge, Group, MantineProvider, Text, Title } from '@mantine/core';
-import { ReportLenzDesigner, ReportLenzPreview } from '@reportlenz/designer-react';
-import { REFERENCIA_FATURA, serializeJrxml } from '@reportlenz/jrxml-core';
+import { ReportLenzDesigner, ReportLenzPreview } from '@archbase/reportlenz-designer-react';
+import { REFERENCIA_FATURA, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 

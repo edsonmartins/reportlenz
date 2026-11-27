@@ -5,7 +5,7 @@
  * contêiner; quem define a altura é quem hospeda.
  */
 import { ActionIcon, Alert, Badge, Button, Divider, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
-import { buildInputSchema, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
+import { buildInputSchema, extractContract, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { useState } from 'react';
 import { AssistenteDrawer } from '../assistente/AssistenteDrawer';
 import { Canvas } from '../canvas/Canvas';

@@ -1,12 +1,12 @@
 /**
- * Build da BIBLIOTECA @reportlenz/designer-react (ADR-025): ESM, sem React,
+ * Build da BIBLIOTECA @archbase/reportlenz-designer-react (ADR-025): ESM, sem React,
  * Mantine, zustand nem jrxml-core dentro — peers/dependências resolvidos pela
  * aplicação. O build da SPA continua em vite.config.ts.
  */
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-const externos = [/^react($|\/)/, /^react-dom($|\/)/, /^@mantine\//, /^zustand($|\/)/, /^@reportlenz\/jrxml-core$/];
+const externos = [/^react($|\/)/, /^react-dom($|\/)/, /^@mantine\//, /^zustand($|\/)/, /^@archbase\/reportlenz-jrxml-core$/];
 
 export default defineConfig({
   plugins: [react()],

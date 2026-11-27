@@ -66,7 +66,7 @@ export function genTypeScriptTypes(schema: JsonSchema, options?: GenTypeScriptOp
   emitirInterface(rootName, schema, [], interfaces);
 
   const cabecalho =
-    `// Gerado por @reportlenz/jrxml-core a partir do inputSchema` +
+    `// Gerado por @archbase/reportlenz-jrxml-core a partir do inputSchema` +
     (schema.$id !== undefined ? ` (${schema.$id})` : '') +
     ` — NÃO editar manualmente.\n`;
   // A raiz é emitida por último pelo caminhamento; inverte p/ ela abrir o arquivo.

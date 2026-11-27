@@ -6,7 +6,7 @@
  * ao contrato do template (tarefa 8.2) e cola os elementos na banda de
  * destino — o documento continua passando pelos gates (G3) sem edição manual.
  */
-import type { Element, FieldDecl, ParamDecl, VariableDecl } from '@reportlenz/jrxml-core';
+import type { Element, FieldDecl, ParamDecl, VariableDecl } from '@archbase/reportlenz-jrxml-core';
 import { mmParaPt } from '../canvas/geometria';
 import type { SecaoUnica } from '../store/documentoStore';
 

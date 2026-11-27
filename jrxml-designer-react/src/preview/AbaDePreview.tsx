@@ -8,7 +8,7 @@
  *   renderiza de novo ao abrir a aba.
  */
 import { ActionIcon, Alert, Badge, Button, Group, Loader, SegmentedControl, Select, Stack, Text, Tooltip } from '@mantine/core';
-import { serializeJrxml } from '@reportlenz/jrxml-core';
+import { serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
 import { usePreviewStore, type ZoomDoPreview } from './previewStore';

@@ -3,7 +3,7 @@
  * margens tracejadas, guias de coluna (etiqueta A4 multi-coluna) e grid
  * configurável em mm. As bandas entram na tarefa 2.2 como filhos.
  */
-import type { PageFormat } from '@reportlenz/jrxml-core';
+import type { PageFormat } from '@archbase/reportlenz-jrxml-core';
 import type { ReactNode } from 'react';
 import { areaUtil, colunasDaPagina, linhasDeGrid, ptParaPx } from './geometria';
 

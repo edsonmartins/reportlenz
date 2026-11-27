@@ -18,7 +18,7 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import type { Style } from '@reportlenz/jrxml-core';
+import type { Style } from '@archbase/reportlenz-jrxml-core';
 import { useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';
 import { escopoMaster } from '../expression/sugestoes';

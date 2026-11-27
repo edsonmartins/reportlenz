@@ -20,6 +20,11 @@
 
   <artifactId>reportlenz-spring-boot-starter</artifactId>
   <packaging>jar</packaging>
+
+  <properties>
+    <!-- Publicado no Maven Central (opt-in — ver reportlenz-parent). -->
+    <reportlenz.publish.skip>false</reportlenz.publish.skip>
+  </properties>
   <name>ReportLenz · Spring Boot starter</name>
   <description>ReportLenz embarcado numa aplicação Spring Boot 4: render JRXML 7, registro, designer API, batch e IA</description>
 

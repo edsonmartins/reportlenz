@@ -23,8 +23,8 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import type { FieldDecl, ScalarType, VariableCalculation } from '@reportlenz/jrxml-core';
-import { buildInputSchema, extractContract } from '@reportlenz/jrxml-core';
+import type { FieldDecl, ScalarType, VariableCalculation } from '@archbase/reportlenz-jrxml-core';
+import { buildInputSchema, extractContract } from '@archbase/reportlenz-jrxml-core';
 import { useMemo, useState } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
 import { comContrato } from '../store/mutacoes';

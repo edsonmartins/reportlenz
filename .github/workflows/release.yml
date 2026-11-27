@@ -1,107 +1,251 @@
-# Release (ADR-025 §5, ADR-026 §4): disparado por tag v<semver> (ex.: v0.1.0) —
-# pacotes npm (job npm) e artefatos Maven (job maven), mesma versão.
-# Pré-requisitos (do dono do repositório):
-#   - organização @reportlenz no npmjs.com;
-#   - segredo NPM_TOKEN (token de automação com permissão de publicar em @reportlenz).
-# A versão da tag precisa ser a dos dois package.json — o job confere antes de publicar.
-name: release
+# Release do ReportLenz — disparado por tag v<semver> (ex.: v0.1.0).
+#
+#   npm           @archbase/reportlenz-jrxml-core e @archbase/reportlenz-designer-react
+#                 (mesmo processo do archbase-react e do linktor-webchat-sdk)
+#   maven-central dev.reportlenz:reportlenz-core e reportlenz-spring-boot-starter
+#                 (mesmo processo do archflow)
+#   github-release notas + links, depois dos dois
+#
+# A VERSÃO VEM DA TAG: package.json e pom.xml são ajustados no runner antes do
+# build (como no archflow). Publicar é IRREVERSÍVEL nos dois registros — por isso
+# os dois jobs recusam versão já publicada e rodam os testes antes.
+#
+# Segredos (Settings → Secrets → Actions), os mesmos nomes dos outros projetos:
+#   NPM_TOKEN                 token que publica no escopo @archbase (o do archbase-react)
+#   MAVEN_CENTRAL_USERNAME    usuário do token do central.sonatype.com (o do archflow)
+#   MAVEN_CENTRAL_TOKEN       senha do mesmo token
+#   GPG_PRIVATE_KEY           chave privada em base64 (a do archflow)
+#   MAVEN_GPG_PASSPHRASE      passphrase da chave
+# E o namespace dev.reportlenz VERIFICADO na conta do Central.
+name: Release
 
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
-  id-token: write   # npm provenance (atestado de origem do build)
+  contents: write
 
 jobs:
   npm:
-    name: publicar @reportlenz/jrxml-core e @reportlenz/designer-react
+    name: Publicar no npm (@archbase)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-          registry-url: https://registry.npmjs.org
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Conferir versão da tag
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configurar registry
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          for p in jrxml-core jrxml-designer-react; do
-            V=$(node -p "require('./$p/package.json').version")
-            [ "$V" = "$TAG" ] || { echo "::error::$p está em $V, tag é $TAG"; exit 1; }
+          rm -f .npmrc
+          pnpm config set registry https://registry.npmjs.org/
+          pnpm config set @archbase:registry https://registry.npmjs.org/
+
+      - name: Versão da tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      # Versão no npm é imutável: uma segunda tentativa na mesma versão falha, e
+      # isso lê como erro de build quando é a publicação anterior que deu certo.
+      - name: Recusar se a versão já está no npm
+        run: |
+          V="${{ steps.version.outputs.VERSION }}"
+          JA=""
+          for p in @archbase/reportlenz-jrxml-core @archbase/reportlenz-designer-react; do
+            if npm view "$p@$V" version >/dev/null 2>&1; then JA="$JA $p"; fi
           done
+          if [ -n "$JA" ]; then
+            echo "::error title=Versão já publicada::$V já está no npm ($JA). Para corrigir algo, publique outra versão (tag nova)."
+            exit 1
+          fi
+          echo "$V não está no npm: seguindo."
 
-      - name: Conferir segredo
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: '[ -n "$NODE_AUTH_TOKEN" ] || { echo "::error::defina o segredo NPM_TOKEN (ADR-025 §5)"; exit 1; }'
+      - name: Versão dos pacotes a partir da tag
+        run: |
+          V="${{ steps.version.outputs.VERSION }}"
+          (cd jrxml-core && npm pkg set version="$V")
+          (cd jrxml-designer-react && npm pkg set version="$V")
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Com testes: publicar é irreversível.
       - name: Build e testes
         run: |
-          pnpm install --frozen-lockfile
           pnpm --dir jrxml-core lint && pnpm --dir jrxml-core test && pnpm --dir jrxml-core build
           pnpm --dir jrxml-designer-react lint && pnpm --dir jrxml-designer-react test && pnpm --dir jrxml-designer-react build:lib
 
-      - name: Publicar (core antes do designer, que depende dele)
+      # Diagnóstico ANTES de publicar (lição do archbase-react): o npm devolve
+      # E404 no PUT em vez de 403 para quem não tem escrita no escopo. Nenhum
+      # comando aqui falha o job, e o token não aparece na saída.
+      - name: Diagnóstico de autenticação no npm
+        run: |
+          echo "== NODE_AUTH_TOKEN definido: $([ -n "$NODE_AUTH_TOKEN" ] && echo sim || echo NAO)"
+          echo "== whoami:"
+          npm whoami --registry=https://registry.npmjs.org || echo ">>> whoami FALHOU — o NPM_TOKEN não autentica"
+          echo "== pacotes que este token alcança em @archbase:"
+          npm access list packages @archbase 2>&1 | head -5 || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          pnpm --dir jrxml-core publish --no-git-checks
-          pnpm --dir jrxml-designer-react publish --no-git-checks
 
-  # Maven Central (ADR-026 §4): reportlenz-parent, reportlenz-core e
-  # reportlenz-spring-boot-starter. Pré-requisitos (do dono do repositório):
-  #   - namespace do groupId VERIFICADO no central.sonatype.com (hoje dev.reportlenz →
-  #     domínio reportlenz.dev; alternativa io.github.<dono>);
-  #   - segredos CENTRAL_USERNAME/CENTRAL_TOKEN (token de usuário do Central)
-  #     e GPG_PRIVATE_KEY/GPG_PASSPHRASE (chave publicada num keyserver).
-  # A tag deve apontar para um commit do main com o CI verde (a suíte completa
-  # exige Redis/PostgreSQL/MinIO e roda lá).
-  maven:
-    name: publicar reportlenz-core e reportlenz-spring-boot-starter
+      # -r publica só os pacotes não privados, em ordem topológica (o core antes
+      # do designer, que depende dele: workspace:^ vira ^<versão>).
+      - name: Publish to NPM
+        run: pnpm publish -r --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  maven-central:
+    name: Publicar no Maven Central (dev.reportlenz)
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      # A aplicação Spring hospedeira (teste do starter) sobe com o batch ligado.
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    defaults:
+      run:
+        working-directory: render-service
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Conferir segredos
-        env:
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          [ -n "$CENTRAL_USERNAME" ] || { echo "::error::defina CENTRAL_USERNAME/CENTRAL_TOKEN (ADR-026 §4)"; exit 1; }
-          [ -n "$GPG_PRIVATE_KEY" ] || { echo "::error::defina GPG_PRIVATE_KEY/GPG_PASSPHRASE (ADR-026 §4)"; exit 1; }
-
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 21
+          java-version: '21'
+          distribution: 'temurin'
           cache: maven
-          server-id: central
-          server-username: CENTRAL_USERNAME
-          server-password: CENTRAL_TOKEN
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Conferir versão da tag
-        working-directory: render-service
+      # Maven 3.9 FIXO (lição do archflow, v1.5.0): o Maven 3.10 da imagem do
+      # runner grava metadados locais no staging do central-publishing-maven-plugin
+      # e o Central recusa o bundle. Ver mavenplugins/central-publishing-maven-plugin#79.
+      - name: Set up Maven 3.9
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.11'
+
+      - name: Maven em uso
+        run: mvn -v
+
+      - name: Versão da tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Versão dos POMs a partir da tag
+        run: mvn -B versions:set -DnewVersion="${{ steps.version.outputs.VERSION }}" -DgenerateBackupPoms=false
+
+      # Versão no Central é imutável (archflow, 1.4.0: a reexecução de um release
+      # que já tinha publicado trouxe "being published in another deployment").
+      - name: Recusar se a versão já está no Central
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          V=$(mvn -q -B help:evaluate -Dexpression=project.version -DforceStdout)
-          [ "$V" = "$TAG" ] || { echo "::error::render-service está em $V, tag é $TAG"; exit 1; }
+          V="${{ steps.version.outputs.VERSION }}"
+          JA=""
+          for a in reportlenz-core reportlenz-spring-boot-starter; do
+            URL="https://repo1.maven.org/maven2/dev/reportlenz/$a/$V/$a-$V.pom"
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$URL")" = "200" ]; then JA="$JA $a"; fi
+          done
+          if [ -n "$JA" ]; then
+            echo "::error title=Versão já publicada::$V já está no Maven Central ($JA). Para corrigir algo, publique outra versão (tag nova)."
+            exit 1
+          fi
+          echo "$V não está no Central: seguindo."
 
-      - name: Testes do núcleo e publicação
-        working-directory: render-service
+      # Com testes, de propósito: núcleo (146) e o starter numa aplicação Spring
+      # hospedeira (exemplos/host-spring) contra os artefatos ACHATADOS — o que o
+      # consumidor do Central de fato recebe. A suíte inteira do serviço (Redis,
+      # PostgreSQL, MinIO) roda no CI da tag.
+      - name: Build e testes
+        run: |
+          mvn -B -Pmaven-central -Dgpg.skip=true clean install -pl reportlenz-core,reportlenz-spring-boot-starter -am
+          mvn -B -f ../exemplos/host-spring/pom.xml test -Dreportlenz.version="${{ steps.version.outputs.VERSION }}"
+
+      - name: Import GPG key
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          echo "GNUPGHOME=$GNUPGHOME" >> $GITHUB_ENV
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode | gpg --batch --import
+          echo "allow-loopback-pinentry" > "$GNUPGHOME/gpg-agent.conf"
+          echo "pinentry-mode loopback" > "$GNUPGHOME/gpg.conf"
+          gpgconf --reload gpg-agent || true
+
+      # Duas barreiras contra publicar o módulo errado: -pl aqui e o opt-in
+      # reportlenz.publish.skip (true por padrão; false só nos dois publicados).
+      - name: Deploy to Central
         env:
-          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
-          CENTRAL_TOKEN: ${{ secrets.CENTRAL_TOKEN }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
-          mvn -B -pl reportlenz-core test
-          mvn -B -P publicacao -DskipTests deploy
+          mvn -B deploy -Pmaven-central -DskipTests \
+            -pl reportlenz-core,reportlenz-spring-boot-starter \
+            -s ../.maven-settings.xml.template
+
+      # "Workflow verde" = bundle VALIDADO; a publicação segue no Sonatype e a
+      # propagação para o repo1 leva o tempo dela.
+      - name: Onde acompanhar a publicação
+        if: success()
+        run: |
+          echo "::notice title=Publicação enviada::Bundle validado e publicando."
+          echo "Acompanhe em https://central.sonatype.com/publishing/deployments"
+          for a in reportlenz-core reportlenz-spring-boot-starter; do
+            echo "  https://repo1.maven.org/maven2/dev/reportlenz/$a/${{ steps.version.outputs.VERSION }}/"
+          done
+
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [npm, maven-central]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Notas
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          git fetch --tags --force 2>/dev/null || true
+          ANTERIOR=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || echo "")
+          {
+            echo "## ReportLenz ${GITHUB_REF_NAME}"
+            echo
+            if [ -n "$ANTERIOR" ]; then
+              echo "### Mudanças desde $ANTERIOR"
+              git log "${ANTERIOR}..${GITHUB_REF_NAME}" --no-merges --pretty=format:"- %s" | head -100
+              echo
+            fi
+            echo
+            echo "### Pacotes"
+            echo
+            echo '```bash'
+            echo "npm install @archbase/reportlenz-designer-react@$V @archbase/reportlenz-jrxml-core@$V"
+            echo '```'
+            echo
+            echo '```xml'
+            echo "<dependency>"
+            echo "  <groupId>dev.reportlenz</groupId>"
+            echo "  <artifactId>reportlenz-spring-boot-starter</artifactId>"
+            echo "  <version>$V</version>"
+            echo "</dependency>"
+            echo '```'
+          } > notas.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: notas.md
+          draft: false
+          prerelease: false

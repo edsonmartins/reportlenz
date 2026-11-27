@@ -1,5 +1,5 @@
 import { MantineProvider } from '@mantine/core';
-import { REFERENCIA_COMPROVANTE, REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import { REFERENCIA_COMPROVANTE, REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App';

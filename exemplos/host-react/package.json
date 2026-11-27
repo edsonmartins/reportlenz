@@ -2,7 +2,7 @@
   "name": "reportlenz-exemplo-host-react",
   "private": true,
   "version": "0.0.0",
-  "description": "Aplicação hospedeira de TESTE (ADR-025): instala @reportlenz/designer-react e @reportlenz/jrxml-core dos tarballs do pnpm pack, como uma aplicação da empresa instalaria do npm.",
+  "description": "Aplicação hospedeira de TESTE (ADR-025): instala @archbase/reportlenz-designer-react e @archbase/reportlenz-jrxml-core dos tarballs do pnpm pack, como uma aplicação da empresa instalaria do npm.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,13 +12,13 @@
   "dependencies": {
     "@mantine/core": "9.4.0",
     "@mantine/hooks": "9.4.0",
-    "@reportlenz/designer-react": "file:./pacotes/reportlenz-designer-react-0.1.0.tgz",
-    "@reportlenz/jrxml-core": "file:./pacotes/reportlenz-jrxml-core-0.1.0.tgz",
+    "@archbase/reportlenz-designer-react": "file:./pacotes/archbase-reportlenz-designer-react-0.1.0.tgz",
+    "@archbase/reportlenz-jrxml-core": "file:./pacotes/archbase-reportlenz-jrxml-core-0.1.0.tgz",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "overrides": {
-    "@reportlenz/jrxml-core": "$@reportlenz/jrxml-core"
+    "@archbase/reportlenz-jrxml-core": "$@archbase/reportlenz-jrxml-core"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",

@@ -1,4 +1,4 @@
-# @reportlenz/designer-react
+# @archbase/reportlenz-designer-react
 
 Designer e preview de relatórios **JRXML 7 contract-first** como componentes React. O render é real,
 feito pelo engine JasperReports no ReportLenz render-service. Os dados chegam por **Push**: o relatório
@@ -15,7 +15,7 @@ declara os campos que espera e nunca leva SQL embutido.
   pré-visualizar, `reportlenz-publicador` para publicar.
 
 ```bash
-npm install @reportlenz/designer-react @reportlenz/jrxml-core
+npm install @archbase/reportlenz-designer-react @archbase/reportlenz-jrxml-core
 # peers: react react-dom @mantine/core @mantine/hooks
 ```
 
@@ -31,7 +31,7 @@ Abre, salva e publica templates no registro do serviço, com versões e os gates
 ```tsx
 import '@mantine/core/styles.css';
 import { MantineProvider } from '@mantine/core';
-import { ReportLenzDesigner } from '@reportlenz/designer-react';
+import { ReportLenzDesigner } from '@archbase/reportlenz-designer-react';
 
 <MantineProvider>
   <div style={{ height: '80vh' }}>
@@ -57,7 +57,7 @@ const [jrxml, setJrxml] = useState(jrxmlInicial);
 <ReportLenzDesigner
   apiBaseUrl="https://relatorios.empresa.com.br"
   getAccessToken={() => auth.token()}
-  template={jrxml}                                   // JRXML 7 ou modelo do @reportlenz/jrxml-core
+  template={jrxml}                                   // JRXML 7 ou modelo do @archbase/reportlenz-jrxml-core
   onChange={(modelo, novoJrxml) => setJrxml(novoJrxml)}
 />
 ```
@@ -81,7 +81,7 @@ valores padrão dependem do modo:
 Mostra o render de um template **publicado** com os dados da aplicação, só leitura, com zoom e paginação:
 
 ```tsx
-import { ReportLenzPreview } from '@reportlenz/designer-react';
+import { ReportLenzPreview } from '@archbase/reportlenz-designer-react';
 
 <ReportLenzPreview
   apiBaseUrl="https://relatorios.empresa.com.br"
