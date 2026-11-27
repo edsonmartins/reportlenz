@@ -244,6 +244,8 @@ jobs:
       - name: Instalar Playwright (Chromium)
         run: |
           pnpm install --frozen-lockfile
+          # A spec do catálogo importa os modelos/cenários do jrxml-core (ADR-022).
+          pnpm --dir jrxml-core build
           pnpm --dir e2e exec playwright install --with-deps chromium
 
       - name: E2E de interface (Playwright)

@@ -4,7 +4,10 @@ import { abrirModelo, entrarComo } from '../apoio/sessao';
 
 const API = process.env.DESIGNER_URL ?? 'http://localhost:8080';
 
-/** Publish Wizard (RFC-006 §3) com os papéis do ADR-017 e os gates G1–G8. */
+/**
+ * Publish Wizard (RFC-006 §3) com os papéis do ADR-017. O G8 (subreport da
+ * fatura) é coberto nos dois sentidos em catalogo.spec.ts.
+ */
 test.describe('publish', () => {
   test('designer vê os gates verdes, mas o serviço recusa o publish (403)', async ({ page }) => {
     await entrarComo(page, 'designer');
@@ -30,19 +33,5 @@ test.describe('publish', () => {
     expect(r.status).toBe(200);
     const versoes = (await r.json()) as Array<{ status: string; criadoPor: string }>;
     expect(versoes.find((v) => v.status === 'published')?.criadoPor).toBe(usuario);
-  });
-
-  test('fatura: G8 bloqueia enquanto o subreport fatura_entregas não estiver publicado (ADR-020)', async ({ page }) => {
-    const token = await tokenDeApi(identidades().publicador);
-    const filho = await fetch(`${API}/templates/fatura_entregas`, { headers: { Authorization: `Bearer ${token}` } });
-    test.skip(filho.status === 200, 'fatura_entregas já publicado neste ambiente — cenário só vale em ambiente limpo');
-
-    await entrarComo(page, 'publicador');
-    await abrirModelo(page, 'fatura');
-    await page.getByRole('button', { name: 'Publicar…' }).click();
-    const g8 = page.getByTestId('gate-G8');
-    await expect(g8).not.toHaveAttribute('data-verde', 'true');
-    await expect(g8).toContainText('fatura_entregas');
-    await expect(page.getByTestId('publish-confirmar')).toBeDisabled();
   });
 });

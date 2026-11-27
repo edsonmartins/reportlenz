@@ -13,6 +13,9 @@ importers:
       '@playwright/test':
         specifier: 1.65.1
         version: 1.65.1
+      '@reportlenz/jrxml-core':
+        specifier: workspace:*
+        version: link:../jrxml-core
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.4

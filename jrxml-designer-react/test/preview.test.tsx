@@ -76,6 +76,22 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
     expect(screen.getByTestId('rotulo-aproximacao')).toHaveTextContent('Aproximação — a verdade é o render Jasper');
   });
 
+  it('contrato alterado: o preview volta aos dados genéricos (que satisfazem o contrato novo)', async () => {
+    const t = structuredClone(REFERENCIA_FATURA);
+    t.dataContract.fields.push({ name: 'observacao', type: 'string' });
+    useDocumentoStore.getState().novoDocumento(t);
+    const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
+    vi.stubGlobal('fetch', fetchMock);
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+
+    const corpo = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string) as { sampleData: Record<string, unknown> };
+    expect(corpo.sampleData['cliente_nome']).toBe('cliente_nome exemplo');
+    expect(corpo.sampleData['observacao']).toBe('observacao exemplo');
+  });
+
   it('Renderizar (Jasper) envia jrxml+sampleData+inputSchema e mostra o PNG', async () => {
     const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
     vi.stubGlobal('fetch', fetchMock);
@@ -94,7 +110,8 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
     };
     expect(corpo.jrxml).toContain('<jasperReport name="fatura_completa"');
     expect(corpo.jrxml).not.toContain('<query'); // anti-Pull até no preview
-    expect(corpo.sampleData['cliente_nome']).toBe('cliente_nome exemplo');
+    // Modelo do catálogo intacto → cenário típico realista do jrxml-core (ADR-022).
+    expect(corpo.sampleData['cliente_nome']).toBe('Padaria São João Ltda.');
     expect(Array.isArray(corpo.sampleData['itens'])).toBe(true);
     expect(corpo.inputSchema.$id).toBe('reportlenz:contract:fatura_completa:v1');
     expect(corpo.format).toBe('png');

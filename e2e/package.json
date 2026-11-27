@@ -7,10 +7,12 @@
   "scripts": {
     "test": "playwright test",
     "instalar-navegador": "playwright install --with-deps chromium",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "atualizar-referencias": "playwright test testes/catalogo.spec.ts --update-snapshots"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
+    "@reportlenz/jrxml-core": "workspace:*",
     "@types/node": "^24.0.0",
     "typescript": "^5.9.3"
   }

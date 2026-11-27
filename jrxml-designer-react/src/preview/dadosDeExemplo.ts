@@ -8,7 +8,8 @@
  * dígitos, Code39 em maiúsculas) — "ean exemplo" fazia o engine recusar o
  * render (barcode4j: "Valid are 0-9 only").
  */
-import type { BarcodeType, DataContract, FieldDecl, ScalarType } from '@reportlenz/jrxml-core';
+import type { BarcodeType, DataContract, FieldDecl, ReportTemplate, ScalarType } from '@reportlenz/jrxml-core';
+import { CENARIOS, REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 
 /** Campo (nome como aparece em $F{}/$P{}) → simbologia que ele alimenta. */
 export type CamposDeCodigoDeBarras = Record<string, BarcodeType>;
@@ -137,4 +138,21 @@ export function gerarDadosDeExemplo(contrato: DataContract, opcoes: OpcoesDeExem
     inserirAninhado(payload, f.name, valorDeField(f, codigos, 0, itens));
   }
   return payload;
+}
+
+/**
+ * Dados REALISTAS para o preview de um modelo do catálogo (ADR-022): enquanto
+ * o contrato do documento for o do modelo de referência de mesmo nome, o
+ * preview usa o cenário "tipico" do jrxml-core — o DANFE sai com chave válida,
+ * o boleto com linha digitável de verdade. Contrato alterado → undefined (o
+ * chamador volta aos dados genéricos, que sempre satisfazem o contrato).
+ */
+export function dadosDoCatalogo(template: ReportTemplate): Record<string, unknown> | undefined {
+  for (const [chave, referencia] of Object.entries(REFERENCE_TEMPLATES)) {
+    if (referencia.name !== template.name) continue;
+    if (JSON.stringify(referencia.dataContract) !== JSON.stringify(template.dataContract)) return undefined;
+    const tipico = CENARIOS[chave]?.find((c) => c.nome === 'tipico');
+    return tipico ? (JSON.parse(JSON.stringify(tipico.payload)) as Record<string, unknown>) : undefined;
+  }
+  return undefined;
 }

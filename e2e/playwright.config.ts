@@ -15,6 +15,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   timeout: 60_000,
   expect: { timeout: 15_000 },
+  // Imagens de referência SEM sufixo de plataforma: o PNG vem do engine no
+  // contêiner Linux, idêntico no macOS local e no CI (ADR-022).
+  snapshotPathTemplate: '{testDir}/__referencias__/{arg}{ext}',
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
     baseURL: process.env.DESIGNER_URL ?? 'http://localhost:8080',

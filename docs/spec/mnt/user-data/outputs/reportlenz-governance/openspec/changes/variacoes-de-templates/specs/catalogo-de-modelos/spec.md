@@ -46,3 +46,15 @@ O E2E SHALL comparar o PNG do preview de cada modelo da galeria com uma imagem d
 #### Scenario: Mudança de layout
 - **WHEN** o render de um modelo difere da imagem de referência além da tolerância
 - **THEN** o E2E falha e o relatório traz a imagem esperada, a obtida e o diff
+
+### Requirement: Preview realista dos modelos do catálogo
+O designer SHALL usar o cenário `tipico` do modelo como dados do preview enquanto o contrato do documento
+for o do modelo de referência.
+
+#### Scenario: Modelo intacto
+- **WHEN** o usuário abre um modelo da galeria e renderiza
+- **THEN** o preview usa os dados do cenário típico (ex.: DANFE com chave válida)
+
+#### Scenario: Contrato alterado
+- **WHEN** o usuário altera o contrato do modelo e renderiza
+- **THEN** o preview usa dados genéricos gerados do contrato novo

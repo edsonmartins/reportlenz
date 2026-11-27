@@ -111,6 +111,18 @@ Cada modelo passa por todas as camadas sem teste escrito à mão:
    caminho **sem** sufixo de plataforma). Atualização é explícita: `pnpm --dir e2e test
    --update-snapshots`, revisada no PR.
 
+### 4. Preview realista dos modelos do catálogo
+
+Enquanto o contrato do documento for o do modelo de referência de mesmo nome, o preview do designer usa
+o cenário `tipico` como dados de exemplo:
+
+- o DANFE sai com chave válida;
+- o boleto sai com linha digitável de verdade;
+- a fatura sai com as entregas do subreport.
+
+Com o contrato alterado, o preview volta aos dados genéricos, que sempre satisfazem o contrato. A
+regressão visual, portanto, compara o documento real, não placeholders.
+
 ## Alternativas consideradas
 
 - **Escrever um teste por modelo e camada.** Com 15 modelos e 4 camadas, a manutenção cresce de forma
@@ -129,6 +141,11 @@ Cada modelo passa por todas as camadas sem teste escrito à mão:
   com cenários.
 - Imagens de referência versionadas no repositório: uma por modelo da galeria, poucos KB cada.
 - Mudança de layout intencional exige atualizar a imagem de referência no mesmo PR.
+- **Limitação conhecida:** o barcode4j imprime o conteúdo sob as barras e o modelo não tem atributo para
+  ocultá-lo.
+  - No DANFE, esse texto sai cortado nas pontas. A chave completa vem logo abaixo, em 11 blocos, como
+    o MOC exige, e as barras são lidas pelo ZXing.
+  - Ocultar o texto exige estender o modelo de barcode, o que fica para um change próprio.
 - Fora de escopo:
   - validação fiscal ou bancária dos valores recebidos;
   - DANFE em paisagem, NFC-e e DANFE simplificado;

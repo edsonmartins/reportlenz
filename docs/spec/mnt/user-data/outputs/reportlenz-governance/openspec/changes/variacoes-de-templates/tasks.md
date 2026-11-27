@@ -10,5 +10,5 @@
 - [x] 3.1 Render-service: matriz modelo × cenário (schema, G7, G8, filtro de classes, PDF, ZXing); harness
       G1 sobre os novos fixtures
 - [x] 4.1 Designer: galeria com os 14 modelos + testes
-- [ ] 5.1 E2E: preview e publish por modelo da galeria + regressão visual com imagens de referência
+- [x] 5.1 E2E: preview e publish por modelo da galeria + regressão visual com imagens de referência
 - [ ] 5.2 Rodar a matriz completa localmente e no CI; docs (CLAUDE.md, README)
