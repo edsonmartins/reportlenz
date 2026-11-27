@@ -141,11 +141,8 @@ regressão visual, portanto, compara o documento real, não placeholders.
   com cenários.
 - Imagens de referência versionadas no repositório: uma por modelo da galeria, poucos KB cada.
 - Mudança de layout intencional exige atualizar a imagem de referência no mesmo PR.
-- **Limitação conhecida:** o barcode4j imprime o conteúdo sob as barras e o modelo não tem atributo para
-  ocultá-lo.
-  - No DANFE, esse texto sai cortado nas pontas. A chave completa vem logo abaixo, em 11 blocos, como
-    o MOC exige, e as barras são lidas pelo ZXing.
-  - Ocultar o texto exige estender o modelo de barcode, o que fica para um change próprio.
+- ~~Limitação conhecida: texto sob as barras do DANFE cortado nas pontas.~~ **Resolvida pela
+  ADR-023** (`textPosition`): DANFE e boleto saem sem texto sob as barras.
 - Fora de escopo:
   - validação fiscal ou bancária dos valores recebidos;
   - DANFE em paisagem, NFC-e e DANFE simplificado;

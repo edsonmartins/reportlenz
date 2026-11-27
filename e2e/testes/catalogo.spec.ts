@@ -13,7 +13,7 @@ const API = process.env.DESIGNER_URL ?? 'http://localhost:8080';
  * referência o teste falha até ela ser gerada com --update-snapshots).
  *
  * Regressão visual: o PNG vem do ENGINE no contêiner Linux (não do navegador),
- * então é o mesmo localmente e no CI; a tolerância cobre só antialiasing.
+ * então é o mesmo localmente e no CI; a tolerância (0,05%) cobre só antialiasing.
  */
 const MODELOS = Object.entries(REFERENCE_TEMPLATES)
   .filter(([, t]) => t.properties['reportlenz.template.tipo'] !== 'subreport')
@@ -27,7 +27,9 @@ async function renderizarEComparar(page: Page, chave: string): Promise<void> {
   expect(resposta.status(), await resposta.text().catch(() => '')).toBe(200);
   await expect(page.getByTestId('preview-img')).toBeVisible();
   await expect(page.getByTestId('preview-erro')).toHaveCount(0);
-  expect(await resposta.body()).toMatchSnapshot(`${chave}.png`, { maxDiffPixelRatio: 0.01 });
+  // Tolerância calibrada (ADR-023): sumir o texto sob as barras do DANFE muda
+  // ~0,2% dos pixels — 1% deixava passar. 0,05% cobre só antialiasing.
+  expect(await resposta.body()).toMatchSnapshot(`${chave}.png`, { maxDiffPixelRatio: 0.0005 });
 }
 
 async function publicarPeloWizard(page: Page): Promise<void> {
