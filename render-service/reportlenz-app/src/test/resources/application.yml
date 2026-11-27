@@ -7,13 +7,10 @@ spring:
     password: ${REPORTLENZ_DB_PASSWORD:}
     hikari:
       maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
-  flyway:
-    # ADR-018: schema por migrations (db/migration). Bancos criados pelo antigo
-    # schema.sql não têm histórico: baseline 0 faz o V1 (IF NOT EXISTS) rodar por cima.
-    baseline-on-migrate: true
-    baseline-version: "0"
 
 reportlenz:
+  api:
+    prefixo: ""
   seguranca:
     # Suíte funcional roda no modo dev (ADR-017 §5); a SegurancaTest religa a
     # autenticação com JWTs de teste.

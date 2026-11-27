@@ -24,33 +24,11 @@
   <description>Render JRXML contract-first (Push) com JasperReports Library 7.0.7 — preview e batch</description>
 
   <dependencies>
+    <!-- O render-service standalone É o starter + configuração (ADR-026, dogfooding) -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webmvc</artifactId>
-    </dependency>
-    <!-- Autenticação (ADR-017): resource server JWT emitido pelo Keycloak -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-    </dependency>
-    <!-- Fila do batch (RFC-003 §4): Redis como transporte (decisão do usuário) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-redis</artifactId>
-    </dependency>
-    <!-- Estado durável dos jobs + idempotência: SQLite para começar (decisão do usuário) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jdbc</artifactId>
-    </dependency>
-    <!-- Migrations versionadas (ADR-018): SQL portável SQLite/PostgreSQL -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-flyway</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-database-postgresql</artifactId>
+      <groupId>dev.reportlenz</groupId>
+      <artifactId>reportlenz-spring-boot-starter</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xerial</groupId>
@@ -62,13 +40,6 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
-    </dependency>
-    <!-- Núcleo de render (ADR-026): JasperReports 7.0.7 (matriz do ADR-007), G7,
-         filtro de classes, pipeline e gates — dependências vêm dele. -->
-    <dependency>
-      <groupId>dev.reportlenz</groupId>
-      <artifactId>reportlenz-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- Observabilidade (RFC-003 §7, tarefa 6.1): Observation API → métricas + traces -->
@@ -120,29 +91,11 @@
       <version>3.0.7</version>
       <scope>test</scope>
     </dependency>
-    <!-- Leitura dos códigos de barras do PNG renderizado (matriz do catálogo, ADR-022) -->
-    <dependency>
-      <groupId>com.google.zxing</groupId>
-      <artifactId>javase</artifactId>
-      <version>3.5.4</version>
-      <scope>test</scope>
-    </dependency>
     <!-- Espera assíncrona nos testes do batch -->
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
-    </dependency>
-    <!-- Storage MinIO/S3 (tarefa 5.4, padrão MEDIASTORE) — SDK v2, path-style -->
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>2.47.4</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>apache-client</artifactId>
-      <version>2.47.4</version>
     </dependency>
   </dependencies>
 

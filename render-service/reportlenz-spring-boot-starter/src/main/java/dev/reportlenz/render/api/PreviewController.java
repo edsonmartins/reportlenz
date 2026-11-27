@@ -1,0 +1,99 @@
+package dev.reportlenz.render.api;
+
+import java.util.Map;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import dev.reportlenz.render.pipeline.PipelineDeRender;
+import dev.reportlenz.render.pipeline.ValidadorDePayload;
+import net.sf.jasperreports.engine.JasperPrint;
+
+/**
+ * `POST /render/preview` (RFC-003 §4, tarefa phase-1/2.1): renderiza um JRXML
+ * com dados de exemplo usando o MESMO engine da produção (I-8/ADR-008) e
+ * devolve PDF ou PNG de uma página.
+ *
+ * - 200 `application/pdf` | `image/png`
+ * - 400 JRXML inválido ou Pull (TratadorDeErros, tarefa 2.3)
+ * - 422 sampleData fora do contrato, quando `inputSchema` acompanha o request
+ *   (tarefas 4.1-4.2; o designer envia o schema gerado pelo jrxml-core)
+ */
+@RestController
+public class PreviewController {
+
+    private final tools.jackson.databind.json.JsonMapper json = tools.jackson.databind.json.JsonMapper.builder().build();
+
+    private final PipelineDeRender pipeline;
+    private final ValidadorDePayload validador;
+    /** Ausente com o registro desligado (ADR-026): sem checagem prévia — o fill recusa o "repo:". */
+    private final dev.reportlenz.render.pipeline.ResolvedorDeSubreports subreports;
+
+    public PreviewController(PipelineDeRender pipeline, ValidadorDePayload validador,
+            org.springframework.beans.factory.ObjectProvider<dev.reportlenz.render.pipeline.ResolvedorDeSubreports> subreports) {
+        this.pipeline = pipeline;
+        this.validador = validador;
+        this.subreports = subreports.getIfAvailable();
+    }
+
+    /**
+     * @param inputSchema JSON Schema do contrato (opcional no preview; quando
+     *                    presente, o sampleData é validado ANTES do render)
+     * @param format      `pdf` (default) ou `png`
+     * @param page        página do PNG (0-based; extensão pragmática do contrato
+     *                    da RFC para o preview paginado do designer)
+     */
+    public record PreviewRequest(
+            String jrxml,
+            Map<String, Object> sampleData,
+            Map<String, Object> inputSchema,
+            String format,
+            Integer page) {}
+
+    @PostMapping("/render/preview")
+    public ResponseEntity<byte[]> preview(@RequestBody PreviewRequest request) {
+        // Corpo sem JRXML era NPE → 500; é erro do chamador (componente embutido, ADR-025).
+        if (request.jrxml() == null || request.jrxml().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(new TratadorDeErros.ErroResponse(
+                            "JRXML_AUSENTE", "o corpo do preview precisa de \"jrxml\"")));
+        }
+        Map<String, Object> sampleData = request.sampleData() != null ? request.sampleData() : Map.of();
+
+        // Gate de contrato (RFC-003 §3 passo 2): valida ANTES de compilar/preencher.
+        if (request.inputSchema() != null) {
+            validador.validar(request.inputSchema(), sampleData);
+        }
+
+        // ADR-020 §5: subreport apontando template não publicado → 400 antes do fill.
+        if (subreports != null) {
+            var indisponiveis = subreports.indisponiveis(request.jrxml());
+            if (!indisponiveis.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(json.writeValueAsBytes(new TratadorDeErros.ErroValidacaoResponse(
+                                "SUBREPORT_INDISPONIVEL", "subreport referencia template não publicado (ADR-020)",
+                                indisponiveis)));
+            }
+        }
+
+        JasperPrint print = pipeline.preencher(request.jrxml(), sampleData);
+
+        if ("png".equalsIgnoreCase(request.format())) {
+            int pagina = request.page() != null ? request.page() : 0;
+            byte[] png = pipeline.exportarPng(print, pagina);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .header("X-Total-Pages", String.valueOf(print.getPages().size()))
+                    .body(png);
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pipeline.exportarPdf(print));
+    }
+}

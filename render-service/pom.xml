@@ -35,6 +35,7 @@
 
   <modules>
     <module>reportlenz-core</module>
+    <module>reportlenz-spring-boot-starter</module>
     <module>reportlenz-app</module>
   </modules>
 </project>

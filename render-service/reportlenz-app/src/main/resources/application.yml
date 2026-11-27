@@ -16,11 +16,6 @@ spring:
     hikari:
       # 1 = seguro p/ SQLite (evita SQLITE_BUSY); PostgreSQL em produção usa 10+
       maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
-  flyway:
-    # ADR-018: schema por migrations (db/migration). Bancos criados pelo antigo
-    # schema.sql não têm histórico: baseline 0 faz o V1 (IF NOT EXISTS) rodar por cima.
-    baseline-on-migrate: true
-    baseline-version: "0"
 
 server:
   port: 8087
@@ -49,6 +44,10 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  api:
+    # Standalone: rotas na raiz (/render, /templates…) — o designer e o nginx contam com isso.
+    # Embarcado numa aplicação, o default do starter é /reportlenz (ADR-026).
+    prefixo: ""
   cors:
     # ADR-025 §4: origens das aplicações que embutem o designer com apiBaseUrl
     # de outra origem (vírgula). Vazio = sem CORS (mesma origem / proxy).

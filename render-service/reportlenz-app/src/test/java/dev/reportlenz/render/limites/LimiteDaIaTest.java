@@ -48,6 +48,7 @@ import dev.reportlenz.render.seguranca.ConfiguracaoDeSeguranca;
         "reportlenz.seguranca.habilitada=true",
         "reportlenz.seguranca.issuer=http://127.0.0.1:1/realms/teste",
         "reportlenz.assist.limite-por-minuto=2"})
+@org.springframework.context.annotation.Import(dev.reportlenz.render.seguranca.DecodificadorDeTeste.class)
 class LimiteDaIaTest {
 
     @Autowired

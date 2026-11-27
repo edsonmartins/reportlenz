@@ -50,6 +50,7 @@ import dev.reportlenz.render.pipeline.CompiladorJrxml;
         "reportlenz.seguranca.habilitada=true",
         "reportlenz.seguranca.issuer=http://127.0.0.1:1/realms/teste",
         "reportlenz.seguranca.client-id=reportlenz"})
+@org.springframework.context.annotation.Import(dev.reportlenz.render.seguranca.DecodificadorDeTeste.class)
 class SegurancaTest {
 
     private static final String JRXML = """
