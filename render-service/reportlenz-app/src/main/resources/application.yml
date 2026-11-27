@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: reportlenz-render
+  data:
+    redis:
+      # Infra do usuário via env (ex.: REDIS_HOST=192.168.1.110); localhost em dev/teste
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  datasource:
+    # SQLite = default zero-config (dev); produção aponta REPORTLENZ_DB_URL para
+    # PostgreSQL (ADR-009, change migracao-postgresql). Driver inferido pela URL.
+    url: ${REPORTLENZ_DB_URL:jdbc:sqlite:${REPORTLENZ_DB_PATH:data/reportlenz.db}}
+    username: ${REPORTLENZ_DB_USER:}
+    password: ${REPORTLENZ_DB_PASSWORD:}
+    hikari:
+      # 1 = seguro p/ SQLite (evita SQLITE_BUSY); PostgreSQL em produção usa 10+
+      maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
+
+server:
+  port: 8087
+  # Atrás do proxy (nginx do designer, ADR-019): esquema/host/porta públicos vêm de
+  # X-Forwarded-* — sem isso a checagem de MESMA origem do CORS (ADR-025) falha.
+  # Seguro só porque o serviço NÃO é exposto fora da rede interna.
+  forward-headers-strategy: framework
+
+management:
+  server:
+    # ADR-017 §4: actuator SÓ nesta porta (rede interna: probes + scrape); na
+    # porta da aplicação o actuator é negado.
+    port: ${REPORTLENZ_MANAGEMENT_PORT:8088}
+  endpoints:
+    web:
+      exposure:
+        # /actuator/prometheus é o alvo de scrape do VictoriaMetrics (RFC-003 §7)
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      # ADR-018 §5: 10% por padrão (100% custa caro em produção)
+      probability: ${OTEL_SAMPLING:0.1}
+  otlp:
+    tracing:
+      # Tempo (ou collector OTLP) — configurar na infra
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+
+reportlenz:
+  api:
+    # Standalone: rotas na raiz (/render, /templates…) — o designer e o nginx contam com isso.
+    # Embarcado numa aplicação, o default do starter é /reportlenz (ADR-026).
+    prefixo: ""
+  cors:
+    # ADR-025 §4: origens das aplicações que embutem o designer com apiBaseUrl
+    # de outra origem (vírgula). Vazio = sem CORS (mesma origem / proxy).
+    origens-permitidas: ${REPORTLENZ_CORS_ORIGENS:}
+  seguranca:
+    # ADR-017: resource server JWT do realm Keycloak. false SÓ em dev local
+    # (libera tudo, ator "dev-local"); habilitada sem issuer → boot falha.
+    habilitada: ${REPORTLENZ_SEGURANCA_HABILITADA:true}
+    issuer: ${REPORTLENZ_OIDC_ISSUER:}
+    # ADR-019 §3: JWKS pela rede interna (ex.: http://keycloak:8080/realms/reportlenz/protocol/openid-connect/certs);
+    # vazio = discovery pelo issuer. O iss do token continua validado contra o issuer público.
+    jwk-set-uri: ${REPORTLENZ_OIDC_JWK_SET_URI:}
+    # client cujos client roles também valem como papéis (resource_access.<client>.roles)
+    client-id: ${REPORTLENZ_OIDC_CLIENT_ID:reportlenz}
+  compile-cache:
+    # Compartilhado via Redis (ADR-008/change cache-compilacao-redis): chave =
+    # sha256(jrxml); false volta ao in-memory puro por instância
+    compartilhado: ${REPORTLENZ_COMPILE_CACHE_COMPARTILHADO:true}
+    ttl-horas: ${REPORTLENZ_COMPILE_CACHE_TTL_HORAS:24}
+  assist:
+    # ADR-014: OpenRouter default; base-url OpenAI-compatível — apontar para
+    # Ollama/vLLM local mantém inferência local como opt-in (I-4)
+    base-url: ${REPORTLENZ_LLM_BASE_URL:https://openrouter.ai/api/v1}
+    api-key: ${OPENROUTER_API_KEY:}
+    model: ${REPORTLENZ_LLM_MODEL:google/gemini-2.5-flash}
+    temperature: ${REPORTLENZ_LLM_TEMPERATURE:0.2}
+    max-tokens: ${REPORTLENZ_LLM_MAX_TOKENS:16000}
+    # ADR-018 §3: chamadas por usuário por minuto (Redis, entre instâncias); 0 = sem limite
+    limite-por-minuto: ${REPORTLENZ_ASSIST_LIMITE_POR_MINUTO:10}
+  fila:
+    nome: ${REPORTLENZ_FILA:reportlenz:render:fila}
+    # Streams (change fila-redis-streams): pendente órfã é reivindicada após este idle
+    reivindicar-apos-segundos: ${REPORTLENZ_FILA_REIVINDICAR_APOS:60}
+  limites:
+    # ADR-018 §2: corpo máximo (413) e itens por lote (400)
+    max-request-mb: ${REPORTLENZ_MAX_REQUEST_MB:25}
+    batch-max-itens: ${REPORTLENZ_BATCH_MAX_ITENS:20000}
+  retencao:
+    # ADR-018 §1 (LGPD): payload zerado ao terminar o job; jobs terminados há mais
+    # de N dias são purgados (banco + PDFs no storage) pela rotina diária.
+    dias: ${REPORTLENZ_RETENCAO_DIAS:30}
+    cron: ${REPORTLENZ_RETENCAO_CRON:0 30 3 * * *}
+  recursos:
+    # ADR-016 §2: prefixos de URL que imagens podem buscar (ex.: https://cdn.cliente.com.br/),
+    # separados por vírgula; vazio = nenhuma URL externa. Arquivo local e subreport por
+    # localização são SEMPRE recusados.
+    urls-permitidas: ${REPORTLENZ_RECURSOS_URLS_PERMITIDAS:}
+  storage:
+    # Padrão MEDIASTORE (integrall-commerce-api): LOCAL (default) ou MINIO
+    provider: ${REPORTLENZ_STORAGE_PROVIDER:LOCAL}
+    local-path: ${REPORTLENZ_STORAGE_LOCAL_PATH:data/saidas}
+    public-base-url: ${REPORTLENZ_STORAGE_PUBLIC_URL:}
+    minio:
+      # Infra do usuário (ex.: MINIO_ENDPOINT=https://192.168.1.110:9000)
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      access-key: ${MINIO_ACCESS_KEY:}
+      secret-key: ${MINIO_SECRET_KEY:}
+      bucket: ${MINIO_BUCKET:reportlenz-saidas}
+      region: ${MINIO_REGION:us-east-1}
+      insecure-tls: ${MINIO_INSECURE_TLS:false}
+      # Validade das URLs pré-assinadas (geradas na CONSULTA do job); 0 desliga
+      presign-horas: ${REPORTLENZ_STORAGE_PRESIGN_HORAS:24}

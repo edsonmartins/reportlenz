@@ -127,7 +127,7 @@ echo "$atores" | grep -q "published=e2e.publicador" && ok "publish auditado com 
 echo "$atores" | grep -q "rendered_batch=service-account-reportlenz-batch" && ok "lote auditado com o service account" || erro "ator do lote"
 echo "$atores" | grep -q "diretor-forjado" && erro "ator forjado aceito" || ok "nenhum ator forjado"
 espera "payloads zerados após o lote" '[]' "$(psqlq "SELECT payloads FROM render_job WHERE id='$JOB'")"
-espera "Flyway V1+V2 aplicadas" "1,2" "$(psqlq "SELECT string_agg(version, ',' ORDER BY installed_rank) FROM flyway_schema_history WHERE success")"
+espera "Flyway V1+V2 aplicadas (tabela própria, ADR-026)" "1,2" "$(psqlq "SELECT string_agg(version, ',' ORDER BY installed_rank) FROM reportlenz_schema_history WHERE success AND version <> '0'")"
 
 echo "== superfície exposta"
 curl -s "$API/actuator/prometheus" | grep -q 'jvm_' && erro "métricas expostas pelo designer" || ok "actuator não alcançável pelo designer"

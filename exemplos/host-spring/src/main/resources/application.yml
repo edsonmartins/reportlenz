@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:target/pedidos.db
+    hikari:
+      maximum-pool-size: 1
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+# Só o que o ReportLenz precisa saber — o resto é default do starter (ADR-026).
+reportlenz:
+  seguranca:
+    issuer: ${REPORTLENZ_OIDC_ISSUER:http://127.0.0.1:1/realms/empresa}
+  storage:
+    local-path: target/reportlenz-saidas

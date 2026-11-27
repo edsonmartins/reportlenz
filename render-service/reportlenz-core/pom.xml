@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ReportLenz · núcleo de render (ADR-026): Java puro, SEM Spring.
+  Compila JRXML 7 com o gate G7 (allowlist de expressões), preenche e exporta
+  PDF/PNG num contexto Jasper restrito com o filtro de classes do engine
+  (ADR-016/021), valida payload contra o inputSchema e verifica gates
+  G1/G2/G7/G8. Fachada: dev.reportlenz.render.motor.MotorReportLenz.
+
+  JasperReports Library 7.0.7 é DEPENDÊNCIA, sem modificação (LGPLv3, ADR-006).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>dev.reportlenz</groupId>
+    <artifactId>reportlenz-parent</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>reportlenz-core</artifactId>
+  <packaging>jar</packaging>
+  <name>ReportLenz · núcleo de render</name>
+  <description>Render JRXML 7 contract-first com JasperReports 7.0.7: G7, filtro de classes, PDF/PNG, gates — sem Spring</description>
+
+  <dependencies>
+
+    <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
+    <!-- Core do engine: modelo, load (Jackson), compile, fill -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Exportação PDF — artefato separado no JR7 (essencial: fatura/comprovante) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-pdf</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Fontes DejaVu embarcadas — acentuação pt-BR correta (R$, ç, ã) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-fonts</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Funções de relatório usáveis em expressões -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-functions</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Metadata — introspecção do modelo (apoia inputSchema, RFC-002) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-metadata</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Compilador de expressões (JDT) — necessário para compileReport em runtime
+         (comprovado pelo harness da Fase 0; ausência quebra o compile) -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-jdt</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- Componentes barcode4j (QRCode, EAN-13, ...) usados pelo subconjunto ReportLenz -->
+    <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-barcode4j</artifactId>
+      <version>${jasperreports.version}</version>
+    </dependency>
+    <!-- ===== fim da matriz JR7 ===== -->
+
+    <!-- Validação de payload contra o inputSchema (RFC-002 §5) — 3.x usa Jackson 3, como o Boot 4 -->
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>3.0.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- Spans/métricas por etapa (compile/fill/export) — API leve, sem Spring -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-observation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>javase</artifactId>
+      <version>3.5.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

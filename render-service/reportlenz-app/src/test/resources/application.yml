@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    # SQLite por default; o CI roda a suíte TAMBÉM contra PostgreSQL apontando
+    # REPORTLENZ_DB_URL para o service container (change migracao-postgresql)
+    url: ${REPORTLENZ_DB_URL:jdbc:sqlite:target/test-reportlenz.db}
+    username: ${REPORTLENZ_DB_USER:}
+    password: ${REPORTLENZ_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${REPORTLENZ_DB_POOL:1}
+
+reportlenz:
+  api:
+    prefixo: ""
+  seguranca:
+    # Suíte funcional roda no modo dev (ADR-017 §5); a SegurancaTest religa a
+    # autenticação com JWTs de teste.
+    habilitada: false
+  compile-cache:
+    # Prefixo ÚNICO por execução: rodadas consecutivas da suíte (SQLite e
+    # PostgreSQL no CI) compartilham o Redis — sem isso o cache chega quente
+    # e os testes de "compila exatamente uma vez" quebram.
+    prefixo: "reportlenz:compile:test:${random.uuid}:"
+  assist:
+    # Prefixo único por execução (mesma lição do compile cache: o Redis é compartilhado)
+    limite-prefixo: "reportlenz:assist:limite:test:${random.uuid}:"
+  fila:
+    nome: "reportlenz:render:fila:test:${random.uuid}"
+    reivindicar-apos-segundos: 1
+  storage:
+    provider: LOCAL
+    local-path: target/test-saidas
+    public-base-url: ""
+
+# Atenção: este arquivo FAZ SOMBRA ao application.yml principal nos testes
+# (mesmo nome no classpath — sem merge); replicar aqui o que os testes usam.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 0.0   # sem export de traces em teste
+
+# Igual à produção (atrás do proxy): X-Forwarded-* definem esquema/host públicos (CORS, ADR-025).
+server:
+  forward-headers-strategy: framework

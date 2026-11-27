@@ -105,6 +105,17 @@ headless   contrato   React      pro         governança
     - Token por `getAccessToken`; OIDC só na SPA (`src/spa`, `src/auth`), fora do pacote.
     - CORS por `REPORTLENZ_CORS_ORIGENS`.
     - A API pública (`src/index.ts`) é contrato: mudança incompatível exige versão major.
+  - `backend-embarcavel` (ADR-026): `render-service/` é multi-módulo.
+    - **`reportlenz-core`:** Java puro, SEM Spring; fachada `MotorReportLenz`; as barreiras não são
+      configuráveis.
+    - **`reportlenz-spring-boot-starter`:** auto-configuração; todo código de serviço mora aqui.
+    - **`reportlenz-app`:** só a classe `main` e a configuração; nada é varrido daqui.
+    - Regra do starter: **nada global**. Segurança, CORS, filtros e advice ficam escopados a
+      `reportlenz.api.prefixo`; Flyway próprio; sem `@EnableScheduling`; sem beans de tipos que a
+      aplicação usa (`JwtDecoder`, `corsConfigurationSource`, `UserDetailsService`, `ObservationRegistry`
+      obrigatório).
+    - Recurso novo condicional: `@RecursoRegistro`/`@RecursoBatch`/`@RecursoAssistente`.
+    - Migração nova em `classpath:reportlenz/db/migration`.
 
   Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.

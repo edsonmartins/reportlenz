@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Aplicação Spring Boot 4 hospedeira de TESTE (ADR-026, change
+  backend-embarcavel/2.4): uma aplicação "da empresa", com segurança, Flyway e
+  rotas próprias, que importa o reportlenz-spring-boot-starter como faria do
+  Maven Central (aqui, do repositório local após `mvn install` no render-service).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.7</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.empresa</groupId>
+  <artifactId>pedidos-host-spring</artifactId>
+  <version>0.0.0</version>
+  <name>Aplicação hospedeira de teste (Spring)</name>
+
+  <properties>
+    <java.version>21</java.version>
+    <reportlenz.version>0.1.0</reportlenz.version>
+  </properties>
+
+  <dependencies>
+    <!-- Tudo o que a aplicação precisa para embarcar o ReportLenz -->
+    <dependency>
+      <groupId>dev.reportlenz</groupId>
+      <artifactId>reportlenz-spring-boot-starter</artifactId>
+      <version>${reportlenz.version}</version>
+    </dependency>
+
+    <!-- O que é da própria aplicação -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.7</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

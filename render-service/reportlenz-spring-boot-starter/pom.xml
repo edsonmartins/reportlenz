@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ReportLenz · starter Spring Boot 4 (ADR-026): importar este artefato numa
+  aplicação sobe o motor de render, o registro de templates (no DataSource da
+  aplicação, Flyway em tabela própria), os endpoints do designer sob
+  /reportlenz, o batch (Redis + S3) e a IA — cada recurso desligável por
+  propriedade. Segurança, CORS, limites e tratador de erros escopados ao
+  prefixo: nada vaza para a aplicação.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>dev.reportlenz</groupId>
+    <artifactId>reportlenz-parent</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>reportlenz-spring-boot-starter</artifactId>
+  <packaging>jar</packaging>
+  <name>ReportLenz · Spring Boot starter</name>
+  <description>ReportLenz embarcado numa aplicação Spring Boot 4: render JRXML 7, registro, designer API, batch e IA</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>dev.reportlenz</groupId>
+      <artifactId>reportlenz-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+    <!-- Segurança (ADR-017): resource server JWT do Keycloak, cadeia escopada ao prefixo -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <!-- Batch (Redis Streams), cache de compilação compartilhado e limite da IA -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <!-- Registro de templates e jobs no DataSource da aplicação -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <!-- Flyway SÓ a biblioteca (instância própria, tabela própria): sem a
+         auto-configuração do Boot, que rodaria sobre as migrações da aplicação -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
+    <!-- Saídas do batch em S3/MinIO (ou disco local) -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <version>2.47.4</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>apache-client</artifactId>
+      <version>2.47.4</version>
+    </dependency>
+  </dependencies>
+</project>

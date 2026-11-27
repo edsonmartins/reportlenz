@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ReportLenz · serviço de render (RFC-003, tarefa phase-1/1.1).
+  ReportLenz · backend Java (ADR-026): projeto multi-módulo.
 
-  Embarca a JasperReports Library 7.0.7 como dependência, sem modificação
-  (fronteira LGPLv3 — ADR-006). Matriz modular do JR7 conforme ADR-007,
-  validada contra o Maven Central em 2026-07-09 (nota de design 004):
-  PDF e fontes NÃO vêm no core — declarar explicitamente.
+    reportlenz-core                 → Java puro (pipeline, G7, gates, MotorReportLenz)
+    reportlenz-spring-boot-starter  → auto-configuração para aplicações Spring Boot 4
+    reportlenz-app                  → o render-service standalone (starter + main)
+
+  Embarca a JasperReports Library 7.0.7 como DEPENDÊNCIA, sem modificação
+  (fronteira LGPLv3 — ADR-006; matriz modular do ADR-007/nota 004).
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -20,192 +22,117 @@
   </parent>
 
   <groupId>dev.reportlenz</groupId>
-  <artifactId>reportlenz-render-service</artifactId>
+  <artifactId>reportlenz-parent</artifactId>
   <version>0.1.0</version>
-  <packaging>jar</packaging>
-  <name>ReportLenz · serviço de render</name>
-  <description>Render JRXML contract-first (Push) com JasperReports Library 7.0.7 — preview e batch</description>
+  <packaging>pom</packaging>
+  <name>ReportLenz · parent</name>
+  <description>Render JRXML 7 contract-first (Push) com a JasperReports Library 7.0.7</description>
+  <url>https://github.com/edsonmartins/reportlenz</url>
+
+  <!-- Metadados exigidos pelo Maven Central (ADR-026 §4) -->
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>ReportLenz</name>
+      <url>https://github.com/edsonmartins/reportlenz</url>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/edsonmartins/reportlenz</url>
+    <connection>scm:git:https://github.com/edsonmartins/reportlenz.git</connection>
+    <developerConnection>scm:git:git@github.com:edsonmartins/reportlenz.git</developerConnection>
+  </scm>
 
   <properties>
     <java.version>21</java.version>
     <jasperreports.version>7.0.7</jasperreports.version>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webmvc</artifactId>
-    </dependency>
-    <!-- Autenticação (ADR-017): resource server JWT emitido pelo Keycloak -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
-    </dependency>
-    <!-- Fila do batch (RFC-003 §4): Redis como transporte (decisão do usuário) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-redis</artifactId>
-    </dependency>
-    <!-- Estado durável dos jobs + idempotência: SQLite para começar (decisão do usuário) -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-jdbc</artifactId>
-    </dependency>
-    <!-- Migrations versionadas (ADR-018): SQL portável SQLite/PostgreSQL -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-flyway</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-database-postgresql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.xerial</groupId>
-      <artifactId>sqlite-jdbc</artifactId>
-      <version>3.53.2.0</version>
-    </dependency>
-    <!-- PostgreSQL (ADR-009/change migracao-postgresql): produção via REPORTLENZ_DB_URL -->
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>runtime</scope>
-    </dependency>
+  <!--
+    Publicação no Maven Central (ADR-026 §4): mvn -P publicacao deploy
+    Publica reportlenz-parent, reportlenz-core e reportlenz-spring-boot-starter
+    (a aplicação standalone fica de fora). Exige, do dono do namespace:
+      - groupId com namespace VERIFICADO no central.sonatype.com;
+      - token do Central em ~/.m2/settings.xml (server id "central");
+      - chave GPG (MAVEN_GPG_PASSPHRASE).
+  -->
+  <profiles>
+    <profile>
+      <id>publicacao</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>fontes</id>
+                <goals><goal>jar-no-fork</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+            <configuration>
+              <doclint>none</doclint>
+              <quiet>true</quiet>
+            </configuration>
+            <executions>
+              <execution>
+                <id>javadoc</id>
+                <goals><goal>jar</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <executions>
+              <execution>
+                <id>assinar</id>
+                <phase>verify</phase>
+                <goals><goal>sign</goal></goals>
+              </execution>
+            </executions>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.12.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
+              <excludeArtifacts>
+                <artifactId>reportlenz-render-service</artifactId>
+              </excludeArtifacts>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
-    <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
-    <!-- Core do engine: modelo, load (Jackson), compile, fill -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Exportação PDF — artefato separado no JR7 (essencial: fatura/comprovante) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-pdf</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Fontes DejaVu embarcadas — acentuação pt-BR correta (R$, ç, ã) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-fonts</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Funções de relatório usáveis em expressões -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-functions</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Metadata — introspecção do modelo (apoia inputSchema, RFC-002) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-metadata</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Compilador de expressões (JDT) — necessário para compileReport em runtime
-         (comprovado pelo harness da Fase 0; ausência quebra o compile) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-jdt</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Componentes barcode4j (QRCode, EAN-13, ...) usados pelo subconjunto ReportLenz -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-barcode4j</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- ===== fim da matriz JR7 ===== -->
-
-    <!-- Validação de payload contra o inputSchema (RFC-002 §5) — 3.x usa Jackson 3, como o Boot 4 -->
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>3.0.6</version>
-    </dependency>
-
-    <!-- Observabilidade (RFC-003 §7, tarefa 6.1): Observation API → métricas + traces -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <!-- Boot 4: auto-config de métricas Micrometer saiu do actuator p/ módulo próprio -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-micrometer-metrics</artifactId>
-    </dependency>
-    <!-- Métricas em formato Prometheus (o VictoriaMetrics raspa /actuator/prometheus) -->
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus</artifactId>
-    </dependency>
-    <!-- Traces via OTel → OTLP (Tempo); endpoint por env -->
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-tracing-bridge-otel</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-otlp</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Boot 4: suporte a MockMvc saiu do starter-test para módulo próprio -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-webmvc-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- JWTs de teste (ADR-017): jwt() no MockMvc -->
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Extração de texto de PDF nos testes (prova de acentuação pt-BR, tarefa 1.2) -->
-    <dependency>
-      <groupId>org.apache.pdfbox</groupId>
-      <artifactId>pdfbox</artifactId>
-      <version>3.0.7</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- Leitura dos códigos de barras do PNG renderizado (matriz do catálogo, ADR-022) -->
-    <dependency>
-      <groupId>com.google.zxing</groupId>
-      <artifactId>javase</artifactId>
-      <version>3.5.4</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- Espera assíncrona nos testes do batch -->
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Storage MinIO/S3 (tarefa 5.4, padrão MEDIASTORE) — SDK v2, path-style -->
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>s3</artifactId>
-      <version>2.47.4</version>
-    </dependency>
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>apache-client</artifactId>
-      <version>2.47.4</version>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
+  <modules>
+    <module>reportlenz-core</module>
+    <module>reportlenz-spring-boot-starter</module>
+    <module>reportlenz-app</module>
+  </modules>
 </project>

@@ -4,11 +4,18 @@
 
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
+# Multi-módulo (ADR-026): parent + módulos; a imagem empacota o reportlenz-app.
 COPY pom.xml .
-RUN mvn -q -B dependency:go-offline
-COPY src ./src
+COPY reportlenz-core/pom.xml reportlenz-core/
+COPY reportlenz-spring-boot-starter/pom.xml reportlenz-spring-boot-starter/
+COPY reportlenz-app/pom.xml reportlenz-app/
+RUN mvn -q -B -pl reportlenz-app -am dependency:go-offline || true
+COPY reportlenz-core/src reportlenz-core/src
+COPY reportlenz-spring-boot-starter/src reportlenz-spring-boot-starter/src
+COPY reportlenz-app/src reportlenz-app/src
 # Testes rodam no CI (com Redis/PostgreSQL/MinIO); aqui só empacota.
-RUN mvn -q -B -DskipTests package && cp target/reportlenz-render-service-*.jar /src/app.jar
+RUN mvn -q -B -DskipTests -pl reportlenz-app -am package \
+    && cp reportlenz-app/target/reportlenz-render-service-*.jar /src/app.jar
 
 FROM eclipse-temurin:21-jre
 # fontconfig: export PNG do preview usa AWT; curl: healthcheck.

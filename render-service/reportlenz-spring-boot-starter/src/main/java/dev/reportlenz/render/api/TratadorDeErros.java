@@ -1,0 +1,77 @@
+package dev.reportlenz.render.api;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import dev.reportlenz.render.pipeline.ErroDeRender;
+
+/**
+ * Mapeamento HTTP dos erros do pipeline (RFC-003 §4, tarefa phase-1/2.3):
+ * - 400: JRXML inválido ou Pull (`CONTRACT_PULL_FORBIDDEN`) — erro do template;
+ * - 500: falha de fill/export — erro do serviço;
+ * - 422 (payload × inputSchema) chega com as tarefas 4.x.
+ */
+/** Escopado aos controllers do ReportLenz (ADR-026): não captura erros da aplicação hospedeira. */
+@RestControllerAdvice(basePackageClasses = TratadorDeErros.class)
+public class TratadorDeErros {
+
+    /** Corpo de erro estruturado, alinhado aos códigos do jrxml-core. */
+    public record ErroResponse(String codigo, String mensagem) {}
+
+    @ExceptionHandler(ErroDeRender.PullProibido.class)
+    public ResponseEntity<ErroResponse> pullProibido(ErroDeRender.PullProibido e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroResponse("CONTRACT_PULL_FORBIDDEN", e.getMessage()));
+    }
+
+    @ExceptionHandler(ErroDeRender.JrxmlInvalido.class)
+    public ResponseEntity<ErroResponse> jrxmlInvalido(ErroDeRender.JrxmlInvalido e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroResponse("JRXML_INVALIDO", e.getMessage()));
+    }
+
+    /** G7 (ADR-016): expressão/estrutura fora da allowlist — erro do template. */
+    @ExceptionHandler(ErroDeRender.ExpressaoProibida.class)
+    public ResponseEntity<ErroValidacaoResponse> expressaoProibida(ErroDeRender.ExpressaoProibida e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErroValidacaoResponse("EXPRESSAO_PROIBIDA", e.getMessage(), e.violacoes()));
+    }
+
+    @ExceptionHandler(ErroDeRender.FalhaDeRender.class)
+    public ResponseEntity<ErroResponse> falhaDeRender(ErroDeRender.FalhaDeRender e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErroResponse("FALHA_DE_RENDER", e.getMessage()));
+    }
+
+    /** published é imutável (RFC-006 §2) — mutação indevida → 409. */
+    @ExceptionHandler(dev.reportlenz.render.publish.RepositorioDeTemplates.VersaoImutavel.class)
+    public ResponseEntity<ErroResponse> versaoImutavel(dev.reportlenz.render.publish.RepositorioDeTemplates.VersaoImutavel e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErroResponse("VERSAO_IMUTAVEL", e.getMessage()));
+    }
+
+    /** IA indisponível degrada sem quebrar o designer (RFC-005/ADR-014). */
+    @ExceptionHandler(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel.class)
+    public ResponseEntity<ErroResponse> iaIndisponivel(dev.reportlenz.render.assist.ErroDoAssistente.IaIndisponivel e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(new ErroResponse("IA_INDISPONIVEL", e.getMessage()));
+    }
+
+    /** O modelo fugiu do formato pedido — o front oferece "tentar de novo". */
+    @ExceptionHandler(dev.reportlenz.render.assist.ErroDoAssistente.RespostaInvalida.class)
+    public ResponseEntity<ErroResponse> respostaInvalida(dev.reportlenz.render.assist.ErroDoAssistente.RespostaInvalida e) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ErroResponse("IA_RESPOSTA_INVALIDA", e.getMessage()));
+    }
+
+    /** Corpo do 422: a lista de violações do inputSchema (RFC-002 §5). */
+    public record ErroValidacaoResponse(String codigo, String mensagem, java.util.List<String> violacoes) {}
+
+    @ExceptionHandler(ErroDeRender.PayloadForaDoContrato.class)
+    public ResponseEntity<ErroValidacaoResponse> payloadForaDoContrato(ErroDeRender.PayloadForaDoContrato e) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErroValidacaoResponse("PAYLOAD_FORA_DO_CONTRATO", e.getMessage(), e.violacoes()));
+    }
+}
