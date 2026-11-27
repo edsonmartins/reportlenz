@@ -82,12 +82,24 @@ export type BarcodeType =
   | 'DataMatrix'
   | 'PDF417';
 
+/** Simbologias LINEARES — as únicas com texto legível (ADR-023). */
+export const BARCODES_LINEARES: readonly BarcodeType[] = ['Code128', 'Code39', 'EAN13', 'EAN8', 'Interleaved2Of5'];
+
+/** Posição do texto legível sob/sobre as barras (`textPosition` do barcode4j). */
+export type TextPosition = 'none' | 'bottom' | 'top';
+
 /** Código de barras/QR (etiquetas A4, comprovantes). */
 export interface BarcodeElement extends ElementBase {
   kind: 'barcode';
   barcodeType: BarcodeType;
   /** Expressão que produz o conteúdo codificado. */
   expression: string;
+  /**
+   * Texto legível (ADR-023) — só em simbologias lineares. Ausente = default
+   * do engine (embaixo). `none` some com o texto (ex.: chave do DANFE, que
+   * já vem formatada em 11 blocos ao lado).
+   */
+  textPosition?: TextPosition;
 }
 
 /**

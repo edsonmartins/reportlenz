@@ -20,6 +20,7 @@ export type {
   SubreportParameter,
   TableCell,
   TableColumn,
+  TextPosition,
   TableColumnGroup,
   TableElement,
   TextField,
