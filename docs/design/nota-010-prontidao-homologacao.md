@@ -69,7 +69,6 @@ implantação.
   alimentam barcode diretamente recebem valor válido para a simbologia (EAN-13/EAN-8 com dígito verificador
   GS1, I2of5 com nº par de dígitos, Code39 em maiúsculas). Engine real: antes HTTP 500 com "Valid are 0-9
   only", depois HTTP 200 com o PNG da grade.
-- **Subreport por codename publicado:** com a recusa de subreport por localização (ADR-016), o elemento
-  subreport só funciona quando a expressão entrega o objeto. A resolução `repo:<codename>` fica para um
-  change futuro.
+- ~~**Subreport por codename publicado**~~ → **implementado (2026-11-26, ADR-020):** literal
+  `"repo:<codename>[@n]"`, resolução pelo registro com cache + G7, gate G8 (filho publicado, sem ciclo).
 - **Bundle do designer** com ~700 kB (aviso do Vite); code-splitting é opcional.

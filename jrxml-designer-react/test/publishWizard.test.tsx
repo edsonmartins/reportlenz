@@ -69,8 +69,11 @@ describe('jrxml-designer-react · Publish Wizard — gates G1–G6 (Fase 4, bloc
     const corpo = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string) as {
       jrxml: string;
       jrxmlHash: string;
+      codename: string;
     };
     expect(corpo.jrxml).toContain('<jasperReport');
+    // G8 (ADR-020): o codename vai junto para a detecção de ciclo de subreports.
+    expect(corpo.codename).toBe('fatura_completa');
     expect(corpo.jrxmlHash).toMatch(/^[0-9a-f]{64}$/);
 
     const confirmar = screen.getByTestId('publish-confirmar');

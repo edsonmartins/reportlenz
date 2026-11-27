@@ -33,14 +33,31 @@ public class VerificadorDeGates {
     public record Resultado(boolean verde, List<Gate> gates, String jrxmlHash) {}
 
     private final CompiladorJrxml compilador;
+    /** ADR-020: templates referenciados por subreport (null = G8 sem consulta ao registro). */
+    private final dev.reportlenz.render.pipeline.FonteDeSubreports subreports;
     private final SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);
     private final JsonMapper json = JsonMapper.builder().build();
 
     public VerificadorDeGates(CompiladorJrxml compilador) {
+        this(compilador, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public VerificadorDeGates(CompiladorJrxml compilador, dev.reportlenz.render.pipeline.FonteDeSubreports subreports) {
         this.compilador = compilador;
+        this.subreports = subreports;
     }
 
     public Resultado verificar(String jrxmlBruto, Map<String, Object> inputSchema, String jrxmlHashInformado) {
+        return verificar(jrxmlBruto, inputSchema, jrxmlHashInformado, null);
+    }
+
+    /**
+     * @param codename template sendo verificado/publicado — permite ao G8 detectar
+     *                 ciclo de subreports de volta a ele (ADR-020); null = só resolvibilidade
+     */
+    public Resultado verificar(String jrxmlBruto, Map<String, Object> inputSchema, String jrxmlHashInformado,
+            String codename) {
         List<Gate> gates = new ArrayList<>();
         String jrxml = jrxmlBruto == null ? "" : jrxmlBruto;
 
@@ -66,6 +83,13 @@ public class VerificadorDeGates {
         // G7 (ADR-016): segurança de expressão — allowlist léxica + estrutura.
         gates.add(new Gate("G7", g7.isEmpty(), g7));
 
+        // G8 (ADR-020): subreports resolvem no registro e o grafo não volta a este template.
+        List<String> g8 = new ArrayList<>();
+        if (g1.isEmpty() && g2.isEmpty() && g7.isEmpty() && !jrxml.isBlank()) {
+            verificarSubreports(jrxml, codename, new java.util.ArrayDeque<>(), new java.util.HashSet<>(), g8);
+        }
+        gates.add(new Gate("G8", g8.isEmpty(), g8));
+
         // G5: inputSchema presente e aceito como JSON Schema 2020-12.
         List<String> g5 = new ArrayList<>();
         if (inputSchema == null || inputSchema.isEmpty()) {
@@ -89,6 +113,45 @@ public class VerificadorDeGates {
 
         boolean verde = gates.stream().allMatch(Gate::verde);
         return new Resultado(verde, gates, hash);
+    }
+
+    /** DFS pelas versões referenciadas; `caminho` = cadeia atual para a mensagem de ciclo. */
+    private void verificarSubreports(String jrxml, String raiz, java.util.Deque<String> caminho,
+            java.util.Set<String> visitados, List<String> erros) {
+        net.sf.jasperreports.engine.design.JasperDesign design;
+        try {
+            design = net.sf.jasperreports.engine.xml.JRXmlLoader.load(
+                    new java.io.ByteArrayInputStream(jrxml.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            erros.add("SUBREPORT_INDISPONIVEL: template referenciado não carrega — " + e.getMessage());
+            return;
+        }
+        for (var s : dev.reportlenz.render.pipeline.ReferenciaDeSubreport.subreports(design)) {
+            var ref = dev.reportlenz.render.pipeline.ReferenciaDeSubreport.daExpressao(s.getExpression());
+            if (ref == null) {
+                continue; // forma inválida já é do G7
+            }
+            String cadeia = (raiz == null ? "" : raiz + " → ") + String.join(" → ", caminho)
+                    + (caminho.isEmpty() ? "" : " → ") + ref;
+            if (raiz != null && raiz.equals(ref.codename())) {
+                erros.add("SUBREPORT_CICLO: " + cadeia);
+                continue;
+            }
+            if (subreports == null) {
+                continue;
+            }
+            var filho = subreports.jrxml(ref);
+            if (filho.isEmpty()) {
+                erros.add("SUBREPORT_INDISPONIVEL: \"" + ref + "\" não está publicado"
+                        + (caminho.isEmpty() ? "" : " (via " + String.join(" → ", caminho) + ")"));
+                continue;
+            }
+            if (visitados.add(ref.toString()) && caminho.size() < 16) {
+                caminho.addLast(ref.toString());
+                verificarSubreports(filho.get(), raiz, caminho, visitados, erros);
+                caminho.removeLast();
+            }
+        }
     }
 
     public static String sha256(String texto) {

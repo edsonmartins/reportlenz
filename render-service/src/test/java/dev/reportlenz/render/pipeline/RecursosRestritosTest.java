@@ -120,9 +120,13 @@ class RecursosRestritosTest {
         return m;
     }
 
-    /** Controle: o engine sem restrição carrega o recurso. */
+    /**
+     * Controle: o engine SEM as restrições do produto (compile direto, contexto
+     * default) carrega o recurso — prova que a recusa é do ReportLenz.
+     */
     private void controleCarregaNoContextoDefault(String jrxml, Map<String, Object> parametros) throws Exception {
-        JasperReport report = compilador.compilar(jrxml);
+        JasperReport report = net.sf.jasperreports.engine.JasperCompileManager.compileReport(
+                new java.io.ByteArrayInputStream(jrxml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         assertThat(JasperFillManager.fillReport(report, parametros, new JREmptyDataSource(1))).isNotNull();
     }
 
@@ -165,8 +169,15 @@ class RecursosRestritosTest {
         net.sf.jasperreports.engine.JasperCompileManager.compileReportToFile(fonte.toString(), filho.toString());
         controleCarregaNoContextoDefault(JRXML_SUB_MESTRE, payload("sub_template", filho.toString()));
 
+        // Desde o ADR-020 o G7 já recusa no COMPILE (subreport fora do literal "repo:").
         assertThatThrownBy(() -> pipeline(ContextoJasperRestrito.semUrls())
                 .renderizarPdf(JRXML_SUB_MESTRE, payload("sub_template", filho.toString())))
+                .isInstanceOf(ErroDeRender.ExpressaoProibida.class)
+                .hasMessageContaining("repo:");
+
+        // E mesmo com o literal "repo:", sem resolvedor do registro o fill recusa.
+        String comRepo = JRXML_SUB_MESTRE.replace("$P{sub_template}", "\"repo:qualquer\"");
+        assertThatThrownBy(() -> pipeline(ContextoJasperRestrito.semUrls()).renderizarPdf(comRepo, Map.of()))
                 .isInstanceOf(ErroDeRender.FalhaDeRender.class)
                 .hasMessageContaining("RECURSO_RECUSADO");
     }

@@ -53,12 +53,17 @@ export type { IntegrationPackage, IntegrationPackageOptions, VersionRecord } fro
 export { avaliarGates } from './publish/gates.js';
 export type { CodigoDeGate, ResultadoDeGate, ResultadoDosGates } from './publish/gates.js';
 
+// Subreport por codename publicado (ADR-020).
+export { lerReferenciaDeSubreport } from './validate/referenciaDeSubreport.js';
+export type { ReferenciaDeSubreport } from './validate/referenciaDeSubreport.js';
+
 // Templates de referência (fixtures do harness Java e exemplos p/ o designer).
 export {
   REFERENCE_TEMPLATES,
   REFERENCIA_COMPROVANTE,
   REFERENCIA_ETIQUETA_A4,
   REFERENCIA_FATURA,
+  REFERENCIA_FATURA_ENTREGAS,
   REFERENCIA_FORMULARIO,
 } from './reference/templates.js';
 

@@ -102,6 +102,9 @@ public final class VerificadorDeExpressoes {
     /** Atributos que instanciam classe por nome e não têm getter uniforme no design. */
     private static final Pattern ATRIBUTO_DE_CLASSE = Pattern.compile("\\bcustomizerClass\\s*=");
 
+    /** Marcador do elemento subreport no dialeto 7. */
+    private static final Pattern SUBREPORT_NO_XML = Pattern.compile("kind\\s*=\\s*\"subreport\"");
+
     /**
      * Verifica o design completo. Lança {@link ExpressaoProibida} com TODAS as
      * violações encontradas (o publish mostra a lista no G7).
@@ -153,6 +156,21 @@ public final class VerificadorDeExpressoes {
         }
         if (bruto != null && ATRIBUTO_DE_CLASSE.matcher(bruto).find()) {
             v.add("customizerClass não permitido");
+        }
+        // ADR-020: subreport só pelo literal "repo:<codename>[@n]" — o payload não
+        // escolhe o template incluído e o grafo de dependências fica estático.
+        var subreports = ReferenciaDeSubreport.subreports(design);
+        for (var s : subreports) {
+            if (ReferenciaDeSubreport.daExpressao(s.getExpression()) == null) {
+                v.add("subreport deve usar o literal \"repo:<codename>\" ou \"repo:<codename>@<versão>\" (ADR-020)");
+            }
+        }
+        // Subreport em local que o visitor do JR não alcança não pode ser verificado: recusa.
+        if (bruto != null) {
+            int noXml = SUBREPORT_NO_XML.matcher(bruto).results().mapToInt(r -> 1).sum();
+            if (noXml > subreports.size()) {
+                v.add("subreport em local não suportado (ADR-020)");
+            }
         }
         List<JRDataset> datasets = new ArrayList<>();
         datasets.add(design.getMainDataset());

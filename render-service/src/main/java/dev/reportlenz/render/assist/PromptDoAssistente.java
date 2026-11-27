@@ -83,7 +83,8 @@ public final class PromptDoAssistente {
             - {"kind":"table","datasetField":"<field collection>","columns":[{"width":N,\
             "header"?:{"height":N,"elements":[...]},"detail":{"height":N,"elements":[...]},\
             "footer"?:{...}}]} — expressões das células usam os itemFields da coleção.
-            - {"kind":"subreport","templateExpression":"$P{...}","parameters":[]}
+            - {"kind":"subreport","templateExpression":"\\"repo:<codename publicado>\\"","parameters":[]} \
+            (literal repo: de um template JÁ publicado — nunca $P/$F; ADR-020)
 
             CONVENÇÕES pt-BR (use sempre): moeda pattern "¤ #,##0.00"; milhar "#,##0.00"; \
             data "dd/MM/yyyy"; data-hora "dd/MM/yyyy HH:mm". Rótulos em português. Fonte \

@@ -5,6 +5,7 @@
 - **Relacionado:** I-2, I-3 (CONSTITUTION), ADR-003 (contract-first), ADR-008 (compile cache), ADR-013 (gates),
   RFC-003 §4, RFC-006 §3
 - **Implementa:** `openspec/changes/seguranca-expressoes`
+- **Complementado por:** ADR-020 (subreport por codename publicado — o "change futuro" do §2)
 
 ## Contexto
 

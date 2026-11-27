@@ -443,7 +443,7 @@ export function PainelDePropriedades() {
       break;
     case 'subreport':
       linhas.push(
-        expressao('templateExpression', 'Template', elemento.templateExpression, (v) =>
+        expressao('templateExpression', 'Template ("repo:codename" ou "repo:codename@versão")', elemento.templateExpression, (v) =>
           mudarElemento((el) => ({ ...el, templateExpression: v }) as Element),
         ),
         expressao('dataSourceExpression', 'Datasource', elemento.dataSourceExpression ?? '', (v) =>

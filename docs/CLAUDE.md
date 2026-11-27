@@ -163,6 +163,8 @@ começar (granularidade session-sized é um princípio, não sugestão).
 - [ ] **G6 — Hash:** `jrxml_hash` consistente (onde aplicável).
 - [ ] **G7 — Segurança de expressão (ADR-016):** expressões só com o vocabulário da allowlist do
   `VerificadorDeExpressoes`; sem import/scriptlet/factory/customizer (avaliado só no serviço).
+- [ ] **G8 — Subreports (ADR-020):** subreport só pelo literal `"repo:<codename>[@n]"`; referências
+  publicadas e grafo sem ciclo (avaliado só no serviço, no publish).
 - [ ] Testes verdes (Vitest / Spring / componente).
 - [ ] Commit descreve o que satisfaz qual critério.
 

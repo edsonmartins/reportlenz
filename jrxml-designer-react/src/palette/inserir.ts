@@ -52,7 +52,8 @@ export const PRESETS_DE_ELEMENTO: PresetDeElemento[] = [
     criar: () => ({
       kind: 'subreport',
       bounds: { x: 5, y: 5, width: 300, height: 30 },
-      templateExpression: '$P{sub_template}',
+      // ADR-020: literal "repo:<codename>" de um template PUBLICADO (o checker aponta até ajustar).
+      templateExpression: '"repo:codename_publicado"',
       parameters: [],
     }),
   },

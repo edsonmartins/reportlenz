@@ -25,12 +25,17 @@ import net.sf.jasperreports.engine.JasperPrint;
 @RestController
 public class PreviewController {
 
+    private final tools.jackson.databind.json.JsonMapper json = tools.jackson.databind.json.JsonMapper.builder().build();
+
     private final PipelineDeRender pipeline;
     private final ValidadorDePayload validador;
+    private final dev.reportlenz.render.pipeline.ResolvedorDeSubreports subreports;
 
-    public PreviewController(PipelineDeRender pipeline, ValidadorDePayload validador) {
+    public PreviewController(PipelineDeRender pipeline, ValidadorDePayload validador,
+            dev.reportlenz.render.pipeline.ResolvedorDeSubreports subreports) {
         this.pipeline = pipeline;
         this.validador = validador;
+        this.subreports = subreports;
     }
 
     /**
@@ -54,6 +59,18 @@ public class PreviewController {
         // Gate de contrato (RFC-003 §3 passo 2): valida ANTES de compilar/preencher.
         if (request.inputSchema() != null) {
             validador.validar(request.inputSchema(), sampleData);
+        }
+
+        // ADR-020 §5: subreport apontando template não publicado → 400 antes do fill.
+        if (request.jrxml() != null) {
+            var indisponiveis = subreports.indisponiveis(request.jrxml());
+            if (!indisponiveis.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(json.writeValueAsBytes(new TratadorDeErros.ErroValidacaoResponse(
+                                "SUBREPORT_INDISPONIVEL", "subreport referencia template não publicado (ADR-020)",
+                                indisponiveis)));
+            }
         }
 
         JasperPrint print = pipeline.preencher(request.jrxml(), sampleData);

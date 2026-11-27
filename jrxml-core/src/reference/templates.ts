@@ -51,7 +51,13 @@ export const REFERENCIA_FATURA: ReportTemplate = {
           { name: 'valor', type: 'decimal' },
         ],
       },
-      { name: 'entregas', type: 'collection' },
+      {
+        name: 'entregas',
+        type: 'collection',
+        // Itens { endereco, previsao } — o formato é o contrato do subreport
+        // "repo:fatura_entregas" (ADR-020), que é quem os consome.
+        description: 'Entregas da fatura — renderizadas pelo subreport "repo:fatura_entregas" (ADR-020)',
+      },
       // Contract-first: o total vem CALCULADO a montante (Push) — dentro do
       // dataset da tabela não há como somar campos do registro-mestre.
       { name: 'total', type: 'decimal', description: 'Total geral da fatura (calculado a montante)' },
@@ -59,7 +65,6 @@ export const REFERENCIA_FATURA: ReportTemplate = {
     parameters: [
       { name: 'logo_url', type: 'string' },
       { name: 'titulo', type: 'string', description: 'Título do relatório', defaultValueExpression: '"Fatura"' },
-      { name: 'sub_template', type: 'string' },
     ],
     variables: [
       {
@@ -191,7 +196,7 @@ export const REFERENCIA_FATURA: ReportTemplate = {
         {
           kind: 'subreport',
           bounds: { x: 0, y: 40, width: 555, height: 30 },
-          templateExpression: '$P{sub_template}',
+          templateExpression: '"repo:fatura_entregas"',
           dataSourceExpression: 'new net.sf.jasperreports.engine.data.JRBeanCollectionDataSource($F{entregas})',
           parameters: [{ name: 'cliente', expression: '$F{cliente_nome}' }],
           printWhenExpression: '$F{entregas} != null',
@@ -232,6 +237,57 @@ export const REFERENCIA_FATURA: ReportTemplate = {
         footer: { height: 10, splitType: 'Stretch', elements: [] },
       },
     ],
+  },
+};
+
+/**
+ * Subreport das entregas da fatura (ADR-020): referenciado pela Fatura como
+ * `"repo:fatura_entregas"`; recebe as entregas como datasource e o nome do
+ * cliente por parâmetro. Publicar ESTE antes da fatura (gate G8).
+ */
+export const REFERENCIA_FATURA_ENTREGAS: ReportTemplate = {
+  name: 'fatura_entregas',
+  pageFormat: {
+    pageWidth: 555,
+    pageHeight: 842,
+    orientation: 'Portrait',
+    leftMargin: 0,
+    rightMargin: 0,
+    topMargin: 0,
+    bottomMargin: 0,
+    columnCount: 1,
+    columnWidth: 555,
+    columnSpacing: 0,
+  },
+  properties: { 'reportlenz.template.tipo': 'subreport' },
+  styles: [{ name: 'base', isDefault: true, fontName: 'DejaVu Sans', fontSize: 8 }],
+  dataContract: {
+    fields: [
+      { name: 'endereco', type: 'string' },
+      { name: 'previsao', type: 'string' },
+    ],
+    parameters: [{ name: 'cliente', type: 'string', description: 'Nome do cliente (repassado pela fatura)' }],
+    variables: [],
+  },
+  bands: {
+    title: {
+      height: 14,
+      splitType: 'Stretch',
+      elements: [
+        { kind: 'textField', bounds: { x: 0, y: 0, width: 555, height: 12 }, style: { bold: true }, expression: '"Entregas de " + $P{cliente}' },
+      ],
+    },
+    detail: [
+      {
+        height: 12,
+        splitType: 'Stretch',
+        elements: [
+          { kind: 'textField', bounds: { x: 0, y: 0, width: 400, height: 12 }, expression: '$F{endereco}' },
+          { kind: 'textField', bounds: { x: 405, y: 0, width: 150, height: 12 }, expression: '$F{previsao}', style: { hAlign: 'Right' } },
+        ],
+      },
+    ],
+    groups: [],
   },
 };
 
@@ -506,6 +562,7 @@ export const REFERENCIA_ETIQUETA_A4: ReportTemplate = {
  */
 export const REFERENCE_TEMPLATES: Record<string, ReportTemplate> = {
   fatura: REFERENCIA_FATURA,
+  fatura_entregas: REFERENCIA_FATURA_ENTREGAS,
   comprovante: REFERENCIA_COMPROVANTE,
   formulario: REFERENCIA_FORMULARIO,
   etiqueta_a4: REFERENCIA_ETIQUETA_A4,

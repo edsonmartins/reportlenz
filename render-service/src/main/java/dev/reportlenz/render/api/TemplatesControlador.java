@@ -78,7 +78,7 @@ public class TemplatesControlador {
             return naoEncontrada(codename, version);
         }
         // Publish só com TODOS os gates verdes (RFC-006 §3 / I-5).
-        var gates = verificador.verificar(versao.jrxml(), lerSchema(versao.inputSchemaJson()), versao.jrxmlHash());
+        var gates = verificador.verificar(versao.jrxml(), lerSchema(versao.inputSchemaJson()), versao.jrxmlHash(), codename);
         if (!gates.verde()) {
             return ResponseEntity.unprocessableEntity().body(Map.of(
                     "codigo", "PUBLISH_BLOQUEADO",
