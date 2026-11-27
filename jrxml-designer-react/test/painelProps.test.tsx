@@ -1,5 +1,6 @@
 import { MantineProvider } from '@mantine/core';
-import { REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import type { BarcodeElement } from '@reportlenz/jrxml-core';
+import { REFERENCIA_DANFE, REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';
@@ -18,6 +19,11 @@ function renderApp() {
       <App />
     </MantineProvider>,
   );
+}
+
+/** O <input> do Select do Mantine dentro da linha do painel. */
+function entrada(testid: string): HTMLInputElement {
+  return screen.getByTestId(testid).querySelector('input')!;
 }
 
 function selecionar(testid: string) {
@@ -131,5 +137,40 @@ describe('jrxml-designer-react · painel de propriedades (3.1-3.3)', () => {
     selecionar('el-detail[0]/1'); // tabela → editor completo (Fase 3)
     expect(screen.getByTestId('editor-de-tabela')).toBeInTheDocument();
     expect(screen.getByText(/Tabela · \$F\{itens\} · 2 coluna/)).toBeInTheDocument();
+  });
+
+  it('ADR-023: código linear mostra "Texto legível"; mudar para acima/sem texto/padrão ajusta o modelo e o canvas', () => {
+    useDocumentoStore.getState().novoDocumento(structuredClone(REFERENCIA_DANFE));
+    const indice = REFERENCIA_DANFE.bands.pageHeader!.elements.findIndex((e) => e.kind === 'barcode');
+    const barcode = () => useDocumentoStore.getState().template!.bands.pageHeader!.elements[indice] as BarcodeElement;
+    renderApp();
+    selecionar(`el-pageHeader/${indice}`);
+
+    const campo = entrada('prop-textPosition');
+    expect(campo).toHaveValue('Sem texto'); // DANFE: a chave vem formatada ao lado
+    expect(screen.getByTestId(`el-pageHeader/${indice}`)).toHaveTextContent('barcode Code128 · sem texto');
+
+    fireEvent.click(campo);
+    fireEvent.click(screen.getByRole('option', { name: 'Acima das barras' }));
+    expect(barcode().textPosition).toBe('top');
+    expect(screen.getByTestId(`el-pageHeader/${indice}`)).toHaveTextContent('· texto acima');
+
+    fireEvent.click(campo);
+    fireEvent.click(screen.getByRole('option', { name: 'Abaixo das barras (padrão)' }));
+    expect('textPosition' in barcode()).toBe(false); // default do engine = sem atributo no JRXML
+  });
+
+  it('ADR-023: QR não oferece "Texto legível" e trocar para 2D remove o atributo', () => {
+    useDocumentoStore.getState().novoDocumento(structuredClone(REFERENCIA_DANFE));
+    const indice = REFERENCIA_DANFE.bands.pageHeader!.elements.findIndex((e) => e.kind === 'barcode');
+    renderApp();
+    selecionar(`el-pageHeader/${indice}`);
+
+    fireEvent.click(entrada('prop-barcodeType'));
+    fireEvent.click(screen.getByRole('option', { name: 'QRCode' }));
+    const barcode = useDocumentoStore.getState().template!.bands.pageHeader!.elements[indice] as BarcodeElement;
+    expect(barcode.barcodeType).toBe('QRCode');
+    expect('textPosition' in barcode).toBe(false);
+    expect(screen.queryByTestId('prop-textPosition')).not.toBeInTheDocument();
   });
 });
