@@ -3,7 +3,7 @@
  * store do documento plugado no jrxml-core. Canvas, painéis e preview chegam
  * nos blocos 2-5.
  */
-import { ActionIcon, Alert, AppShell, Badge, Button, Divider, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Alert, AppShell, Badge, Button, Divider, Group, Menu, Tabs, Text, Title, Tooltip } from '@mantine/core';
 import { useState } from 'react';
 import { AssistenteDrawer } from './assistente/AssistenteDrawer';
 import { UsuarioDaSessao } from './auth/PortaoDeSessao';
@@ -13,8 +13,8 @@ import { PRESETS_DE_ELEMENTO } from './palette/inserir';
 import { ReportChecker } from './checker/ReportChecker';
 import { DataContractPanel } from './contrato/DataContractPanel';
 import { Galeria } from './galeria/Galeria';
-import { PreviewPanel } from './preview/PreviewPanel';
-import { usePreviewStore } from './preview/previewStore';
+import { AbaDePreview } from './preview/AbaDePreview';
+import { usePreviewStore, type Aba } from './preview/previewStore';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
 import { PublishWizard } from './publish/PublishWizard';
 import { useCanvasStore } from './store/canvasStore';
@@ -78,8 +78,6 @@ function AvisosDeBloco() {
 
 /** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
 function BarraDoCanvas() {
-  const [assistenteAberto, setAssistenteAberto] = useState(false);
-  const [publishAberto, setPublishAberto] = useState(false);
   const zoom = useCanvasStore((s) => s.zoom);
   const definirZoom = useCanvasStore((s) => s.definirZoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
@@ -158,20 +156,43 @@ function BarraDoCanvas() {
         </Menu.Dropdown>
       </Menu>
       <ComandosDeSelecao />
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+    </Group>
+  );
+}
+
+/**
+ * Abas da área de trabalho (ADR-024) + comandos globais, visíveis nas duas
+ * abas: Assistente, Renderizar (leva à aba Preview), Publicar e sessão.
+ */
+function BarraDaAreaDeTrabalho() {
+  const [assistenteAberto, setAssistenteAberto] = useState(false);
+  const [publishAberto, setPublishAberto] = useState(false);
+  const aba = usePreviewStore((s) => s.aba);
+  const irPara = usePreviewStore((s) => s.irPara);
+
+  return (
+    <Group gap="xs" px="md" pt={4} style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }} justify="space-between">
+      <Tabs value={aba} onChange={(v) => v && irPara(v as Aba)} variant="default">
+        <Tabs.List style={{ borderBottom: 0 }}>
+          <Tabs.Tab value="editor">Editor</Tabs.Tab>
+          <Tabs.Tab value="preview">Preview (Jasper)</Tabs.Tab>
+        </Tabs.List>
+      </Tabs>
+      <Group gap={8} pb={4}>
         <Tooltip label="Gerar/refinar o relatório descrevendo em português (a saída é um rascunho revisável — RFC-005)">
           <Button size="compact-xs" color="violet" variant="light" onClick={() => setAssistenteAberto(true)}>
             ✨ Assistente
           </Button>
         </Tooltip>
-        <Tooltip label="Render REAL pelo engine JasperReports (a verdade; o canvas é aproximação)">
+        <Tooltip label="Render REAL pelo engine JasperReports (a verdade; o canvas é aproximação) — abre a aba Preview">
           <Button
             size="compact-xs"
             color="green"
             variant="light"
             onClick={() => {
-              usePreviewStore.getState().abrir();
+              // Render primeiro (registra o JRXML pedido), depois a aba — sem render duplicado.
               void usePreviewStore.getState().renderizar(0);
+              irPara('preview');
             }}
           >
             Renderizar (Jasper)
@@ -183,7 +204,7 @@ function BarraDoCanvas() {
           </Button>
         </Tooltip>
         <UsuarioDaSessao />
-      </div>
+      </Group>
       <AssistenteDrawer aberto={assistenteAberto} onFechar={() => setAssistenteAberto(false)} />
       <PublishWizard aberto={publishAberto} onFechar={() => setPublishAberto(false)} />
     </Group>
@@ -193,6 +214,7 @@ function BarraDoCanvas() {
 export function App() {
   const template = useDocumentoStore((s) => s.template);
   const problemas = useDocumentoStore((s) => s.problemas);
+  const aba = usePreviewStore((s) => s.aba);
 
   return (
     <AppShell header={{ height: 48 }} padding={0}>
@@ -220,19 +242,26 @@ export function App() {
       <AppShell.Main style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 48px)' }}>
         {template ? (
           <>
-            <BarraDoCanvas />
-            <AvisosDeBloco />
-            <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-              <DataContractPanel />
-              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ flex: 1, minHeight: 0 }}>
-                  <Canvas />
+            <BarraDaAreaDeTrabalho />
+            {/* Editor fica montado (só oculto) na aba Preview: scroll e seleção preservados. */}
+            <div
+              data-testid="aba-editor"
+              style={{ flex: 1, minHeight: 0, display: aba === 'editor' ? 'flex' : 'none', flexDirection: 'column' }}
+            >
+              <BarraDoCanvas />
+              <AvisosDeBloco />
+              <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+                <DataContractPanel />
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <Canvas />
+                  </div>
+                  <ReportChecker />
                 </div>
-                <ReportChecker />
+                <PainelDePropriedades />
               </div>
-              <PainelDePropriedades />
-              <PreviewPanel />
             </div>
+            {aba === 'preview' && <AbaDePreview />}
           </>
         ) : (
           <Galeria />
