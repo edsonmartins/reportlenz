@@ -1,7 +1,7 @@
 # Tasks — variacoes-de-templates
 
 - [x] 1.1 ADR-022 (Accepted) + pacote OpenSpec
-- [ ] 2.1 Core: modelos fiscais/cobrança (boleto, danfe, orcamento)
+- [x] 2.1 Core: modelos fiscais/cobrança (boleto, danfe, orcamento)
 - [ ] 2.2 Core: modelos gerenciais (listagem_vendas, extrato_conta)
 - [ ] 2.3 Core: etiquetas/crachás (etiqueta_produto_qr, etiqueta_enderecamento, cracha)
 - [ ] 2.4 Core: cartas/documentos (carta_declaracao, contrato)

@@ -11,6 +11,7 @@
  * expressão num cast para a classe da variável na compilação.
  */
 import type { ReportTemplate } from '../model/report.js';
+import { REFERENCIA_BOLETO, REFERENCIA_DANFE, REFERENCIA_ORCAMENTO } from './fiscais.js';
 
 /** Fatura A4 completa: estilos condicionais, grupo, tabela Push, QR, subreport. */
 export const REFERENCIA_FATURA: ReportTemplate = {
@@ -566,4 +567,8 @@ export const REFERENCE_TEMPLATES: Record<string, ReportTemplate> = {
   comprovante: REFERENCIA_COMPROVANTE,
   formulario: REFERENCIA_FORMULARIO,
   etiqueta_a4: REFERENCIA_ETIQUETA_A4,
+  // Catálogo ampliado (ADR-022)
+  boleto: REFERENCIA_BOLETO,
+  danfe: REFERENCIA_DANFE,
+  orcamento: REFERENCIA_ORCAMENTO,
 };
