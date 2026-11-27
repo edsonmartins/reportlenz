@@ -8,7 +8,8 @@
     "test": "playwright test",
     "instalar-navegador": "playwright install --with-deps chromium",
     "typecheck": "tsc --noEmit",
-    "atualizar-referencias": "playwright test testes/catalogo.spec.ts --update-snapshots"
+    "atualizar-referencias": "playwright test testes/catalogo.spec.ts --update-snapshots",
+    "capturas": "node scripts/capturar-telas.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",

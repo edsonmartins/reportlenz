@@ -1,9 +1,81 @@
 # ReportLenz
 
-Designer web de templates **JRXML contract-first**. O render roda em Java pela **JasperReports Library
-7.0.7**, embarcada num serviço Spring Boot. Os dados chegam por **Push**: um contrato declarativo
-(`inputSchema`) recebe payloads já filtrados pelo backend de domínio, e nunca há SQL embutido no
-relatório (LGPD, I-2/I-3).
+Designer web de relatórios **JRXML 7 contract-first**, com render real pela **JasperReports Library
+7.0.7**. Os dados chegam por **Push**: um contrato declarativo (`inputSchema`) recebe payloads já
+filtrados pelo backend de domínio, e nunca há SQL embutido no relatório (LGPD, I-2/I-3).
+
+![Editor do ReportLenz com um DANFE aberto: contrato de dados à esquerda, canvas ao centro e propriedades do código de barras à direita](docs/imagens/editor.png)
+
+**O que o ReportLenz oferece:**
+- **Editor visual:** canvas com réguas, grid e snap; contrato de dados; propriedades com herança de estilo;
+  tabelas com merge de colunas; undo/redo; assistente de IA.
+- **Preview que é a verdade:** o render vem do engine JasperReports. O canvas é só a aproximação, e é
+  rotulado como tal.
+- **Governança:** publicação com 8 gates (G1–G8), entre eles o dialeto 7, o anti-SQL, a segurança de
+  expressões e os subreports. Os templates são versionados e auditados.
+- **14 modelos prontos em pt-BR**, de fatura e DANFE a crachá e contrato.
+- **Embutível nas suas aplicações:** componente React no npm (`@archbase/reportlenz-designer-react`) e
+  starter Spring Boot no Maven Central (`br.com.archbase:reportlenz-spring-boot-starter`).
+
+## Telas
+
+**Preview pelo engine:** aba própria em tela cheia, com zoom e paginação. Funciona em retrato e em
+paisagem.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/imagens/preview-danfe.png" alt="Preview do DANFE renderizado pelo engine JasperReports"></td>
+<td width="50%"><img src="docs/imagens/preview-listagem.png" alt="Preview de uma listagem de vendas em A4 paisagem, com grupos e subtotais"></td>
+</tr>
+<tr>
+<td align="center"><sub>DANFE: chave de acesso em CODE-128 e nos 11 blocos do MOC</sub></td>
+<td align="center"><sub>Listagem em paisagem: grupo por vendedor, subtotais e zebra</sub></td>
+</tr>
+</table>
+
+**Publicação com gates:** o template só é publicado com G1–G8 verdes, confirmados pela Library real.
+
+<img src="docs/imagens/publicacao.png" alt="Publish Wizard com os oito gates de governança verdes" width="720">
+
+**Galeria:** todo template novo começa de um modelo, agrupado por família.
+
+<img src="docs/imagens/galeria.png" alt="Galeria de modelos agrupada por família" width="560">
+
+## Modelos prontos
+
+Renders reais do engine, com os dados de exemplo de cada modelo. Os mesmos renders são as imagens de
+referência da regressão visual dos testes.
+
+<table>
+<tr><td colspan="4"><b>Fiscais e cobrança</b></td></tr>
+<tr><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/fatura.png" alt="Fatura" width="180"><br><sub>Fatura</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/boleto.png" alt="Boleto de cobrança" width="180"><br><sub>Boleto de cobrança</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/danfe.png" alt="DANFE (NF-e)" width="180"><br><sub>DANFE (NF-e)</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/orcamento.png" alt="Orçamento / pedido" width="180"><br><sub>Orçamento / pedido</sub></td></tr>
+<tr><td colspan="4"><b>Operação e gerenciais</b></td></tr>
+<tr><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/comprovante.png" alt="Comprovante de entrega" width="180"><br><sub>Comprovante de entrega</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/formulario.png" alt="Formulário (ficha)" width="180"><br><sub>Formulário (ficha)</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/listagem-vendas.png" alt="Listagem de vendas (paisagem)" width="180"><br><sub>Listagem de vendas (paisagem)</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/extrato-conta.png" alt="Extrato de conta" width="180"><br><sub>Extrato de conta</sub></td></tr>
+<tr><td colspan="4"><b>Etiquetas e crachás</b></td></tr>
+<tr><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/etiqueta-a4.png" alt="Etiqueta A4 com EAN-13" width="180"><br><sub>Etiqueta A4 com EAN-13</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/etiqueta-produto-qr.png" alt="Etiqueta de produto com QR" width="180"><br><sub>Etiqueta de produto com QR</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/etiqueta-enderecamento.png" alt="Etiqueta de endereçamento" width="180"><br><sub>Etiqueta de endereçamento</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/cracha.png" alt="Crachá" width="180"><br><sub>Crachá</sub></td></tr>
+<tr><td colspan="4"><b>Cartas e documentos</b></td></tr>
+<tr><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/carta-declaracao.png" alt="Carta / declaração" width="180"><br><sub>Carta / declaração</sub></td><td align="center" valign="top" width="25%"><img src="docs/imagens/modelos/contrato.png" alt="Contrato multipágina" width="180"><br><sub>Contrato multipágina</sub></td></tr>
+</table>
+
+## Use nas suas aplicações
+
+```bash
+npm install @archbase/reportlenz-designer-react @archbase/reportlenz-jrxml-core   # React 19 + Mantine 9
+```
+
+```xml
+<dependency>
+  <groupId>br.com.archbase</groupId>
+  <artifactId>reportlenz-spring-boot-starter</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+O detalhamento está em [Pacotes npm](#pacotes-npm-designer-embutível-adr-025) e em
+[Backend Java embarcável](#backend-java-embarcável-adr-026). As imagens desta página são geradas a
+partir da aplicação real com `pnpm --dir e2e capturas`.
+
+## Estrutura do repositório
 
 | Módulo | O que é |
 |---|---|
