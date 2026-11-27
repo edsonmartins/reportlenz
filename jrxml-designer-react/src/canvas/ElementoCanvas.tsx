@@ -12,9 +12,9 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from
 import { useRef } from 'react';
 import type { CaminhoDeElemento } from '../store/documentoStore';
 import { obterBanda, useDocumentoStore } from '../store/documentoStore';
+import { useInstancia } from '../instancia';
 import { atualizarBoundsDoElemento } from '../store/mutacoes';
 import { chaveDoCaminho } from '../store/documentoStore';
-import { useCanvasStore } from '../store/canvasStore';
 import { chaveDaBanda } from './bandas';
 import { mmParaPt, ptParaPx, pxParaPt } from './geometria';
 import { alvosDeSnap, aplicarSnap } from './snap';
@@ -142,6 +142,7 @@ interface ElementoCanvasProps {
 
 export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps) {
   const selecionar = useDocumentoStore((s) => s.selecionar);
+  const instancia = useInstancia();
   const mutarTemplate = useDocumentoStore((s) => s.mutarTemplate);
   const selecionado = useDocumentoStore((s) => s.selecao.some((c) => chaveDoCaminho(c) === chaveDoCaminho(caminho)));
 
@@ -152,7 +153,7 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
     if (modo === 'mover') {
       selecionar(caminho, e.shiftKey);
     }
-    useDocumentoStore.getState().iniciarGesto(); // 2.7: o drag inteiro = 1 undo
+    instancia.documento.getState().iniciarGesto(); // 2.7: o drag inteiro = 1 undo
     arrasto.current = { modo, x0: e.clientX, y0: e.clientY, bounds0: elemento.bounds };
     if (e.currentTarget.setPointerCapture) {
       try {
@@ -171,9 +172,9 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
     let candidato = aplicarArrasto(a.modo, a.bounds0, dxPt, dyPt);
 
     // Snapping (2.4): só no MOVER; Alt ignora pontualmente.
-    const { snapAtivo, mostrarGrid, passoGridMm, definirGuiasDeSnap } = useCanvasStore.getState();
+    const { snapAtivo, mostrarGrid, passoGridMm, definirGuiasDeSnap } = instancia.canvas.getState();
     if (a.modo === 'mover' && snapAtivo && !e.altKey) {
-      const template = useDocumentoStore.getState().template;
+      const template = instancia.documento.getState().template;
       const banda = template ? obterBanda(template, caminho.banda) : undefined;
       if (template && banda) {
         const alvos = alvosDeSnap(banda, new Set([caminho.indice]), template.pageFormat.columnWidth);
@@ -195,8 +196,8 @@ export function ElementoCanvas({ caminho, elemento, zoom }: ElementoCanvasProps)
 
   const terminar = () => {
     arrasto.current = null;
-    useCanvasStore.getState().definirGuiasDeSnap(null);
-    useDocumentoStore.getState().encerrarGesto();
+    instancia.canvas.getState().definirGuiasDeSnap(null);
+    instancia.documento.getState().encerrarGesto();
   };
 
   const b = elemento.bounds;

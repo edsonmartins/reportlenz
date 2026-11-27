@@ -15,7 +15,7 @@ import type { ResultadoDosGates } from '@reportlenz/jrxml-core';
 import { avaliarGates, buildIntegrationPackage } from '@reportlenz/jrxml-core';
 import { useEffect, useState } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
-import { apiFetch } from '../auth/apiFetch';
+import { useInstancia } from '../instancia';
 
 interface GateDoServico {
   gate: string;
@@ -36,6 +36,7 @@ interface VerificacaoDoServico {
 }
 
 export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar: () => void }) {
+  const instancia = useInstancia();
   const template = useDocumentoStore((s) => s.template);
   const [resultado, setResultado] = useState<ResultadoDosGates | null>(null);
   const [servico, setServico] = useState<VerificacaoDoServico | null>(null);
@@ -57,7 +58,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     if (!local.jrxml) return;
     void (async () => {
       try {
-        const resposta = await apiFetch('/publish/verificar', {
+        const resposta = await instancia.api('/publish/verificar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // codename: o G8 (ADR-020) detecta ciclo de subreports de volta a este template.
@@ -88,7 +89,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     setErroDoServico(null);
     try {
       // 1) registra/atualiza o draft no repositório (ADR-009 — versionamento conjunto).
-      const salvo = await apiFetch(`/templates/${template.name}/versoes`, {
+      const salvo = await instancia.api(`/templates/${template.name}/versoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jrxml: resultado.jrxml, inputSchema: resultado.inputSchema }),
@@ -100,7 +101,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
       const versao = ((await salvo.json()) as { version: number }).version;
 
       // 2) publica — o serviço reconfere os gates; published fica IMUTÁVEL.
-      const pub = await apiFetch(`/templates/${template.name}/versoes/${versao}/publicar`, {
+      const pub = await instancia.api(`/templates/${template.name}/versoes/${versao}/publicar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),

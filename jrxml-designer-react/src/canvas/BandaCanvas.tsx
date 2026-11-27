@@ -7,6 +7,7 @@
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useRef } from 'react';
 import { useCanvasStore } from '../store/canvasStore';
+import { useInstancia } from '../instancia';
 import { useDocumentoStore } from '../store/documentoStore';
 import { redimensionarBanda } from '../store/mutacoes';
 import type { FaixaDeBanda } from './bandas';
@@ -24,13 +25,14 @@ interface BandaCanvasProps {
 }
 
 export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
+  const instancia = useInstancia();
   const mutarTemplate = useDocumentoStore((s) => s.mutarTemplate);
   const limparSelecao = useDocumentoStore((s) => s.limparSelecao);
   const util = areaUtil(pageFormat);
   const arrasto = useRef<{ yInicialPx: number; alturaInicialPt: number } | null>(null);
 
   const aoIniciarArrasto = (e: ReactPointerEvent<HTMLDivElement>) => {
-    useDocumentoStore.getState().iniciarGesto(); // 2.7: resize de banda = 1 undo
+    instancia.documento.getState().iniciarGesto(); // 2.7: resize de banda = 1 undo
     arrasto.current = { yInicialPx: e.clientY, alturaInicialPt: faixa.alturaPt };
     // jsdom não implementa pointer capture — proteger para os testes.
     if (e.currentTarget.setPointerCapture && e.currentTarget.hasPointerCapture !== undefined) {
@@ -50,7 +52,7 @@ export function BandaCanvas({ faixa, pageFormat, zoom }: BandaCanvasProps) {
 
   const aoTerminarArrasto = () => {
     arrasto.current = null;
-    useDocumentoStore.getState().encerrarGesto();
+    instancia.documento.getState().encerrarGesto();
   };
 
   return (

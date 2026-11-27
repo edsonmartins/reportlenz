@@ -14,6 +14,7 @@ import { ReportChecker } from './checker/ReportChecker';
 import { DataContractPanel } from './contrato/DataContractPanel';
 import { Galeria } from './galeria/Galeria';
 import { AbaDePreview } from './preview/AbaDePreview';
+import { useInstancia } from './instancia';
 import { usePreviewStore, type Aba } from './preview/previewStore';
 import { PainelDePropriedades } from './props/PainelDePropriedades';
 import { PublishWizard } from './publish/PublishWizard';
@@ -78,6 +79,7 @@ function AvisosDeBloco() {
 
 /** Barra de ferramentas do canvas (zoom, grid) — tooltips desde já (RFC-004 §9). */
 function BarraDoCanvas() {
+  const instancia = useInstancia();
   const zoom = useCanvasStore((s) => s.zoom);
   const definirZoom = useCanvasStore((s) => s.definirZoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
@@ -137,20 +139,20 @@ function BarraDoCanvas() {
         <Menu.Dropdown>
           <Menu.Label>Básicos</Menu.Label>
           {PRESETS_DE_ELEMENTO.filter((p) => p.grupo === 'básicos').map((p) => (
-            <Menu.Item key={p.rotulo} onClick={() => useDocumentoStore.getState().inserirElemento(p.criar())}>
+            <Menu.Item key={p.rotulo} onClick={() => instancia.documento.getState().inserirElemento(p.criar())}>
               {p.rotulo}
             </Menu.Item>
           ))}
           <Menu.Label>Código de barras (perfis pt-BR)</Menu.Label>
           {PRESETS_DE_ELEMENTO.filter((p) => p.grupo === 'barcode').map((p) => (
-            <Menu.Item key={p.rotulo} onClick={() => useDocumentoStore.getState().inserirElemento(p.criar())}>
+            <Menu.Item key={p.rotulo} onClick={() => instancia.documento.getState().inserirElemento(p.criar())}>
               {p.rotulo}
             </Menu.Item>
           ))}
           <Menu.Label>Blocos (mesclam o contrato)</Menu.Label>
           {BIBLIOTECA_DE_BLOCOS.map((b) => (
             <Tooltip key={b.id} label={b.descricao} position="left">
-              <Menu.Item onClick={() => useDocumentoStore.getState().inserirBloco(b)}>{b.rotulo}</Menu.Item>
+              <Menu.Item onClick={() => instancia.documento.getState().inserirBloco(b)}>{b.rotulo}</Menu.Item>
             </Tooltip>
           ))}
         </Menu.Dropdown>
@@ -165,6 +167,7 @@ function BarraDoCanvas() {
  * abas: Assistente, Renderizar (leva à aba Preview), Publicar e sessão.
  */
 function BarraDaAreaDeTrabalho() {
+  const instancia = useInstancia();
   const [assistenteAberto, setAssistenteAberto] = useState(false);
   const [publishAberto, setPublishAberto] = useState(false);
   const aba = usePreviewStore((s) => s.aba);
@@ -191,7 +194,7 @@ function BarraDaAreaDeTrabalho() {
             variant="light"
             onClick={() => {
               // Render primeiro (registra o JRXML pedido), depois a aba — sem render duplicado.
-              void usePreviewStore.getState().renderizar(0);
+              void instancia.preview.getState().renderizar(0);
               irPara('preview');
             }}
           >

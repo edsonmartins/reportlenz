@@ -4,10 +4,11 @@
  * `POST /render/preview` e recebe PNG por página — a VERDADE do engine (I-8).
  */
 import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
-import { create } from 'zustand';
-import { useDocumentoStore } from '../store/documentoStore';
+import { createStore, type StoreApi } from 'zustand/vanilla';
+import type { ClienteDaApi } from '../api/cliente';
+import { hookDoStore } from '../instancia';
+import type { DocumentoState } from '../store/documentoStore';
 import { camposDeCodigoDeBarras, dadosDoCatalogo, gerarDadosDeExemplo } from './dadosDeExemplo';
-import { apiFetch } from '../auth/apiFetch';
 
 interface ErroDoServico {
   codigo?: string;
@@ -43,7 +44,9 @@ export interface PreviewState {
   renderizar: (pagina?: number) => Promise<void>;
 }
 
-export const usePreviewStore = create<PreviewState>((set, get) => ({
+/** Fábrica ligada ao documento e ao cliente de API da MESMA instância (ADR-025 §3). */
+export function criarPreviewStore(documento: StoreApi<DocumentoState>, api: ClienteDaApi) {
+  return createStore<PreviewState>()((set, get) => ({
   aba: 'editor',
   zoom: 'largura',
   carregando: false,
@@ -65,14 +68,14 @@ export const usePreviewStore = create<PreviewState>((set, get) => ({
   },
 
   renderizar: async (pagina = 0) => {
-    const template = useDocumentoStore.getState().template;
+    const template = documento.getState().template;
     if (!template) return;
 
     const jrxml = serializeJrxml(template);
     set({ carregando: true, erro: null, violacoes: [], pagina, jrxmlRenderizado: jrxml });
     try {
       const contrato = extractContract(template);
-      const resposta = await apiFetch('/render/preview', {
+      const resposta = await api('/render/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -116,3 +119,7 @@ export const usePreviewStore = create<PreviewState>((set, get) => ({
     }
   },
 }));
+}
+
+/** Hook ciente da instância; `getState` estático = instância padrão. */
+export const usePreviewStore = hookDoStore((i) => i.preview);
