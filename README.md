@@ -73,6 +73,17 @@ curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   http://localhost:8080/render/batch
 ```
 
+### Testes E2E (ambiente de homologação no ar)
+
+```bash
+deploy/e2e-homologacao.sh deploy/.env          # API: tokens reais, papéis, G7, ciclo do template, lote, auditoria
+pnpm --dir e2e exec playwright install chromium # uma vez
+set -a; . deploy/.env; set +a; pnpm --dir e2e test   # interface: login por popup, preview, publish, G8
+```
+
+Os dois criam usuários e clients **temporários** no Keycloak e os removem no fim; os usuários de
+homologação não são tocados. O CI roda os dois a cada PR (job `e2e`), com segredos aleatórios.
+
 Azure AD entra como *identity provider* do realm (configuração do Keycloak; o serviço só confia no
 Keycloak).
 

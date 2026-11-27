@@ -205,3 +205,66 @@ jobs:
 
       - name: Nenhum teste pulado (PostgreSQL)
         run: tools/ci/verificar-sem-skips.sh
+
+  # E2E (change e2e-interface): sobe o ambiente de homologação inteiro
+  # (deploy/docker-compose.homologacao.yml) com segredos ALEATÓRIOS e roda o
+  # E2E da API (tokens reais do Keycloak) e o de interface (Playwright, login
+  # real por popup). Usuários/clients de teste são temporários.
+  e2e:
+    name: e2e · API + interface (Playwright) no ambiente de homologação
+    runs-on: ubuntu-latest
+    needs: [render-service, jrxml-designer-react]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gerar deploy/.env com segredos aleatórios
+        run: |
+          r() { openssl rand -hex "$1"; }
+          sed -e "s/troque-postgres/pg-$(r 8)/" -e "s/troque-redis/rd-$(r 8)/" \
+              -e "s/troque-minio-segredo/mn-$(r 8)/" -e "s/troque-keycloak-admin/kc-$(r 8)/" \
+              -e "s/troque-segredo-batch/bt-$(r 12)/" -e "s/troque-designer/Ds-$(r 6)/" \
+              -e "s/troque-publicador/Pb-$(r 6)/" deploy/.env.exemplo > deploy/.env
+          ! grep -E '=troque-' deploy/.env
+
+      - name: Subir o ambiente (build das imagens + healthchecks)
+        run: docker compose -f deploy/docker-compose.homologacao.yml --env-file deploy/.env up -d --build --wait --wait-timeout 600
+
+      - name: E2E da API (tokens reais)
+        run: deploy/e2e-homologacao.sh deploy/.env
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Instalar Playwright (Chromium)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --dir e2e exec playwright install --with-deps chromium
+
+      - name: E2E de interface (Playwright)
+        run: |
+          set -a; . deploy/.env; set +a
+          pnpm --dir e2e test
+
+      - name: Relatório do Playwright (falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+
+      - name: Logs do ambiente (falha)
+        if: failure()
+        run: docker compose -f deploy/docker-compose.homologacao.yml --env-file deploy/.env logs --no-color --tail 300
+
+      - name: Derrubar o ambiente
+        if: always()
+        run: docker compose -f deploy/docker-compose.homologacao.yml --env-file deploy/.env down -v
