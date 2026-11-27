@@ -7,5 +7,5 @@
 - [x] 2.4 SPA de homologação consome o componente (dogfooding)
 - [x] 3.1 CORS configurável no render-service
 - [x] 3.2 Build de biblioteca + package.json publicáveis (designer-react e jrxml-core), LICENSE e README
-- [ ] 3.3 Aplicação hospedeira de teste com os tarballs (duas instâncias + preview) no E2E; workflow de
+- [x] 3.3 Aplicação hospedeira de teste com os tarballs (duas instâncias + preview) no E2E; workflow de
       release por tag

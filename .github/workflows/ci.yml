@@ -248,6 +248,12 @@ jobs:
           pnpm --dir jrxml-core build
           pnpm --dir e2e exec playwright install --with-deps chromium
 
+      # ADR-025: os pacotes empacotados (pnpm pack) instalados com npm numa aplicação
+      # externa — o Playwright a serve (webServer) e testa dois designers + preview
+      # falando com o serviço em outra origem (CORS).
+      - name: Aplicação hospedeira de teste (tarballs dos pacotes)
+        run: exemplos/host-react/preparar.sh
+
       - name: E2E de interface (Playwright)
         run: |
           set -a; . deploy/.env; set +a

@@ -67,4 +67,28 @@ class CorsTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("não aceita '*'");
     }
+
+    /** Regressão (E2E): com a lista configurada, a SPA de MESMA origem não pode ser recusada. */
+    @Test
+    void mesmaOrigemPassaMesmoComListaConfigurada() throws Exception {
+        mvc.perform(post("/render/preview")
+                        .header("Host", "designer.empresa.com.br:8443")
+                        .header("Origin", "http://designer.empresa.com.br:8443")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isBadRequest()) // passou pelo CORS e chegou ao controller (JRXML_AUSENTE)
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
+    }
+
+    /** Atrás do proxy com TLS: o esquema público vem de X-Forwarded-Proto. */
+    @Test
+    void mesmaOrigemAtrasDoProxyComTls() throws Exception {
+        mvc.perform(post("/render/preview")
+                        .header("Host", "designer.empresa.com.br")
+                        .header("X-Forwarded-Proto", "https")
+                        .header("Origin", "https://designer.empresa.com.br")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
 }

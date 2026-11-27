@@ -44,3 +44,7 @@ management:
   tracing:
     sampling:
       probability: 0.0   # sem export de traces em teste
+
+# Igual à produção (atrás do proxy): X-Forwarded-* definem esquema/host públicos (CORS, ADR-025).
+server:
+  forward-headers-strategy: framework

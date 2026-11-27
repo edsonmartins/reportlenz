@@ -1,0 +1,30 @@
+{
+  "name": "reportlenz-exemplo-host-react",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Aplicação hospedeira de TESTE (ADR-025): instala @reportlenz/designer-react e @reportlenz/jrxml-core dos tarballs do pnpm pack, como uma aplicação da empresa instalaria do npm.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 5300 --strictPort"
+  },
+  "dependencies": {
+    "@mantine/core": "9.4.0",
+    "@mantine/hooks": "9.4.0",
+    "@reportlenz/designer-react": "file:./pacotes/reportlenz-designer-react-0.1.0.tgz",
+    "@reportlenz/jrxml-core": "file:./pacotes/reportlenz-jrxml-core-0.1.0.tgz",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "overrides": {
+    "@reportlenz/jrxml-core": "$@reportlenz/jrxml-core"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  }
+}

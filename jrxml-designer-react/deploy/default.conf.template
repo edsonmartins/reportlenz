@@ -19,7 +19,10 @@ server {
     location ~ ^/(render|assist|publish|templates)(/|$) {
         proxy_pass ${RENDER_SERVICE_URL};
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        # $http_host preserva a PORTA pública: o render-service compara Origin com o
+        # próprio host (CORS, ADR-025) — com $host (sem porta) a SPA virava "outra origem".
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Host $http_host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 180s;

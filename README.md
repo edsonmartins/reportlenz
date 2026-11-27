@@ -84,6 +84,31 @@ set -a; . deploy/.env; set +a; pnpm --dir e2e test   # interface: login por popu
 Os dois criam usuários e clients **temporários** no Keycloak e os removem no fim; os usuários de
 homologação não são tocados. O CI roda os dois a cada PR (job `e2e`), com segredos aleatórios.
 
+### Pacotes npm: designer embutível (ADR-025)
+
+O editor e o preview são publicados como componentes React:
+
+- **`@reportlenz/designer-react`:** `<ReportLenzDesigner>` e `<ReportLenzPreview>`. React e Mantine são
+  peers. O README do pacote traz o uso.
+- **`@reportlenz/jrxml-core`:** modelo, parser/serializer JRXML 7, contrato e gates.
+
+A SPA de homologação é ela mesma uma consumidora do componente (`jrxml-designer-react/src/spa/Spa.tsx`).
+A aplicação de teste `exemplos/host-react` instala os **tarballs** dos pacotes com npm e roda no E2E
+(dois designers e um preview, serviço em outra origem):
+
+```bash
+exemplos/host-react/preparar.sh        # pnpm pack + npm install + build
+# o Playwright a serve sozinho (webServer, porta 5300); o serviço precisa de REPORTLENZ_CORS_ORIGENS
+```
+
+**Release:**
+
+1. Ajuste a mesma versão nos dois `package.json`.
+2. Crie e envie a tag `v<versão>`.
+
+O workflow `release` testa e publica no npmjs.com com provenance. Antes, uma vez só, é preciso criar a
+organização `@reportlenz` no npm e o segredo `NPM_TOKEN` no GitHub.
+
 ### Catálogo de modelos e matriz de testes (ADR-022)
 
 A galeria tem 14 modelos, todos definidos em `jrxml-core/src/reference/`:

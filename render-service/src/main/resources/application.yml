@@ -24,6 +24,10 @@ spring:
 
 server:
   port: 8087
+  # Atrás do proxy (nginx do designer, ADR-019): esquema/host/porta públicos vêm de
+  # X-Forwarded-* — sem isso a checagem de MESMA origem do CORS (ADR-025) falha.
+  # Seguro só porque o serviço NÃO é exposto fora da rede interna.
+  forward-headers-strategy: framework
 
 management:
   server:
