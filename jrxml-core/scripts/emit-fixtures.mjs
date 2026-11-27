@@ -7,7 +7,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { REFERENCE_TEMPLATES, buildInputSchema, extractContract, genJavaRecord, serializeJrxml } from '../dist/index.js';
+import { CENARIOS, REFERENCE_TEMPLATES, buildInputSchema, extractContract, genJavaRecord, serializeJrxml } from '../dist/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(here, '../../tools/jr7-harness/fixtures');
@@ -34,4 +34,9 @@ for (const [name, template] of Object.entries(REFERENCE_TEMPLATES)) {
   const fileSchema = join(outDir, `${name}.schema.json`);
   writeFileSync(fileSchema, JSON.stringify(schema, null, 2), 'utf8');
   console.log(`emitido: ${fileSchema}`);
+
+  // Cenários declarativos (ADR-022) — consumidos pela matriz do render-service.
+  const fileCenarios = join(outDir, `${name}.cenarios.json`);
+  writeFileSync(fileCenarios, JSON.stringify(CENARIOS[name] ?? [], null, 2), 'utf8');
+  console.log(`emitido: ${fileCenarios}`);
 }
