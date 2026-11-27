@@ -9,8 +9,11 @@ export async function entrarComo(page: Page, quem: 'designer' | 'publicador'): P
   const [popup] = await Promise.all([page.waitForEvent('popup'), page.getByTestId('sessao-entrar').click()]);
   await popup.locator('#username').fill(usuario);
   await popup.locator('#password').fill(id.senha);
+  // Escuta o 'close' ANTES do clique: o callback fecha o popup sozinho e, com
+  // slowMo/máquina lenta, ele pode fechar antes de um waitForEvent posterior.
+  const fechou = popup.waitForEvent('close');
   await popup.locator('#kc-login').click();
-  await popup.waitForEvent('close');
+  await fechou;
   await expect(page.getByTestId('galeria')).toBeVisible();
   return usuario;
 }
