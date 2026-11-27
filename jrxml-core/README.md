@@ -1,4 +1,4 @@
-# @reportlenz/jrxml-core
+# @archbase/reportlenz-jrxml-core
 
 Núcleo headless do ReportLenz (RFC-001): modelo de domínio do relatório, parser (JRXML 7 → modelo),
 serializer (modelo → JRXML 7), validação dupla (XSD 7 + contrato) e extrator de contrato de dados.
@@ -6,11 +6,11 @@ serializer (modelo → JRXML 7), validação dupla (XSD 7 + contrato) e extrator
 ## Instalação
 
 ```bash
-npm install @reportlenz/jrxml-core
+npm install @archbase/reportlenz-jrxml-core
 ```
 
 ```ts
-import { parseJrxml, serializeJrxml, extractContract, buildInputSchema, avaliarGates } from '@reportlenz/jrxml-core';
+import { parseJrxml, serializeJrxml, extractContract, buildInputSchema, avaliarGates } from '@archbase/reportlenz-jrxml-core';
 
 const r = parseJrxml(jrxml);                         // JRXML 7 → modelo (erros tipados, nunca exceção)
 if (r.ok) {
@@ -20,7 +20,7 @@ if (r.ok) {
 ```
 
 Também traz o **catálogo de modelos de referência** (`REFERENCE_TEMPLATES`: boleto, DANFE, fatura,
-etiquetas, contrato e outros) com cenários de dados (`CENARIOS`). É usado pelo `@reportlenz/designer-react`.
+etiquetas, contrato e outros) com cenários de dados (`CENARIOS`). É usado pelo `@archbase/reportlenz-designer-react`.
 
 ## Invariantes
 

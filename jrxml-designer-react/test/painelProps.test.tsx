@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
-import type { BarcodeElement } from '@reportlenz/jrxml-core';
-import { REFERENCIA_DANFE, REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import type { BarcodeElement } from '@archbase/reportlenz-jrxml-core';
+import { REFERENCIA_DANFE, REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../src/App';

@@ -1,4 +1,4 @@
-import { REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import { REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useDocumentoStore, validarDocumento } from '../src/store/documentoStore';
 

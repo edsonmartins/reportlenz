@@ -52,28 +52,55 @@
   <properties>
     <java.version>21</java.version>
     <jasperreports.version>7.0.7</jasperreports.version>
+
+    <!--
+      Publicação no Maven Central: OPT-IN por módulo (como no archflow). O
+      default é true (NÃO publica) e só reportlenz-core e
+      reportlenz-spring-boot-starter viram false no próprio pom: esquecer um
+      módulo novo significa "não publicou" — o erro barato, já que o Central
+      não aceita remover uma versão publicada.
+    -->
+    <reportlenz.publish.skip>true</reportlenz.publish.skip>
+    <!-- Publica sozinho ao final; ensaio: -Dreportlenz.publish.auto=false (dry-run). -->
+    <reportlenz.publish.auto>true</reportlenz.publish.auto>
+    <!--
+      Espera até VALIDADO, não até publicado (archflow, 1.4.0: esperar o
+      "published" estourou o timeout com a publicação a caminho, e o build
+      falhou dizendo que deu errado quando deu certo).
+    -->
+    <reportlenz.publish.waitUntil>validated</reportlenz.publish.waitUntil>
+    <reportlenz.publish.waitMaxTime>3600</reportlenz.publish.waitMaxTime>
+    <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+    <maven.javadoc.plugin.version>3.6.3</maven.javadoc.plugin.version>
+    <maven.gpg.plugin.version>3.2.7</maven.gpg.plugin.version>
+    <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
+    <flatten.plugin.version>1.6.0</flatten.plugin.version>
   </properties>
 
   <!--
-    Publicação no Maven Central (ADR-026 §4): mvn -P publicacao deploy
-    Publica reportlenz-parent, reportlenz-core e reportlenz-spring-boot-starter
-    (a aplicação standalone fica de fora). Exige, do dono do namespace:
-      - groupId com namespace VERIFICADO no central.sonatype.com;
-      - token do Central em ~/.m2/settings.xml (server id "central");
-      - chave GPG (MAVEN_GPG_PASSPHRASE).
+    Publicação no Maven Central (ADR-026 §4) — mesmo processo do archflow:
+
+        mvn -B deploy -Pmaven-central -DskipTests \
+            -pl reportlenz-core,reportlenz-spring-boot-starter \
+            -s ../.maven-settings.xml.template
+
+    Variáveis: MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_TOKEN (token do
+    central.sonatype.com) e MAVEN_GPG_PASSPHRASE; chave GPG importada antes.
+    O namespace dev.reportlenz precisa estar VERIFICADO na conta do Central.
   -->
   <profiles>
     <profile>
-      <id>publicacao</id>
+      <id>maven-central</id>
       <build>
         <plugins>
+          <!-- Sources e javadoc: obrigatórios no Central. -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.3.1</version>
+            <version>${maven.source.plugin.version}</version>
             <executions>
               <execution>
-                <id>fontes</id>
+                <id>attach-sources</id>
                 <goals><goal>jar-no-fork</goal></goals>
               </execution>
             </executions>
@@ -81,48 +108,75 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.12.0</version>
+            <version>${maven.javadoc.plugin.version}</version>
             <configuration>
               <doclint>none</doclint>
               <quiet>true</quiet>
             </configuration>
             <executions>
               <execution>
-                <id>javadoc</id>
+                <id>attach-javadocs</id>
                 <goals><goal>jar</goal></goals>
               </execution>
             </executions>
           </plugin>
+
+          <!-- Assinatura GPG, também obrigatória (pinentry loopback vem do settings/gpg.conf). -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>3.2.8</version>
+            <version>${maven.gpg.plugin.version}</version>
             <executions>
               <execution>
-                <id>assinar</id>
+                <id>sign-artifacts</id>
                 <phase>verify</phase>
                 <goals><goal>sign</goal></goals>
               </execution>
             </executions>
-            <configuration>
-              <gpgArguments>
-                <arg>--pinentry-mode</arg>
-                <arg>loopback</arg>
-              </gpgArguments>
-            </configuration>
           </plugin>
+
+          <!--
+            POM publicado ACHATADO (lição do archflow, v1.1.0 recusada no Central
+            por "License/SCM/Developers missing" e versões de dependência ausentes):
+            o reportlenz-parent NÃO é publicado, então o <parent> que os módulos
+            declaram não existiria no Central. O modo ossrh publica um POM sem
+            <parent>, com versões resolvidas (inclusive as do BOM do Spring Boot)
+            e licenses/scm/developers/url/description embutidos — e quem depende
+            do starter não herda o spring-boot-starter-parent.
+          -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>flatten-maven-plugin</artifactId>
+            <version>${flatten.plugin.version}</version>
+            <configuration>
+              <flattenMode>ossrh</flattenMode>
+            </configuration>
+            <executions>
+              <execution>
+                <id>flatten</id>
+                <phase>process-resources</phase>
+                <goals><goal>flatten</goal></goals>
+              </execution>
+              <execution>
+                <id>flatten-clean</id>
+                <phase>clean</phase>
+                <goals><goal>clean</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>
-            <version>0.12.0</version>
+            <version>${central.publishing.plugin.version}</version>
             <extensions>true</extensions>
             <configuration>
               <publishingServerId>central</publishingServerId>
-              <autoPublish>true</autoPublish>
-              <waitUntil>published</waitUntil>
-              <excludeArtifacts>
-                <artifactId>reportlenz-render-service</artifactId>
-              </excludeArtifacts>
+              <!-- Por propriedade (não literal): -D vence, e o dry-run sobe sem publicar. -->
+              <autoPublish>${reportlenz.publish.auto}</autoPublish>
+              <waitUntil>${reportlenz.publish.waitUntil}</waitUntil>
+              <waitMaxTime>${reportlenz.publish.waitMaxTime}</waitMaxTime>
+              <skipPublishing>${reportlenz.publish.skip}</skipPublishing>
             </configuration>
           </plugin>
         </plugins>

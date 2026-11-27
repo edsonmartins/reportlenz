@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { REFERENCE_TEMPLATES, buildInputSchema, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
+import { REFERENCE_TEMPLATES, buildInputSchema, extractContract, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { identidades, tokenDeApi } from './keycloak';
 
 const API = process.env.DESIGNER_URL ?? 'http://localhost:8080';

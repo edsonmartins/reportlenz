@@ -4,8 +4,8 @@
  * ao contrato (a coluna nasce ligada a um campo do item da coleção).
  */
 import { ActionIcon, Button, Group, NumberInput, Select, Stack, Text, Tooltip } from '@mantine/core';
-import type { ColunaDeTabela, TableElement } from '@reportlenz/jrxml-core';
-import { contarColunasFolha, eGrupoDeColunas } from '@reportlenz/jrxml-core';
+import type { ColunaDeTabela, TableElement } from '@archbase/reportlenz-jrxml-core';
+import { contarColunasFolha, eGrupoDeColunas } from '@archbase/reportlenz-jrxml-core';
 import { useState } from 'react';
 import type { CaminhoDeElemento } from '../store/documentoStore';
 import { useDocumentoStore } from '../store/documentoStore';

@@ -6,7 +6,7 @@
  * por parentStyleRef, com proteção a ciclos) → estilo default do relatório →
  * default do engine. Tudo que não é 'local' aparece em cinza-claro no painel.
  */
-import type { Element, ReportTemplate, Style, StyleProps } from '@reportlenz/jrxml-core';
+import type { Element, ReportTemplate, Style, StyleProps } from '@archbase/reportlenz-jrxml-core';
 
 export type OrigemDoValor = 'local' | 'estiloNomeado' | 'estiloDefault' | 'engine';
 

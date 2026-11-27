@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",
-    "@reportlenz/jrxml-core": "workspace:*",
+    "@archbase/reportlenz-jrxml-core": "workspace:*",
     "@types/node": "^24.0.0",
     "typescript": "^5.9.3"
   }

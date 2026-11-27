@@ -17,8 +17,8 @@ import type {
   StyleProps,
   TableColumn,
   TableElement,
-} from '@reportlenz/jrxml-core';
-import { eGrupoDeColunas } from '@reportlenz/jrxml-core';
+} from '@archbase/reportlenz-jrxml-core';
+import { eGrupoDeColunas } from '@archbase/reportlenz-jrxml-core';
 import type { BlocoReutilizavel } from '../blocos/biblioteca';
 import { mesclarMiniContrato, reescreverElemento } from '../blocos/mesclarContrato';
 import { alturaMinimaDaBanda, chaveDaBanda } from '../canvas/bandas';

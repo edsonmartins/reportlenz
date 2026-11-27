@@ -6,7 +6,7 @@
  * grupo (ordem inversa) → columnFooter → pageFooter → summary → noData →
  * background. Tudo em pt absoluto na página, a partir do topo da área útil.
  */
-import type { Band, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { Band, ReportTemplate } from '@archbase/reportlenz-jrxml-core';
 import type { CaminhoDeBanda, SecaoUnica } from '../store/documentoStore';
 import { areaUtil } from './geometria';
 

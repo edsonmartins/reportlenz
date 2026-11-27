@@ -1,4 +1,4 @@
-import { REFERENCIA_ETIQUETA_A4, REFERENCIA_FATURA } from '@reportlenz/jrxml-core';
+import { REFERENCIA_ETIQUETA_A4, REFERENCIA_FATURA } from '@archbase/reportlenz-jrxml-core';
 import { describe, expect, it } from 'vitest';
 import {
   PT_POR_MM,

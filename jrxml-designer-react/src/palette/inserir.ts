@@ -8,7 +8,7 @@
  * As expressões nascem com amostras literais VÁLIDAS — troque por `$F{...}`
  * no expression editor.
  */
-import type { Element } from '@reportlenz/jrxml-core';
+import type { Element } from '@archbase/reportlenz-jrxml-core';
 import { mmParaPt } from '../canvas/geometria';
 
 export interface PresetDeElemento {

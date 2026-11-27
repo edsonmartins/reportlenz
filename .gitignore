@@ -11,3 +11,6 @@ tools/jr7-harness/fixtures-java/
 
 # Segredos do ambiente de homologação (ADR-019)
 deploy/.env
+
+# POM achatado do perfil maven-central (flatten-maven-plugin)
+.flattened-pom.xml

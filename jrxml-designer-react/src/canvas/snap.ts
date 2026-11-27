@@ -6,7 +6,7 @@
  * O snap de elemento tem prioridade sobre o snap de grid (grid só entra
  * quando nenhum alvo de elemento está na tolerância, e não desenha guia).
  */
-import type { Band, Bounds } from '@reportlenz/jrxml-core';
+import type { Band, Bounds } from '@archbase/reportlenz-jrxml-core';
 
 export interface AlvosDeSnap {
   xs: number[];

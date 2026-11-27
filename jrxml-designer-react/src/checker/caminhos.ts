@@ -4,7 +4,7 @@
  * em caminho de seleção do canvas. Problemas de contrato/estilos não têm
  * elemento — retornam null (linha não navegável).
  */
-import type { ReportTemplate } from '@reportlenz/jrxml-core';
+import type { ReportTemplate } from '@archbase/reportlenz-jrxml-core';
 import type { CaminhoDeElemento, SecaoUnica } from '../store/documentoStore';
 
 const SECOES: SecaoUnica[] = [

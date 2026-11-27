@@ -8,7 +8,7 @@
  * validação contínua segue valendo no canvas).
  */
 import { Alert, Badge, Button, Checkbox, Drawer, Group, Stack, Text, Textarea } from '@mantine/core';
-import type { ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { ParseError, ReportTemplate } from '@archbase/reportlenz-jrxml-core';
 import { useState } from 'react';
 import { useDocumentoStore, validarDocumento } from '../store/documentoStore';
 import { normalizarDraft } from './normalizarDraft';

@@ -1,5 +1,5 @@
 {
-  "name": "@reportlenz/designer-react",
+  "name": "@archbase/reportlenz-designer-react",
   "version": "0.1.0",
   "description": "Designer e preview de relatórios JRXML 7 contract-first como componentes React (Mantine) — ReportLenz",
   "license": "MIT",
@@ -33,8 +33,7 @@
     "directory": "jrxml-designer-react"
   },
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "dev": "vite",
@@ -52,7 +51,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@reportlenz/jrxml-core": "workspace:^",
+    "@archbase/reportlenz-jrxml-core": "workspace:^",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

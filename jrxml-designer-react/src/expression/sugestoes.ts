@@ -7,8 +7,8 @@
  * - Validação inline: chaves não fechadas e referências órfãs (a mesma regra
  *   do core, antecipada para feedback enquanto digita).
  */
-import type { DataContract } from '@reportlenz/jrxml-core';
-import { BUILTIN_PARAMETERS, BUILTIN_VARIABLES } from '@reportlenz/jrxml-core';
+import type { DataContract } from '@archbase/reportlenz-jrxml-core';
+import { BUILTIN_PARAMETERS, BUILTIN_VARIABLES } from '@archbase/reportlenz-jrxml-core';
 import { FUNCOES_JASPER } from './funcoesJasper';
 
 export interface EscopoDeExpressao {

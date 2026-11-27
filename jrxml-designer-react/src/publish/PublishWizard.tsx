@@ -11,8 +11,8 @@
  * persistência do registro (ADR-009) chega no bloco 5.
  */
 import { Alert, Badge, Button, Group, Modal, Stack, Text } from '@mantine/core';
-import type { ResultadoDosGates } from '@reportlenz/jrxml-core';
-import { avaliarGates, buildIntegrationPackage } from '@reportlenz/jrxml-core';
+import type { ResultadoDosGates } from '@archbase/reportlenz-jrxml-core';
+import { avaliarGates, buildIntegrationPackage } from '@archbase/reportlenz-jrxml-core';
 import { useEffect, useState } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
 import { codenameDoRegistro, useIntegracao } from '../designer/integracao';

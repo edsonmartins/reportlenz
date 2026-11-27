@@ -91,7 +91,7 @@ export function genJavaRecord(schema: JsonSchema, options?: GenJavaRecordOptions
     linhas.push(`package ${options.packageName};`, '');
   }
   linhas.push(
-    `// Gerado por @reportlenz/jrxml-core a partir do inputSchema` +
+    `// Gerado por @archbase/reportlenz-jrxml-core a partir do inputSchema` +
       (schema.$id !== undefined ? ` (${schema.$id})` : '') +
       ` — NÃO editar manualmente.`,
     `public record ${rootName}(${corpoRaiz}) {`,

@@ -3,7 +3,7 @@
  * "Renderizar (Jasper)" envia JRXML + sampleData + inputSchema ao
  * `POST /render/preview` e recebe PNG por página — a VERDADE do engine (I-8).
  */
-import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
+import { buildInputSchema, datasourceCampo, extractContract, serializeJrxml } from '@archbase/reportlenz-jrxml-core';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import type { ClienteDaApi } from '../api/cliente';
 import { hookDoStore } from '../instancia';

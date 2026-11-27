@@ -88,9 +88,9 @@ homologação não são tocados. O CI roda os dois a cada PR (job `e2e`), com se
 
 O editor e o preview são publicados como componentes React:
 
-- **`@reportlenz/designer-react`:** `<ReportLenzDesigner>` e `<ReportLenzPreview>`. React e Mantine são
+- **`@archbase/reportlenz-designer-react`:** `<ReportLenzDesigner>` e `<ReportLenzPreview>`. React e Mantine são
   peers. O README do pacote traz o uso.
-- **`@reportlenz/jrxml-core`:** modelo, parser/serializer JRXML 7, contrato e gates.
+- **`@archbase/reportlenz-jrxml-core`:** modelo, parser/serializer JRXML 7, contrato e gates.
 
 A SPA de homologação é ela mesma uma consumidora do componente (`jrxml-designer-react/src/spa/Spa.tsx`).
 A aplicação de teste `exemplos/host-react` instala os **tarballs** dos pacotes com npm e roda no E2E
@@ -101,13 +101,8 @@ exemplos/host-react/preparar.sh        # pnpm pack + npm install + build
 # o Playwright a serve sozinho (webServer, porta 5300); o serviço precisa de REPORTLENZ_CORS_ORIGENS
 ```
 
-**Release:**
-
-1. Ajuste a mesma versão nos dois `package.json`.
-2. Crie e envie a tag `v<versão>`.
-
-O workflow `release` testa e publica no npmjs.com com provenance. Antes, uma vez só, é preciso criar a
-organização `@reportlenz` no npm e o segredo `NPM_TOKEN` no GitHub.
+Os pacotes são publicados no escopo **`@archbase`** do npm; a publicação está descrita em
+[Publicação](#publicação-npm-e-maven-central).
 
 ### Backend Java embarcável (ADR-026)
 
@@ -167,10 +162,47 @@ A aplicação de teste `exemplos/host-spring` prova a convivência no CI.
 Peças do motor, como o cache de compilação e a fonte de subreports, são `@ConditionalOnMissingBean`: a
 aplicação pode trocá-las.
 
-**Publicação:** o job `maven` do `release.yml` (mesma tag `v*`) publica no Maven Central. Antes, uma vez
-só, é preciso:
-- verificar o namespace do `groupId` no Central;
-- criar os segredos `CENTRAL_USERNAME`, `CENTRAL_TOKEN`, `GPG_PRIVATE_KEY` e `GPG_PASSPHRASE`.
+A publicação no Maven Central está descrita em [Publicação](#publicação-npm-e-maven-central).
+
+### Publicação (npm e Maven Central)
+
+Uma tag `v<versão>` (ex.: `v0.1.0`) dispara o workflow `release`. A versão publicada é a da tag: os
+`package.json` e `pom.xml` são ajustados no runner.
+
+| Job | Publica | Processo seguido |
+|---|---|---|
+| `npm` | `@archbase/reportlenz-jrxml-core` e `@archbase/reportlenz-designer-react` | o do archbase-react e do linktor-webchat-sdk |
+| `maven-central` | `dev.reportlenz:reportlenz-core` e `dev.reportlenz:reportlenz-spring-boot-starter` | o do archflow |
+| `github-release` | notas e instruções de instalação | depois dos dois |
+
+**Proteções dos jobs:**
+- Recusam versão já publicada. Os dois registros não aceitam republicar: para corrigir algo, publique
+  outra versão.
+- Rodam os testes antes de publicar:
+  - no npm, o core e o designer;
+  - no Maven, o núcleo e a aplicação Spring hospedeira, contra os artefatos achatados.
+- O job do npm diagnostica a autenticação (`npm whoami` e acesso ao escopo) antes do publish.
+- O job do Maven:
+  - usa Maven 3.9 fixo;
+  - publica POMs achatados (`flatten`, modo `ossrh`), sem o `reportlenz-parent`;
+  - só sobe os módulos com `reportlenz.publish.skip=false`, além do `-pl`.
+
+**Antes da primeira vez:**
+
+1. **Namespace `dev.reportlenz`:** verificar no central.sonatype.com (Namespaces → Add Namespace), com
+   o registro TXT no DNS de `reportlenz.dev`, na mesma conta do archflow.
+2. **Segredos** neste repositório, com os mesmos valores dos outros projetos:
+
+   ```bash
+   gh secret set NPM_TOKEN               # o do archbase-react (publica em @archbase)
+   gh secret set MAVEN_CENTRAL_USERNAME  # os do archflow
+   gh secret set MAVEN_CENTRAL_TOKEN
+   gh secret set GPG_PRIVATE_KEY         # chave privada em base64
+   gh secret set MAVEN_GPG_PASSPHRASE
+   ```
+3. **Ensaio no Central:** rodar o workflow **Central Dry Run** (Actions → Run workflow). Ele valida o
+   bundle sem publicar. Depois, descarte o deployment no portal (Drop).
+4. **Publicar:** `git tag -a v0.1.0 -m "ReportLenz 0.1.0" && git push origin v0.1.0`.
 
 ### Catálogo de modelos e matriz de testes (ADR-022)
 

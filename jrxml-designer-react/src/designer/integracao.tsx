@@ -4,7 +4,7 @@
  * publicar. A SPA de homologação usa INTEGRACAO_DA_SPA (comportamento de
  * sempre); `<ReportLenzDesigner>` monta a sua a partir das props.
  */
-import type { IntegrationPackage } from '@reportlenz/jrxml-core';
+import type { IntegrationPackage } from '@archbase/reportlenz-jrxml-core';
 import { createContext, useContext, type ReactNode } from 'react';
 
 export interface Recursos {

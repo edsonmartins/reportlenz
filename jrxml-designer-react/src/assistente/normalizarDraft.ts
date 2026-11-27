@@ -5,7 +5,7 @@
  * as chaves estruturais presentes, ANTES da validação obrigatória
  * (validateSchema + validateContract) e de chegar ao canvas.
  */
-import type { DataContract, PageFormat, ReportTemplate } from '@reportlenz/jrxml-core';
+import type { DataContract, PageFormat, ReportTemplate } from '@archbase/reportlenz-jrxml-core';
 
 const A4: PageFormat = {
   pageWidth: 595,

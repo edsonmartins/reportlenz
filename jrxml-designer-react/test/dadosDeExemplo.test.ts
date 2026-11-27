@@ -1,4 +1,4 @@
-import { REFERENCIA_ETIQUETA_A4, extractContract } from '@reportlenz/jrxml-core';
+import { REFERENCIA_ETIQUETA_A4, extractContract } from '@archbase/reportlenz-jrxml-core';
 import { describe, expect, it } from 'vitest';
 import {
   camposDeCodigoDeBarras,

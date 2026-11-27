@@ -19,6 +19,13 @@ da empresa**, que usam Mantine/Archbase. O que impede isso hoje:
    configurável.
 4. **Pacotes privados:** o `jrxml-core` e o designer são `private` e nunca foram publicados.
 
+> **Emenda (2026-11-27, decisão do usuário):**
+> - Os pacotes são publicados no escopo **`@archbase`**, já usado pelos pacotes do Archbase:
+>   `@archbase/reportlenz-jrxml-core` e `@archbase/reportlenz-designer-react`.
+> - O processo de release segue o do archbase-react e do linktor-webchat-sdk: `NPM_TOKEN`, diagnóstico
+>   de autenticação e `pnpm publish -r`, sem provenance.
+> - Onde este ADR diz `@reportlenz/…`, leia `@archbase/reportlenz-…`.
+
 ## Decisão
 
 Decisões do usuário em 2026-11-27:

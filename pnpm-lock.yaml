@@ -10,12 +10,12 @@ importers:
 
   e2e:
     devDependencies:
+      '@archbase/reportlenz-jrxml-core':
+        specifier: workspace:*
+        version: link:../jrxml-core
       '@playwright/test':
         specifier: 1.65.1
         version: 1.65.1
-      '@reportlenz/jrxml-core':
-        specifier: workspace:*
-        version: link:../jrxml-core
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.4
@@ -47,7 +47,7 @@ importers:
 
   jrxml-designer-react:
     dependencies:
-      '@reportlenz/jrxml-core':
+      '@archbase/reportlenz-jrxml-core':
         specifier: workspace:^
         version: link:../jrxml-core
       zustand:
