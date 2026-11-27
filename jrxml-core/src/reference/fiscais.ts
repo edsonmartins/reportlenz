@@ -83,7 +83,7 @@ export const REFERENCIA_BOLETO: ReportTemplate = {
           ...caixaRotulada(330, 48, 110, 24, 'NOSSO NÚMERO', '$F{nosso_numero}'),
           ...caixaRotulada(440, 48, 115, 24, 'VALOR DO DOCUMENTO', '$F{valor}', { pattern: MOEDA, style: { ...DIREITA, ...NEGRITO } }),
           ...caixaRotulada(0, 72, 330, 24, 'NÚMERO DO DOCUMENTO', '$F{numero_documento}'),
-          ...caixaRotulada(330, 72, 225, 24, 'LINHA DIGITÁVEL', '$F{linha_digitavel}', { style: { fontSize: 7 } }),
+          ...caixaRotulada(330, 72, 225, 24, 'LINHA DIGITÁVEL', '$F{linha_digitavel}', { style: { fontSize: 6 } }),
           texto(330, 100, 225, 10, 'Autenticação mecânica', { styleRef: 'rotulo', style: DIREITA }),
           linhaDeCorte(125),
           texto(0, 127, 555, 8, 'Corte na linha pontilhada', { styleRef: 'rotulo', style: DIREITA }),
@@ -91,7 +91,7 @@ export const REFERENCIA_BOLETO: ReportTemplate = {
           // --- Ficha de compensação
           ...cabecalhoDoBanco(
             140,
-            campo(215, 146, 340, 16, '$F{linha_digitavel}', { style: { bold: true, fontSize: 10, hAlign: 'Right' } }),
+            campo(215, 146, 340, 16, '$F{linha_digitavel}', { style: { bold: true, fontSize: 9, hAlign: 'Right' } }),
           ),
           ...caixaRotulada(0, 164, 440, 24, 'LOCAL DE PAGAMENTO', '$F{local_pagamento}'),
           ...caixaRotulada(440, 164, 115, 24, 'VENCIMENTO', '$F{vencimento}', { pattern: DATA, style: { ...DIREITA, ...NEGRITO } }),
@@ -261,7 +261,7 @@ export const REFERENCIA_DANFE: ReportTemplate = {
         // CODE-128 (o barcode4j escolhe o subconjunto C para 44 dígitos) — SÓ a chave.
         { kind: 'barcode', bounds: { x: 336, y: 3, width: 213, height: 34 }, barcodeType: 'Code128', expression: '$F{chave_acesso}' },
         texto(332, 39, 221, 7, 'CHAVE DE ACESSO', { styleRef: 'rotulo' }),
-        campo(332, 47, 221, 11, CHAVE_FORMATADA, { style: { bold: true, fontSize: 7, hAlign: 'Center' } }),
+        campo(332, 47, 221, 11, CHAVE_FORMATADA, { style: { bold: true, fontSize: 6, hAlign: 'Center' } }),
         texto(
           332,
           61,

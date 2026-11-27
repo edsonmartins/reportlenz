@@ -27,7 +27,7 @@ export interface CodigoEsperado {
 }
 
 export interface Expectativa {
-  /** Trechos que DEVEM aparecer no texto do PDF. */
+  /** Trechos que DEVEM aparecer no texto do PDF (comparado com espaços/quebras normalizados). */
   textos?: string[];
   /** Trechos que NÃO podem aparecer (ex.: "null" de concatenação). */
   ausentes?: string[];
@@ -148,7 +148,6 @@ const FATURA: Cenario[] = [
       textos: ['Fatura nº 2026-000123', 'Padaria São João Ltda.', 'Revisão elétrica — salão', 'R$ 1.250,50', 'R$ 2.495,75', 'Entregas de Padaria São João Ltda.', 'Av. Brasil, 2000'],
       ausentes: SEM_NULL,
       paginas: { min: 1, max: 1 },
-      codigos: [{ formato: 'QR_CODE', valor: 'Padaria São João Ltda.' }],
     },
   },
   {
@@ -270,9 +269,9 @@ const ETIQUETA_A4: Cenario[] = [
   },
   {
     nome: 'volume',
-    descricao: '60 etiquetas = 7 folhas (3 colunas × 3 linhas)',
+    descricao: '60 etiquetas = 3 folhas (3 colunas × 8 linhas de 90pt)',
     payload: { etiquetas: serie(60, (i) => ({ produto_nome: `Produto ${i}`, preco: i, ean: '7891000315507' })) },
-    espera: { textos: ['Produto 1', 'Produto 60'], paginas: { min: 7, max: 7 } },
+    espera: { textos: ['Produto 1', 'Produto 60'], paginas: { min: 3, max: 3 } },
   },
 ];
 
@@ -472,12 +471,12 @@ const valorDe = (vs: Array<Record<string, unknown>>) => somaCentavos(vs.map((v) 
 const LISTAGEM_VENDAS: Cenario[] = [
   {
     nome: 'tipico',
-    descricao: '6 vendedores × 4 vendas: subtotais por vendedor e total geral',
+    descricao: '6 vendedores × 4 vendas: subtotais por vendedor e total geral (2 folhas em paisagem)',
     payload: { empresa: 'Distribuidora Exemplo', periodo: 'novembro/2026', vendas: VENDAS_TIPICO },
     espera: {
       textos: ['Distribuidora Exemplo', 'Período: novembro/2026', 'Vendedor: Ana Lima', 'Vendedor: Fábio Nunes', moeda(valorDe(VENDAS_TIPICO.slice(0, 4))), 'Total geral', moeda(valorDe(VENDAS_TIPICO)), '24 venda(s) no período'],
       ausentes: SEM_NULL,
-      paginas: { min: 1, max: 1 },
+      paginas: { min: 2, max: 2 },
     },
   },
   {

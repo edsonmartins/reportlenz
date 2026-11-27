@@ -132,7 +132,7 @@ export const REFERENCIA_CONTRATO: ReportTemplate = {
           48,
           500,
           44,
-          '"CONTRATANTE: " + $P{contratante} + ".\\nCONTRATADA: " + $P{contratada} + ".\\nAs partes acima identificadas têm entre si justo e contratado o que segue, regido pelas cláusulas abaixo."',
+          '"CONTRATANTE: " + $P{contratante} + "\\nCONTRATADA: " + $P{contratada} + "\\nAs partes acima identificadas têm entre si justo e contratado o que segue, regido pelas cláusulas abaixo."',
           { textAdjust: 'StretchHeight', style: { hAlign: 'Justified' } },
         ),
       ],
