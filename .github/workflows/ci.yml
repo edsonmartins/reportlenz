@@ -206,6 +206,18 @@ jobs:
       - name: Nenhum teste pulado (PostgreSQL)
         run: tools/ci/verificar-sem-skips.sh
 
+      # ADR-026: o starter numa aplicação Spring Boot 4 com segurança, Flyway e
+      # rotas PRÓPRIAS (exemplos/host-spring), instalado do repositório local
+      # como viria do Maven Central — coexistência, cadeia de reserva, modo
+      # "aplicacao", MotorReportLenz pela API Java e falha clara sem Redis.
+      - name: Aplicação Spring hospedeira (starter embarcado)
+        run: |
+          mvn -q -B -f render-service/pom.xml install -DskipTests
+          mvn -q -B -f exemplos/host-spring/pom.xml test
+
+      - name: Nenhum teste pulado (aplicação hospedeira)
+        run: tools/ci/verificar-sem-skips.sh exemplos/host-spring
+
   # E2E (change e2e-interface): sobe o ambiente de homologação inteiro
   # (deploy/docker-compose.homologacao.yml) com segredos ALEATÓRIOS e roda o
   # E2E da API (tokens reais do Keycloak) e o de interface (Playwright, login

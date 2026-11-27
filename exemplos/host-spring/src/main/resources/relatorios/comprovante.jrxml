@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="comprovante_pedido" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="30" bottomMargin="30">
+	<field name="numero" class="java.lang.String"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="valor" class="java.math.BigDecimal"/>
+	<title height="60">
+		<element kind="textField" x="0" y="0" width="555" height="20">
+			<expression><![CDATA["Pedido nº " + $F{numero} + " — " + $F{cliente}]]></expression>
+		</element>
+		<element kind="textField" x="0" y="24" width="555" height="20" pattern="¤ #,##0.00">
+			<expression><![CDATA[$F{valor}]]></expression>
+		</element>
+	</title>
+</jasperReport>

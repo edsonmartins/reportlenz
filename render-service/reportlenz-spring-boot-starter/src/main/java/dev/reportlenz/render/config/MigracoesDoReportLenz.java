@@ -5,7 +5,7 @@ import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +18,15 @@ import org.springframework.stereotype.Component;
  * Baseline 0: bancos que já tinham as tabelas (render-service antes do
  * ADR-026, histórico na tabela padrão) recebem o V1/V2, que são idempotentes
  * (IF NOT EXISTS).
+ *
+ * ORDEM: roda como SmartLifecycle na fase mais baixa — DEPOIS de todos os
+ * beans (inclusive o Flyway da aplicação, que espera encontrar a base vazia
+ * na primeira execução; nossas tabelas antes dele o fariam recusar a
+ * migração) e ANTES do worker do batch, da purga e do servidor web.
  */
 @Component(MigracoesDoReportLenz.NOME)
 @org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${reportlenz.registro.habilitado:true} or ${reportlenz.batch.habilitado:true}")
-public class MigracoesDoReportLenz implements InitializingBean {
+public class MigracoesDoReportLenz implements SmartLifecycle {
 
     public static final String NOME = "migracoesDoReportLenz";
 
@@ -36,9 +41,29 @@ public class MigracoesDoReportLenz implements InitializingBean {
         this.tabela = tabela;
     }
 
+    private volatile boolean migrado;
+
     @Override
-    public void afterPropertiesSet() {
-        migrar();
+    public void start() {
+        if (!migrado) {
+            migrar();
+            migrado = true;
+        }
+    }
+
+    @Override
+    public void stop() {
+        // nada a desfazer
+    }
+
+    @Override
+    public boolean isRunning() {
+        return migrado;
+    }
+
+    @Override
+    public int getPhase() {
+        return Integer.MIN_VALUE;
     }
 
     /** @return quantas migrações foram aplicadas */

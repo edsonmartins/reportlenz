@@ -42,6 +42,13 @@ public class AssistControlador {
         this.observacoes = observacoes;
     }
 
+    /** Registry opcional (ADR-026): aplicação sem actuator não tem um — spans viram NOOP. */
+    @org.springframework.beans.factory.annotation.Autowired
+    public AssistControlador(ClienteDeInferencia cliente,
+            org.springframework.beans.factory.ObjectProvider<ObservationRegistry> observacoes) {
+        this(cliente, observacoes.getIfAvailable(() -> ObservationRegistry.NOOP));
+    }
+
     public record GerarTemplateRequest(
             String descricao,
             Map<String, Object> contrato,

@@ -29,9 +29,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Conditional(CadeiaPadraoDaAplicacao.SemCadeiaDaAplicacao.class)
 public class CadeiaPadraoDaAplicacao {
 
-    @Bean
+    public static final String NOME_DA_RESERVA = "reportLenzCadeiaDeReserva";
+
+    @Bean(name = NOME_DA_RESERVA)
     @Order(Ordered.LOWEST_PRECEDENCE)
-    SecurityFilterChain cadeiaPadraoDaAplicacao(HttpSecurity http) throws Exception {
+    SecurityFilterChain cadeiaDeReserva(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(a -> a.anyRequest().authenticated())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
@@ -50,7 +52,7 @@ public class CadeiaPadraoDaAplicacao {
             if (fabrica == null) return false;
             return Arrays.stream(fabrica.getBeanNamesForType(SecurityFilterChain.class, true, false))
                     .noneMatch(nome -> !nome.equals(ConfiguracaoDeSeguranca.NOME_DA_CADEIA)
-                            && !nome.equals("cadeiaPadraoDaAplicacao"));
+                            && !nome.equals(NOME_DA_RESERVA));
         }
     }
 }

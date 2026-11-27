@@ -58,6 +58,14 @@ public class ProcessadorDeLote implements SmartLifecycle {
         this.observacoes = observacoes;
     }
 
+    /** Registry opcional (ADR-026): aplicação sem actuator não tem um — spans viram NOOP. */
+    @org.springframework.beans.factory.annotation.Autowired
+    public ProcessadorDeLote(FilaDeRender fila, RepositorioDeJobs repositorio, PipelineDeRender pipeline,
+            ValidadorDePayload validador, ArmazenamentoDeSaida armazenamento,
+            org.springframework.beans.factory.ObjectProvider<ObservationRegistry> observacoes) {
+        this(fila, repositorio, pipeline, validador, armazenamento, observacoes.getIfAvailable(() -> ObservationRegistry.NOOP));
+    }
+
     // ------------------------------------------------------------------ ciclo
 
     @Override
