@@ -1,31 +1,64 @@
 {
-  "name": "@reportlenz/jrxml-designer-react",
+  "name": "@reportlenz/designer-react",
   "version": "0.1.0",
-  "description": "Casca React do designer ReportLenz (ADR-005/RFC-004): React 18 + Mantine v9 + Archbase sobre o jrxml-core",
+  "description": "Designer e preview de relatórios JRXML 7 contract-first como componentes React (Mantine) — ReportLenz",
   "license": "MIT",
-  "private": true,
   "type": "module",
+  "sideEffects": false,
+  "main": "./dist-lib/index.js",
+  "module": "./dist-lib/index.js",
+  "types": "./dist-lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/types/index.d.ts",
+      "import": "./dist-lib/index.js"
+    }
+  },
+  "files": [
+    "dist-lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "jasperreports",
+    "jrxml",
+    "report-designer",
+    "react",
+    "mantine",
+    "reportlenz"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edsonmartins/reportlenz.git",
+    "directory": "jrxml-designer-react"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:lib": "vite build -c vite.lib.config.ts && tsc -p tsconfig.lib.json"
+  },
+  "peerDependencies": {
+    "@mantine/core": "^9.4.0",
+    "@mantine/hooks": "^9.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@archbase/components": "^4.0.36",
-    "@archbase/core": "^4.0.36",
-    "@mantine/core": "9.4.0",
-    "@mantine/hooks": "9.4.0",
-    "@reportlenz/jrxml-core": "workspace:*",
-    "oidc-client-ts": "3.5.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "@reportlenz/jrxml-core": "workspace:^",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@mantine/core": "9.4.0",
+    "@mantine/hooks": "9.4.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.0",
@@ -33,6 +66,9 @@
     "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^10.6.0",
     "jsdom": "^29.1.1",
+    "oidc-client-ts": "3.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.63.0",
     "vite": "^7.3.6",

@@ -3,7 +3,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/'] },
+  { ignores: ['dist/', 'dist-lib/'] },
   js.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
