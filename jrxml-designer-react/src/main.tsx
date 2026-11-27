@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
+import { Spa } from './spa/Spa';
 import { PortaoDeSessao } from './auth/PortaoDeSessao';
 
 const raiz = document.getElementById('root');
@@ -14,7 +14,7 @@ createRoot(raiz).render(
   <StrictMode>
     <MantineProvider defaultColorScheme="light">
       <PortaoDeSessao>
-        <App />
+        <Spa />
       </PortaoDeSessao>
     </MantineProvider>
   </StrictMode>,

@@ -1,7 +1,7 @@
 /**
- * SPA de homologação (RFC-004 §2): casca com o cabeçalho do produto em volta
- * da área de trabalho do designer. Sessão OIDC própria (ADR-017) — o usuário
- * e "Sair" entram como ações extras da barra.
+ * Casca sobre a instância PADRÃO (fora de provider) — usada pelos testes de
+ * componente, que manipulam `useDocumentoStore.getState()` diretamente. A SPA
+ * de produção é `spa/Spa.tsx`, que consome `<ReportLenzDesigner>` (ADR-025).
  */
 import { AppShell, Badge, Group, Title } from '@mantine/core';
 import { UsuarioDaSessao } from './auth/PortaoDeSessao';
