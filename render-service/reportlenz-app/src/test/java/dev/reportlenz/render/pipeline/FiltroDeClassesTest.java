@@ -99,7 +99,7 @@ class FiltroDeClassesTest {
         assertThat(new String(pdf, 0, 5)).isEqualTo("%PDF-");
     }
 
-    private static final Path FIXTURES = Path.of("../tools/jr7-harness/fixtures");
+    private static final Path FIXTURES = Path.of("../../tools/jr7-harness/fixtures");
 
     static boolean fixturesDisponiveis() {
         return Files.exists(FIXTURES.resolve("fatura.jrxml"));

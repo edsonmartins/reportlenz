@@ -138,7 +138,7 @@ class SegurancaDeExpressoesTest {
         return java.nio.file.Files.exists(FATURA);
     }
 
-    private static final java.nio.file.Path FATURA = java.nio.file.Path.of("../tools/jr7-harness/fixtures/fatura.jrxml");
+    private static final java.nio.file.Path FATURA = java.nio.file.Path.of("../../tools/jr7-harness/fixtures/fatura.jrxml");
 
     @Test
     @org.junit.jupiter.api.condition.EnabledIf("fixturesDisponiveis")

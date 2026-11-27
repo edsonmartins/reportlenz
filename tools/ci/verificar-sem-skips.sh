@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ADR-018 §6: falha se algum teste do render-service foi PULADO (fixture ou
 # MinIO ausente faziam testes sumirem do CI sem aviso). Lê os relatórios do
-# surefire da última execução.
+# surefire da última execução — de TODOS os módulos do backend (ADR-026).
 set -euo pipefail
-dir="${1:-render-service/target/surefire-reports}"
-shopt -s nullglob
-relatorios=("$dir"/TEST-*.xml)
+dir="${1:-render-service}"
+relatorios=()
+while IFS= read -r f; do relatorios+=("$f"); done < <(find "$dir" -path '*/target/surefire-reports/TEST-*.xml' 2>/dev/null | sort)
 if [ ${#relatorios[@]} -eq 0 ]; then
   echo "::error::nenhum relatório do surefire em $dir"
   exit 1

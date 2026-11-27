@@ -1,7 +1,7 @@
 # Tasks — backend-embarcavel
 
 - [x] 1.1 ADR-026 (Accepted) + pacote OpenSpec
-- [ ] 2.1 Maven multi-módulo (parent + render-service movido, comportamento idêntico, suíte verde)
+- [x] 2.1 Maven multi-módulo (parent + render-service movido, comportamento idêntico, suíte verde)
 - [ ] 2.2 `reportlenz-core`: pipeline/G7/gates sem Spring + fachada `MotorReportLenz` + testes
 - [ ] 2.3 `reportlenz-spring-boot-starter`: auto-configuração (prefixo de rotas, segurança escopada, registro
       com Flyway isolado, batch/IA/limites por propriedade); render-service vira aplicação fina

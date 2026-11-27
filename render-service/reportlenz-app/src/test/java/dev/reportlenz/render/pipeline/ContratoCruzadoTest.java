@@ -27,7 +27,7 @@ import tools.jackson.databind.json.JsonMapper;
 class ContratoCruzadoTest {
 
     private static final Path SCHEMA_COMPROVANTE =
-            Path.of("../tools/jr7-harness/fixtures/comprovante.schema.json");
+            Path.of("../../tools/jr7-harness/fixtures/comprovante.schema.json");
 
     static boolean fixturesDisponiveis() {
         return Files.exists(SCHEMA_COMPROVANTE);

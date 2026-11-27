@@ -30,7 +30,7 @@ import tools.jackson.databind.json.JsonMapper;
 @AutoConfigureMockMvc
 class CicloDeVidaDoTemplateTest {
 
-    private static final Path FIXTURE_FATURA = Path.of("../tools/jr7-harness/fixtures/fatura.jrxml");
+    private static final Path FIXTURE_FATURA = Path.of("../../tools/jr7-harness/fixtures/fatura.jrxml");
 
     static boolean fixturesDisponiveis() {
         return Files.exists(FIXTURE_FATURA);

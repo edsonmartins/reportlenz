@@ -32,7 +32,7 @@ import net.sf.jasperreports.engine.JasperPrint;
  */
 class ReferenciasDeQualidadeTest {
 
-    private static final Path FIXTURES = Path.of("../tools/jr7-harness/fixtures");
+    private static final Path FIXTURES = Path.of("../../tools/jr7-harness/fixtures");
 
     private final PipelineDeRender pipeline = new PipelineDeRender(
             new CompiladorJrxml(), new CacheDeCompilacaoEmMemoria(), ObservationRegistry.NOOP);

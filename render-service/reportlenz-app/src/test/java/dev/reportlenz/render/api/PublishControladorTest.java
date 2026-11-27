@@ -23,7 +23,7 @@ class PublishControladorTest {
     private final PublishControlador controlador =
             new PublishControlador(new dev.reportlenz.render.publish.VerificadorDeGates(new CompiladorJrxml()));
 
-    private static final Path FIXTURE_FATURA = Path.of("../tools/jr7-harness/fixtures/fatura.jrxml");
+    private static final Path FIXTURE_FATURA = Path.of("../../tools/jr7-harness/fixtures/fatura.jrxml");
 
     static boolean fixturesDisponiveis() {
         return Files.exists(FIXTURE_FATURA);

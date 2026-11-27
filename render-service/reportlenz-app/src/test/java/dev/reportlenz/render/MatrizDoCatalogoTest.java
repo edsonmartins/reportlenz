@@ -66,7 +66,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 class MatrizDoCatalogoTest {
 
-    private static final Path FIXTURES = Path.of("../tools/jr7-harness/fixtures");
+    private static final Path FIXTURES = Path.of("../../tools/jr7-harness/fixtures");
     private static final JsonMapper JSON = JsonMapper.builder().build();
     /** Zoom do PNG de leitura: o preview usa 2× (144 dpi); barras finas pedem mais. */
     private static final float ZOOM_LEITURA = 4f;
