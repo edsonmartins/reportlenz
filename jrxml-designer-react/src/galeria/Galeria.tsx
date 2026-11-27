@@ -7,6 +7,7 @@
 import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import type { ReportTemplate } from '@reportlenz/jrxml-core';
 import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
+import { usePreviewStore } from '../preview/previewStore';
 import { useDocumentoStore } from '../store/documentoStore';
 
 /** Template em branco: A4 com uma banda detail vazia e contrato vazio. */
@@ -191,7 +192,11 @@ function CartaoDeModelo({ modelo }: { modelo: Modelo }) {
           <Text size="xs" c="dimmed">
             {t.dataContract.fields.length} campo(s) · {t.bands.groups.length} grupo(s)
           </Text>
-          <Button size="compact-xs" variant="light" onClick={() => novoDocumento(modelo.criar())}>
+          <Button size="compact-xs" variant="light" onClick={() => {
+              // Documento novo: volta ao editor e descarta o render do anterior (ADR-024).
+              usePreviewStore.getState().reiniciar();
+              novoDocumento(modelo.criar());
+            }}>
             Usar
           </Button>
         </Group>
