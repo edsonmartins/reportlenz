@@ -63,58 +63,12 @@
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
-
-    <!-- ===== Matriz JasperReports 7 modular (ADR-007 + nota 004) ===== -->
-    <!-- Core do engine: modelo, load (Jackson), compile, fill -->
+    <!-- Núcleo de render (ADR-026): JasperReports 7.0.7 (matriz do ADR-007), G7,
+         filtro de classes, pipeline e gates — dependências vêm dele. -->
     <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Exportação PDF — artefato separado no JR7 (essencial: fatura/comprovante) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-pdf</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Fontes DejaVu embarcadas — acentuação pt-BR correta (R$, ç, ã) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-fonts</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Funções de relatório usáveis em expressões -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-functions</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Metadata — introspecção do modelo (apoia inputSchema, RFC-002) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-metadata</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Compilador de expressões (JDT) — necessário para compileReport em runtime
-         (comprovado pelo harness da Fase 0; ausência quebra o compile) -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-jdt</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- Componentes barcode4j (QRCode, EAN-13, ...) usados pelo subconjunto ReportLenz -->
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-barcode4j</artifactId>
-      <version>${jasperreports.version}</version>
-    </dependency>
-    <!-- ===== fim da matriz JR7 ===== -->
-
-    <!-- Validação de payload contra o inputSchema (RFC-002 §5) — 3.x usa Jackson 3, como o Boot 4 -->
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>3.0.6</version>
+      <groupId>dev.reportlenz</groupId>
+      <artifactId>reportlenz-core</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- Observabilidade (RFC-003 §7, tarefa 6.1): Observation API → métricas + traces -->

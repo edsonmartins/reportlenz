@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.springframework.stereotype.Component;
 
 import net.sf.jasperreports.engine.JasperReport;
 
@@ -20,7 +19,6 @@ import net.sf.jasperreports.engine.JasperReport;
  * junto com a infraestrutura do batch (tarefas 5.x), atrás desta mesma
  * interface — o valor lá serão os bytes do `.jasper` serializado.
  */
-@Component
 public class CacheDeCompilacaoEmMemoria implements CacheDeCompilacao {
 
     private static final int MAX_ENTRADAS = 200;

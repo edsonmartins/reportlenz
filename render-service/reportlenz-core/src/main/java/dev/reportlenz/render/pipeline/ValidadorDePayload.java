@@ -3,7 +3,6 @@ package dev.reportlenz.render.pipeline;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
 
 import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
@@ -20,7 +19,6 @@ import tools.jackson.databind.json.JsonMapper;
  * ANTES de qualquer render. Payload inválido → `PayloadForaDoContrato` (422
  * com a lista de violações) e o pipeline nem é acionado.
  */
-@Component
 public class ValidadorDePayload {
 
     private final SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12);

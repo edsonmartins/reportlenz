@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import org.springframework.stereotype.Component;
 
 import dev.reportlenz.render.pipeline.ErroDeRender.FalhaDeRender;
 import io.micrometer.observation.Observation;
@@ -40,7 +39,6 @@ import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
  * A validação do payload contra o inputSchema (422) entra nas tarefas 4.x,
  * ANTES deste pipeline (RFC-003 §3 passo 2).
  */
-@Component
 public class PipelineDeRender {
 
     /** Locale default do produto — formatação R$, dd/MM/yyyy (pt-BR). */
@@ -55,7 +53,6 @@ public class PipelineDeRender {
     /** ADR-016 §2: fill/export num contexto que não carrega recursos arbitrários. */
     private final ContextoJasperRestrito recursos;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public PipelineDeRender(CompiladorJrxml compilador, CacheDeCompilacao cache, ObservationRegistry observacoes,
             ContextoJasperRestrito recursos) {
         this.compilador = compilador;

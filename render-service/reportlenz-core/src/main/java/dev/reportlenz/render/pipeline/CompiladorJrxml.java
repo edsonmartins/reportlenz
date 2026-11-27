@@ -4,7 +4,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.ByteArrayInputStream;
 
-import org.springframework.stereotype.Component;
 
 import dev.reportlenz.render.pipeline.ErroDeRender.JrxmlInvalido;
 import dev.reportlenz.render.pipeline.ErroDeRender.PullProibido;
@@ -24,7 +23,6 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
  * fora da allowlist. A tarefa 2.2 envolve este componente com o
  * compile cache por sha256(jrxml) — a compilação em si não muda.
  */
-@Component
 public class CompiladorJrxml {
 
     public JasperReport compilar(String jrxml) {

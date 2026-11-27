@@ -5,8 +5,6 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import net.sf.jasperreports.engine.DefaultJasperReportsContext;
 import net.sf.jasperreports.engine.JRRuntimeException;
@@ -36,7 +34,6 @@ import net.sf.jasperreports.repo.Resource;
  *   (`net/sf/jasperreports/…`, ex.: fontes DejaVu), sem `..`;
  * - todo o resto → `RECURSO_RECUSADO`.
  */
-@Component
 public class ContextoJasperRestrito {
 
     private static final Logger log = LoggerFactory.getLogger(ContextoJasperRestrito.class);
@@ -46,12 +43,6 @@ public class ContextoJasperRestrito {
     /** Sem resolução de subreport (`repo:` recusado) — testes e uso fora do Spring. */
     public ContextoJasperRestrito(List<String> urlsPermitidas) {
         this(urlsPermitidas, (java.util.function.Function<String, net.sf.jasperreports.engine.JasperReport>) null);
-    }
-
-    @org.springframework.beans.factory.annotation.Autowired
-    public ContextoJasperRestrito(@Value("${reportlenz.recursos.urls-permitidas:}") List<String> urlsPermitidas,
-            ResolvedorDeSubreports resolvedor) {
-        this(urlsPermitidas, resolvedor::compilar);
     }
 
     /**

@@ -7,7 +7,6 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
 
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.SpecificationVersion;
@@ -25,7 +24,6 @@ import tools.jackson.databind.json.JsonMapper;
  * Usada pelo endpoint de verificação (bloco 4) e pelo publish persistente
  * (bloco 5) — nenhuma versão vira `published` sem `verde=true` daqui.
  */
-@Component
 public class VerificadorDeGates {
 
     public record Gate(String gate, boolean verde, List<String> erros) {}
@@ -42,7 +40,6 @@ public class VerificadorDeGates {
         this(compilador, null);
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
     public VerificadorDeGates(CompiladorJrxml compilador, dev.reportlenz.render.pipeline.FonteDeSubreports subreports) {
         this.compilador = compilador;
         this.subreports = subreports;
