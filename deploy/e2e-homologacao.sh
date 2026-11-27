@@ -23,7 +23,9 @@ kcadm() { $DC exec -T keycloak /opt/keycloak/bin/kcadm.sh "$@"; }
 limpar() {
   echo "== limpeza (usuários/client temporários)"
   for u in e2e.designer e2e.publicador; do
-    id=$(kcadm get users -r $REALM -q username=$u --fields id --format csv --noquotes 2>/dev/null || true)
+    # exact=true: sem ele a busca é por PREFIXO e casa também e2e.designer.<sufixo>
+    # (identidades do Playwright) — o delete recebia 2 ids e falhava em silêncio.
+    id=$(kcadm get users -r $REALM -q username=$u -q exact=true --fields id --format csv --noquotes 2>/dev/null || true)
     [ -n "$id" ] && kcadm delete users/$id -r $REALM >/dev/null 2>&1 || true
   done
   cid=$(kcadm get clients -r $REALM -q clientId=reportlenz-e2e --fields id --format csv --noquotes 2>/dev/null || true)
@@ -34,6 +36,7 @@ trap limpar EXIT
 echo "== preparo (Keycloak admin)"
 kcadm config credentials --server http://localhost:8080 --realm master \
   --user "$KEYCLOAK_ADMIN_USER" --password "$KEYCLOAK_ADMIN_PASSWORD" >/dev/null
+limpar >/dev/null  # sobras de uma execução interrompida não quebram esta
 kcadm create clients -r $REALM -s clientId=reportlenz-e2e -s publicClient=false \
   -s secret=e2e-segredo -s directAccessGrantsEnabled=true -s standardFlowEnabled=false >/dev/null
 for par in "e2e.designer:reportlenz-designer" "e2e.publicador:reportlenz-designer,reportlenz-publicador"; do
@@ -82,7 +85,13 @@ espera "preview sem token → 401" 401 "$(http POST "$API/render/preview" - "$(c
 espera "preview como designer → 200" 200 "$(http POST "$API/render/preview" "$T_DES" "$(corpo_preview "$JRXML")")"
 head -c 5 "$SAIDA" | grep -q '%PDF-' && ok "preview devolve PDF" || erro "preview não devolveu PDF"
 espera "preview como service account → 403" 403 "$(http POST "$API/render/preview" "$T_BAT" "$(corpo_preview "$JRXML")")"
-espera "token adulterado → 401" 401 "$(http POST "$API/render/preview" "${T_DES%?}x" "$(corpo_preview "$JRXML")")"
+# Adultera o 1º caractere da ASSINATURA (6 bits inteiros). Trocar o último era
+# inócuo em ~25% dos tokens: em RS256/base64url seus 4 bits finais são ignorados.
+SIG=${T_DES##*.}
+[ "${SIG:0:1}" = A ] && TROCA=B || TROCA=A
+T_ADULTERADO="${T_DES%.*}.${TROCA}${SIG:1}"
+[ "$T_ADULTERADO" != "$T_DES" ] || erro "adulteração não alterou o token"
+espera "token adulterado → 401" 401 "$(http POST "$API/render/preview" "$T_ADULTERADO" "$(corpo_preview "$JRXML")")"
 
 echo "== segurança de expressão (G7)"
 RCE=${JRXML/'"Olá, " + $F{nome} + " — R$ 1.234,56 ação"'/'Runtime.getRuntime().exec("id").toString()'}
