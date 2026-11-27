@@ -86,6 +86,16 @@ headless   contrato   React      pro         governança
   retenção LGPD, limites, rate limit da IA, **Flyway** — schema novo entra como `db/migration/V<n>__*.sql`)
   e `empacotamento-deploy` (ADR-019, imagens + `deploy/`). Testes Spring rodam com
   `reportlenz.seguranca.habilitada=false` exceto as suítes de segurança; o CI exige **zero testes pulados**.
+  Changes seguintes:
+  - `subreport-por-codename` (ADR-020, gate **G8**);
+  - `filtro-de-classes-do-engine` (ADR-021);
+  - `e2e-interface` (Playwright no CI);
+  - `variacoes-de-templates` (ADR-022): **15 modelos de referência**, incluindo boleto e DANFE.
+    - Cenários declarativos em `jrxml-core/src/reference/cenarios.ts`.
+    - Matriz em todas as camadas, com códigos de barras lidos por ZXing e regressão visual no E2E.
+    - **Modelo novo = entrada em `REFERENCE_TEMPLATES` + cenários + entrada na galeria + imagem de
+      referência**.
+
   Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
 - Cada fase depende explicitamente da anterior (ver `proposal.md` de cada change → "Depende de").

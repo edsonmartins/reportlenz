@@ -84,6 +84,39 @@ set -a; . deploy/.env; set +a; pnpm --dir e2e test   # interface: login por popu
 Os dois criam usuários e clients **temporários** no Keycloak e os removem no fim; os usuários de
 homologação não são tocados. O CI roda os dois a cada PR (job `e2e`), com segredos aleatórios.
 
+### Catálogo de modelos e matriz de testes (ADR-022)
+
+A galeria tem 14 modelos, todos definidos em `jrxml-core/src/reference/`:
+
+| Família | Modelos |
+|---|---|
+| Fiscais e cobrança | fatura, boleto, DANFE, orçamento |
+| Operação | comprovante, formulário |
+| Gerenciais | listagem de vendas, extrato de conta |
+| Etiquetas e crachás | etiqueta A4, etiqueta de produto com QR, etiqueta de endereçamento, crachá |
+| Cartas e documentos | carta/declaração, contrato |
+
+Cada modelo declara **cenários** em `reference/cenarios.ts`: típico, mínimo, volume e textos longos, cada
+um com o que o render deve produzir. Todas as camadas percorrem o catálogo inteiro sem teste por modelo:
+
+- **core:** gates G1–G6 e payload × inputSchema;
+- **engine:** `MatrizDoCatalogoTest`, que confere PDF e páginas e lê os códigos de barras com ZXing;
+- **harness:** G1;
+- **E2E:** preview, publish e regressão visual.
+
+Para conferir os layouts à mão, grave a 1ª folha de cada cenário:
+`mvn test -Dtest=MatrizDoCatalogoTest -Dmatriz.png=/tmp/png`.
+
+Mudou o layout de propósito? Com o ambiente no ar, regenere as imagens de referência do E2E e revise o
+diff no PR:
+
+```bash
+set -a; . deploy/.env; set +a; pnpm --dir e2e atualizar-referencias
+```
+
+DV do boleto, fator de vencimento e chave da NF-e são calculados pelo backend de domínio e chegam prontos
+no payload: o template só os desenha.
+
 Azure AD entra como *identity provider* do realm (configuração do Keycloak; o serviço só confia no
 Keycloak).
 
