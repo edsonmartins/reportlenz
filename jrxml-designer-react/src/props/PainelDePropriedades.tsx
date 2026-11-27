@@ -23,7 +23,8 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import type { Element, StyleProps } from '@reportlenz/jrxml-core';
+import type { BarcodeElement, Element, StyleProps } from '@reportlenz/jrxml-core';
+import { BARCODES_LINEARES } from '@reportlenz/jrxml-core';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { ExpressionEditor } from '../expression/ExpressionEditor';
@@ -430,13 +431,50 @@ export function PainelDePropriedades() {
                 aria-label="Tipo de barcode"
                 data={['Code128', 'Code39', 'EAN13', 'EAN8', 'Interleaved2Of5', 'QRCode', 'DataMatrix', 'PDF417']}
                 value={elemento.barcodeType}
-                onChange={(v) => v && mudarElemento((el) => ({ ...el, barcodeType: v }) as Element)}
+                onChange={(v) => {
+                  if (!v) return;
+                  mudarElemento((el) => {
+                    // 2D não tem texto legível (ADR-023): trocar para QR/DataMatrix/PDF417 remove o atributo.
+                    const barcode: BarcodeElement = { ...(el as BarcodeElement), barcodeType: v };
+                    if (!BARCODES_LINEARES.includes(v)) delete barcode.textPosition;
+                    return barcode;
+                  });
+                }}
               />
             </Linha>
           ),
         },
         expressao('expression', 'Expressão', elemento.expression, (v) => mudarElemento((el) => ({ ...el, expression: v }) as Element)),
       );
+      if (BARCODES_LINEARES.includes(elemento.barcodeType)) {
+        linhas.push({
+          id: 'textPosition',
+          rotulo: 'Texto legível',
+          no: (
+            <Linha key="textPosition" id="textPosition" rotulo="Texto legível">
+              <Select
+                size="xs"
+                aria-label="Texto legível"
+                data={[
+                  { value: 'bottom', label: 'Abaixo das barras (padrão)' },
+                  { value: 'top', label: 'Acima das barras' },
+                  { value: 'none', label: 'Sem texto' },
+                ]}
+                value={elemento.textPosition ?? 'bottom'}
+                onChange={(v) =>
+                  mudarElemento((el) => {
+                    // "Abaixo" é o default do engine: sem atributo no JRXML.
+                    const barcode: BarcodeElement = { ...(el as BarcodeElement) };
+                    if (v === 'none' || v === 'top') barcode.textPosition = v;
+                    else delete barcode.textPosition;
+                    return barcode;
+                  })
+                }
+              />
+            </Linha>
+          ),
+        });
+      }
       break;
     case 'rectangle':
       linhas.push(numero('radius', 'Raio (pt)', elemento.radius ?? 0, (v) => mudarElemento((el) => ({ ...el, radius: v }) as Element)));

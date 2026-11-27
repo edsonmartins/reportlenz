@@ -3,3 +3,4 @@
 packages:
   - jrxml-core
   - jrxml-designer-react
+  - e2e

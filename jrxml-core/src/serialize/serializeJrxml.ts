@@ -254,7 +254,7 @@ function writeImage(w: Writer, el: ImageElement): void {
 
 function writeBarcode(w: Writer, el: BarcodeElement): void {
   w.block(`<element${elementOpenAttrs(el, 'component')}>`, '</element>', () => {
-    w.block(`<component${attrs([['kind', `barcode4j:${el.barcodeType}`]])}>`, '</component>', () => {
+    w.block(`<component${attrs([['kind', `barcode4j:${el.barcodeType}`], ['textPosition', el.textPosition]])}>`, '</component>', () => {
       w.line(`<codeExpression>${cdata(el.expression)}</codeExpression>`);
     });
     writePrintWhen(w, el);

@@ -80,7 +80,7 @@ function conteudo(el: Element, zoom: number): ReactNode {
     case 'image':
       return <Placeholder rotulo={`imagem: ${el.expression}`} zoom={zoom} />;
     case 'barcode':
-      return <Placeholder rotulo={`barcode ${el.barcodeType}`} zoom={zoom} />;
+      return <Placeholder rotulo={`barcode ${el.barcodeType}${ROTULO_DO_TEXTO[el.textPosition ?? 'bottom']}`} zoom={zoom} />;
     case 'table':
       return <Placeholder rotulo={`tabela · $F{${el.datasetField}} · ${contarColunasFolha(el.columns)} col`} zoom={zoom} />;
     case 'subreport':
@@ -93,6 +93,9 @@ function conteudo(el: Element, zoom: number): ReactNode {
       return null;
   }
 }
+
+/** Posição do texto legível na aproximação do canvas (ADR-023). */
+const ROTULO_DO_TEXTO: Record<'bottom' | 'top' | 'none', string> = { bottom: '', top: ' · texto acima', none: ' · sem texto' };
 
 function Placeholder({ rotulo, zoom }: { rotulo: string; zoom: number }) {
   return (

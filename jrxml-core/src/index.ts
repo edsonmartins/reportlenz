@@ -15,6 +15,7 @@ export const JRXML_DIALECT_TARGET = '7.0.7' as const;
 
 // Modelo de domínio (RFC-001 §3) — tarefa phase-0/3.1.
 export * from './model/index.js';
+export { BARCODES_LINEARES } from './model/elements.js';
 
 // Erros estruturados (RFC-001 §4/§6).
 export type { ErrorCode, ParseError, Result, ValidationResult } from './errors.js';
@@ -66,6 +67,14 @@ export {
   REFERENCIA_FATURA_ENTREGAS,
   REFERENCIA_FORMULARIO,
 } from './reference/templates.js';
+
+// Catálogo ampliado + cenários declarativos da matriz de testes (ADR-022).
+export { REFERENCIA_BOLETO, REFERENCIA_DANFE, REFERENCIA_ORCAMENTO } from './reference/fiscais.js';
+export { REFERENCIA_EXTRATO_CONTA, REFERENCIA_LISTAGEM_VENDAS } from './reference/gerenciais.js';
+export { REFERENCIA_CRACHA, REFERENCIA_ETIQUETA_ENDERECAMENTO, REFERENCIA_ETIQUETA_PRODUTO_QR } from './reference/etiquetas.js';
+export { REFERENCIA_CARTA_DECLARACAO, REFERENCIA_CONTRATO } from './reference/documentos.js';
+export { CENARIOS, boletoDeExemplo, chaveNfeDeExemplo, moeda } from './reference/cenarios.js';
+export type { Cenario, CodigoEsperado, Expectativa, FormatoDeCodigo, NomeDoCenario } from './reference/cenarios.js';
 
 // Grade multi-registro em modo Push (ADR-015).
 export { colecaoDoDatasource, datasourceCampo, PROPRIEDADE_DATASOURCE } from './model/datasource.js';

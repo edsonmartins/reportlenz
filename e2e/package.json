@@ -1,0 +1,19 @@
+{
+  "name": "@reportlenz/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "E2E de interface (Playwright) contra o ambiente de homologação em contêineres (ADR-019)",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "instalar-navegador": "playwright install --with-deps chromium",
+    "typecheck": "tsc --noEmit",
+    "atualizar-referencias": "playwright test testes/catalogo.spec.ts --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@reportlenz/jrxml-core": "workspace:*",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3"
+  }
+}

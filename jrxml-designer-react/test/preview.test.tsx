@@ -63,7 +63,8 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
   beforeEach(() => {
     useDocumentoStore.getState().fecharDocumento();
     useCanvasStore.setState({ zoom: 1, mostrarGrid: false, passoGridMm: 5, snapAtivo: false, guiasDeSnap: null });
-    usePreviewStore.setState({ aberto: false, carregando: false, erro: null, violacoes: [], imagemUrl: null, totalPaginas: 0, pagina: 0 });
+    usePreviewStore.getState().reiniciar();
+    usePreviewStore.setState({ zoom: 'largura' });
     useDocumentoStore.getState().novoDocumento(structuredClone(REFERENCIA_FATURA));
   });
 
@@ -74,6 +75,22 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
   it('5.1: o canvas carrega o rótulo de aproximação (I-8)', () => {
     renderApp();
     expect(screen.getByTestId('rotulo-aproximacao')).toHaveTextContent('Aproximação — a verdade é o render Jasper');
+  });
+
+  it('contrato alterado: o preview volta aos dados genéricos (que satisfazem o contrato novo)', async () => {
+    const t = structuredClone(REFERENCIA_FATURA);
+    t.dataContract.fields.push({ name: 'observacao', type: 'string' });
+    useDocumentoStore.getState().novoDocumento(t);
+    const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
+    vi.stubGlobal('fetch', fetchMock);
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+
+    const corpo = JSON.parse((fetchMock.mock.calls[0]?.[1] as RequestInit).body as string) as { sampleData: Record<string, unknown> };
+    expect(corpo.sampleData['cliente_nome']).toBe('cliente_nome exemplo');
+    expect(corpo.sampleData['observacao']).toBe('observacao exemplo');
   });
 
   it('Renderizar (Jasper) envia jrxml+sampleData+inputSchema e mostra o PNG', async () => {
@@ -94,7 +111,8 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
     };
     expect(corpo.jrxml).toContain('<jasperReport name="fatura_completa"');
     expect(corpo.jrxml).not.toContain('<query'); // anti-Pull até no preview
-    expect(corpo.sampleData['cliente_nome']).toBe('cliente_nome exemplo');
+    // Modelo do catálogo intacto → cenário típico realista do jrxml-core (ADR-022).
+    expect(corpo.sampleData['cliente_nome']).toBe('Padaria São João Ltda.');
     expect(Array.isArray(corpo.sampleData['itens'])).toBe(true);
     expect(corpo.inputSchema.$id).toBe('reportlenz:contract:fatura_completa:v1');
     expect(corpo.format).toBe('png');
@@ -133,5 +151,90 @@ describe('jrxml-designer-react · preview (5.1-5.2)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
     await waitFor(() => expect(screen.getByTestId('preview-erro')).toBeInTheDocument());
     expect(screen.getByText(/indisponível/)).toBeInTheDocument();
+  });
+
+  it('ADR-024: Editor e Preview são abas; "Renderizar (Jasper)" leva à aba Preview com o selo do engine', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respostaPng(1)));
+    renderApp();
+    expect(screen.getByRole('tab', { name: 'Editor' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByTestId('aba-preview')).not.toBeInTheDocument();
+    expect(screen.getByTestId('aba-editor')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+
+    expect(screen.getByRole('tab', { name: 'Preview (Jasper)' })).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+    expect(screen.getByText('verdade do engine')).toBeInTheDocument();
+    expect(screen.getByTestId('aba-editor')).not.toBeVisible(); // oculto, mas montado
+  });
+
+  it('ADR-024: render único ao clicar em Renderizar (a aba não dispara um segundo)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
+    vi.stubGlobal('fetch', fetchMock);
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('ADR-024: abrir a aba Preview sem render prévio renderiza sozinho', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
+    vi.stubGlobal('fetch', fetchMock);
+    renderApp();
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('Scenario "Documento mudou depois do render": volta à aba Preview e renderiza de novo sem clique', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(respostaPng(1));
+    vi.stubGlobal('fetch', fetchMock);
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Editor' }));
+    useDocumentoStore.getState().novoDocumento({ ...useDocumentoStore.getState().template!, name: 'fatura_alterada' });
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview (Jasper)' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const corpo = JSON.parse((fetchMock.mock.calls[1]?.[1] as RequestInit).body as string) as { jrxml: string };
+    expect(corpo.jrxml).toContain('name="fatura_alterada"');
+    await waitFor(() => expect(screen.queryByTestId('preview-desatualizado')).not.toBeInTheDocument());
+  });
+
+  it('Scenario "Estado do editor preservado": seleção e zoom do canvas sobrevivem à troca de abas', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respostaPng(1)));
+    useCanvasStore.setState({ zoom: 1.5 });
+    useDocumentoStore.getState().selecionar({ banda: { tipo: 'secao', secao: 'title' }, indice: 0 });
+    renderApp();
+    fireEvent.click(screen.getByRole('tab', { name: 'Preview (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('tab', { name: 'Editor' }));
+    expect(useCanvasStore.getState().zoom).toBe(1.5);
+    expect(useDocumentoStore.getState().selecao).toHaveLength(1);
+    expect(screen.getByTestId('zoom-atual')).toHaveTextContent('150%');
+  });
+
+  it('Scenario "Página legível": zoom ajusta à largura por padrão; página inteira e percentual disponíveis', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(respostaPng(1)));
+    renderApp();
+    fireEvent.click(screen.getByRole('button', { name: 'Renderizar (Jasper)' }));
+    await waitFor(() => expect(screen.getByTestId('preview-img')).toBeInTheDocument());
+    expect(screen.getByTestId('preview-img')).toHaveStyle({ width: '100%' });
+
+    fireEvent.click(screen.getByText('Página inteira'));
+    expect(usePreviewStore.getState().zoom).toBe('pagina');
+    expect(screen.getByTestId('preview-img')).toHaveStyle({ height: '100%' });
+
+    fireEvent.click(screen.getByText('%'));
+    expect(usePreviewStore.getState().zoom).toBe(1);
+    expect(screen.getAllByLabelText('percentual do zoom').find((e) => e.tagName === 'INPUT')).toHaveValue('100%');
+  });
+
+  it('abrir outro modelo pela galeria volta ao editor e descarta o render anterior', () => {
+    usePreviewStore.setState({ aba: 'preview', jrxmlRenderizado: '<x/>' });
+    usePreviewStore.getState().reiniciar();
+    expect(usePreviewStore.getState()).toMatchObject({ aba: 'editor', jrxmlRenderizado: null, imagemUrl: null });
   });
 });

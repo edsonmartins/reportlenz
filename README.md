@@ -73,6 +73,50 @@ curl -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   http://localhost:8080/render/batch
 ```
 
+### Testes E2E (ambiente de homologação no ar)
+
+```bash
+deploy/e2e-homologacao.sh deploy/.env          # API: tokens reais, papéis, G7, ciclo do template, lote, auditoria
+pnpm --dir e2e exec playwright install chromium # uma vez
+set -a; . deploy/.env; set +a; pnpm --dir e2e test   # interface: login por popup, preview, publish, G8
+```
+
+Os dois criam usuários e clients **temporários** no Keycloak e os removem no fim; os usuários de
+homologação não são tocados. O CI roda os dois a cada PR (job `e2e`), com segredos aleatórios.
+
+### Catálogo de modelos e matriz de testes (ADR-022)
+
+A galeria tem 14 modelos, todos definidos em `jrxml-core/src/reference/`:
+
+| Família | Modelos |
+|---|---|
+| Fiscais e cobrança | fatura, boleto, DANFE, orçamento |
+| Operação | comprovante, formulário |
+| Gerenciais | listagem de vendas, extrato de conta |
+| Etiquetas e crachás | etiqueta A4, etiqueta de produto com QR, etiqueta de endereçamento, crachá |
+| Cartas e documentos | carta/declaração, contrato |
+
+Cada modelo declara **cenários** em `reference/cenarios.ts`: típico, mínimo, volume e textos longos, cada
+um com o que o render deve produzir. Todas as camadas percorrem o catálogo inteiro sem teste por modelo:
+
+- **core:** gates G1–G6 e payload × inputSchema;
+- **engine:** `MatrizDoCatalogoTest`, que confere PDF e páginas e lê os códigos de barras com ZXing;
+- **harness:** G1;
+- **E2E:** preview, publish e regressão visual.
+
+Para conferir os layouts à mão, grave a 1ª folha de cada cenário:
+`mvn test -Dtest=MatrizDoCatalogoTest -Dmatriz.png=/tmp/png`.
+
+Mudou o layout de propósito? Com o ambiente no ar, regenere as imagens de referência do E2E e revise o
+diff no PR:
+
+```bash
+set -a; . deploy/.env; set +a; pnpm --dir e2e atualizar-referencias
+```
+
+DV do boleto, fator de vencimento e chave da NF-e são calculados pelo backend de domínio e chegam prontos
+no payload: o template só os desenha.
+
 Azure AD entra como *identity provider* do realm (configuração do Keycloak; o serviço só confia no
 Keycloak).
 
@@ -127,6 +171,9 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
 - **Subreport só por template publicado (ADR-020):** a expressão é o literal `"repo:<codename>"` (versão
   publicada atual) ou `"repo:<codename>@<n>"` (versão fixa). O gate **G8** bloqueia o publish se o filho não
   estiver publicado ou se houver ciclo. Publique o filho antes do pai (ex.: `fatura_entregas` antes de `fatura`).
+- **Filtro de classes do engine (ADR-021):** segunda barreira, no fill. Classe fora da whitelist em
+  `render-service/src/main/resources/jasperreports.properties` falha com "Class X is not visible to reports".
+  Tipo novo no G7 precisa entrar nessa whitelist; o `FiltroDeClassesTest` cobra essa paridade.
 - **Batch só de template publicado:** `jrxml` bruto no lote dá 400 `JRXML_BRUTO_PROIBIDO`.
 - **Auditoria:** o ator é sempre o usuário do token (`preferred_username`), nunca o corpo da requisição.
 - **LGPD:** o payload é zerado quando o job termina; jobs e PDFs são purgados após 30 dias. A auditoria de
@@ -134,8 +181,9 @@ Papéis (realm roles ou client roles de `REPORTLENZ_OIDC_CLIENT_ID`):
 
 **Riscos residuais (requisitos de implantação):**
 
-1. **Redis privado e com senha.** O compile cache guarda `JasperReport` serializado; quem escreve no Redis
-   obtém execução de código no render-service.
+1. **Redis privado e com senha.** O compile cache guarda `JasperReport` serializado. O filtro de classes do
+   engine (ADR-021) impede que um relatório adulterado execute código fora da whitelist, mas o conteúdo do
+   relatório ainda pode ser trocado.
 2. **Render-service sem privilégios e com egress restrito** (defesa em profundidade além do G7): usuário
    não-root (já na imagem), filesystem só com `/app/data` gravável e saída de rede só para Keycloak,
    Redis, PostgreSQL, S3, o provedor de IA e os prefixos de imagem liberados.

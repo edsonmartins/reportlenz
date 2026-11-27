@@ -10,14 +10,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  */
 const silent = vi.fn();
 const popup = vi.fn();
+const signout = vi.fn();
+const remover = vi.fn();
 
 vi.mock('oidc-client-ts', () => ({
   UserManager: class {
     events = { addUserLoaded: vi.fn(), addUserUnloaded: vi.fn(), addSilentRenewError: vi.fn() };
     signinSilent = silent;
     signinPopup = popup;
-    removeUser = vi.fn().mockResolvedValue(undefined);
-    signoutRedirect = vi.fn().mockResolvedValue(undefined);
+    removeUser = remover;
+    signoutRedirect = signout;
   },
   InMemoryWebStorage: class {},
   WebStorageStateStore: class {},
@@ -50,6 +52,8 @@ describe('jrxml-designer-react · sessão OIDC (ADR-017)', () => {
     useSessaoStore.setState({ modo: 'carregando', usuario: null, accessToken: null, erro: null });
     silent.mockReset();
     popup.mockReset();
+    signout.mockReset().mockResolvedValue(undefined);
+    remover.mockReset().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -118,5 +122,29 @@ describe('jrxml-designer-react · sessão OIDC (ADR-017)', () => {
     await apiFetch('/render/preview', { method: 'POST' });
     await waitFor(() => expect(screen.getByTestId('sessao-entrar')).toBeInTheDocument());
     expect(screen.getByTestId('sessao-erro')).toHaveTextContent('Sessão expirada');
+  });
+
+  it('Sair redireciona ao logout do Keycloak COM o usuário em memória (id_token_hint, sem tela de confirmação)', async () => {
+    silent.mockResolvedValue(USUARIO);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(resposta(200, OIDC)));
+    montar();
+    await waitFor(() => expect(screen.getByTestId('designer')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+    await waitFor(() => expect(signout).toHaveBeenCalledTimes(1));
+    // O usuário NÃO foi removido antes do redirect (senão o hint não vai).
+    expect(remover).not.toHaveBeenCalled();
+  });
+
+  it('Sair com falha no redirect limpa a sessão local e volta a "Entrar"', async () => {
+    silent.mockResolvedValue(USUARIO);
+    signout.mockRejectedValue(new Error('rede fora'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(resposta(200, OIDC)));
+    montar();
+    await waitFor(() => expect(screen.getByTestId('designer')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sair' }));
+    await waitFor(() => expect(screen.getByTestId('sessao-entrar')).toBeInTheDocument());
+    expect(remover).toHaveBeenCalledTimes(1);
   });
 });

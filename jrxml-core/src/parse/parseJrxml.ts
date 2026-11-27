@@ -14,7 +14,8 @@ import { XMLParser, XMLValidator } from 'fast-xml-parser';
 import type { ErrorCode, ParseError, Result } from '../errors.js';
 import type { Band, BandSet, Group } from '../model/bands.js';
 import type { DataContract, FieldDecl, ParamDecl, VariableCalculation, VariableDecl, VariableResetType } from '../model/contract.js';
-import type { BarcodeType, ColunaDeTabela, Element, StaticText, SubreportParameter, TableCell, TextField } from '../model/elements.js';
+import type { BarcodeType, ColunaDeTabela, Element, StaticText, SubreportParameter, TableCell, TextField, TextPosition } from '../model/elements.js';
+import { BARCODES_LINEARES } from '../model/elements.js';
 import type { Bounds, PageFormat, Pen } from '../model/primitives.js';
 import type { ReportTemplate } from '../model/report.js';
 import type { ConditionalStyle, Style, StyleProps } from '../model/styles.js';
@@ -489,7 +490,25 @@ function parseComponent(ctx: Ctx, node: XmlNode, path: string): Element | undefi
     if (expression === undefined) {
       err(ctx, 'INVALID_ATTRIBUTE', `barcode sem <codeExpression>`, `${path}/component`);
     }
-    return { kind: 'barcode', ...parseElementBase(ctx, node, path), barcodeType, expression: expression ?? '' };
+    const posicao = attr(component, 'textPosition');
+    let textPosition: TextPosition | undefined;
+    if (posicao !== undefined) {
+      if (posicao !== 'none' && posicao !== 'bottom' && posicao !== 'top') {
+        err(ctx, 'INVALID_ATTRIBUTE', `textPosition inválido: "${posicao}" (use none, bottom ou top)`, `${path}/component`);
+      } else if (!BARCODES_LINEARES.includes(barcodeType)) {
+        // ADR-023: 2D não tem texto legível (o QRCode do engine nem aceita o atributo).
+        err(ctx, 'INVALID_ATTRIBUTE', `textPosition só vale para códigos lineares, não para ${barcodeType}`, `${path}/component`);
+      } else {
+        textPosition = posicao;
+      }
+    }
+    return {
+      kind: 'barcode',
+      ...parseElementBase(ctx, node, path),
+      barcodeType,
+      expression: expression ?? '',
+      ...(textPosition !== undefined ? { textPosition } : {}),
+    };
   }
 
   if (componentKind === 'table') return parseTable(ctx, node, component, path);
