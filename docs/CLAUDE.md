@@ -95,6 +95,10 @@ headless   contrato   React      pro         governança
     - Matriz em todas as camadas, com códigos de barras lidos por ZXing e regressão visual no E2E.
     - **Modelo novo = entrada em `REFERENCE_TEMPLATES` + cenários + entrada na galeria + imagem de
       referência**.
+  - `barcode-texto-legivel` (ADR-023): `textPosition` nos códigos lineares; DANFE e boleto sem texto
+    sob as barras.
+  - `preview-em-aba` (ADR-024): abas Editor / Preview (Jasper), com o preview em tela cheia; supersede o
+    "lado a lado" da RFC-004 §7.
 
   Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.

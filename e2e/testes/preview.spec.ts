@@ -22,4 +22,21 @@ test.describe('preview Jasper', () => {
     await expect(page.getByTestId('preview-img')).toBeVisible();
     await expect(page.getByTestId('preview-erro')).toHaveCount(0);
   });
+
+  test('ADR-024: preview em aba própria, legível (página na largura da aba) e volta ao editor', async ({ page }) => {
+    await entrarComo(page, 'designer');
+    await abrirModelo(page, 'danfe');
+    await page.getByRole('button', { name: 'Renderizar (Jasper)' }).click();
+    await expect(page.getByRole('tab', { name: 'Preview (Jasper)' })).toHaveAttribute('aria-selected', 'true');
+    const imagem = page.getByTestId('preview-img');
+    await expect(imagem).toBeVisible();
+    // Painel lateral antigo: ~350px; a aba ajusta à largura (viewport 1280).
+    expect((await imagem.boundingBox())!.width).toBeGreaterThan(900);
+    if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/preview.png` });
+
+    await page.getByRole('tab', { name: 'Editor' }).click();
+    await expect(page.getByTestId('canvas')).toBeVisible();
+    await expect(page.getByTestId('rotulo-aproximacao')).toBeVisible(); // I-8 no editor
+    if (process.env.CAPTURAS) await page.screenshot({ path: `${process.env.CAPTURAS}/editor.png` });
+  });
 });
