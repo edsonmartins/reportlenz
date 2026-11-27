@@ -2,7 +2,7 @@
 
 - [x] 1.1 ADR-022 (Accepted) + pacote OpenSpec
 - [x] 2.1 Core: modelos fiscais/cobrança (boleto, danfe, orcamento)
-- [ ] 2.2 Core: modelos gerenciais (listagem_vendas, extrato_conta)
+- [x] 2.2 Core: modelos gerenciais (listagem_vendas, extrato_conta)
 - [ ] 2.3 Core: etiquetas/crachás (etiqueta_produto_qr, etiqueta_enderecamento, cracha)
 - [ ] 2.4 Core: cartas/documentos (carta_declaracao, contrato)
 - [ ] 2.5 Core: cenários declarativos + emit de `<chave>.cenarios.json` + matriz do core (gates G1–G6,
