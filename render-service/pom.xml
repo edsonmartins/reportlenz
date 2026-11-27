@@ -21,7 +21,7 @@
     <relativePath/>
   </parent>
 
-  <groupId>dev.reportlenz</groupId>
+  <groupId>br.com.archbase</groupId>
   <artifactId>reportlenz-parent</artifactId>
   <version>0.1.0</version>
   <packaging>pom</packaging>
@@ -86,7 +86,7 @@
 
     Variáveis: MAVEN_CENTRAL_USERNAME / MAVEN_CENTRAL_TOKEN (token do
     central.sonatype.com) e MAVEN_GPG_PASSPHRASE; chave GPG importada antes.
-    O namespace dev.reportlenz precisa estar VERIFICADO na conta do Central.
+    Namespace br.com.archbase: o mesmo já verificado para os artefatos do Archbase.
   -->
   <profiles>
     <profile>

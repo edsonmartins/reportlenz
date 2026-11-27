@@ -118,7 +118,7 @@ headless   contrato   React      pro         governança
     - Migração nova em `classpath:reportlenz/db/migration`.
   - Publicação (`release.yml`, tag `v*`):
     - **npm:** escopo `@archbase` (`@archbase/reportlenz-*`), no processo do archbase-react.
-    - **Maven Central:** `dev.reportlenz`, no processo do archflow (perfil `maven-central`, POM achatado,
+    - **Maven Central:** `br.com.archbase` (namespace do Archbase; os pacotes Java seguem `dev.reportlenz.*`), no processo do archflow (perfil `maven-central`, POM achatado,
       opt-in `reportlenz.publish.skip`).
     - Ensaio: workflow Central Dry Run.
     - A versão vem da tag. Nunca republique uma versão.

@@ -110,12 +110,12 @@ O ReportLenz também roda **dentro do backend Spring Boot 4 da aplicação**:
 
 | Artefato Maven | Para quê |
 |---|---|
-| `dev.reportlenz:reportlenz-core` | Java puro: `MotorReportLenz` renderiza PDF/PNG de JRXML 7 + payload, com G7, contexto restrito e filtro de classes sempre ligados |
-| `dev.reportlenz:reportlenz-spring-boot-starter` | Auto-configuração: motor como bean, registro de templates no banco da aplicação, endpoints do designer sob `/reportlenz`, batch e IA |
+| `br.com.archbase:reportlenz-core` | Java puro: `MotorReportLenz` renderiza PDF/PNG de JRXML 7 + payload, com G7, contexto restrito e filtro de classes sempre ligados |
+| `br.com.archbase:reportlenz-spring-boot-starter` | Auto-configuração: motor como bean, registro de templates no banco da aplicação, endpoints do designer sob `/reportlenz`, batch e IA |
 
 ```xml
 <dependency>
-  <groupId>dev.reportlenz</groupId>
+  <groupId>br.com.archbase</groupId>
   <artifactId>reportlenz-spring-boot-starter</artifactId>
   <version>0.1.0</version>
 </dependency>
@@ -172,7 +172,7 @@ Uma tag `v<versão>` (ex.: `v0.1.0`) dispara o workflow `release`. A versão pub
 | Job | Publica | Processo seguido |
 |---|---|---|
 | `npm` | `@archbase/reportlenz-jrxml-core` e `@archbase/reportlenz-designer-react` | o do archbase-react e do linktor-webchat-sdk |
-| `maven-central` | `dev.reportlenz:reportlenz-core` e `dev.reportlenz:reportlenz-spring-boot-starter` | o do archflow |
+| `maven-central` | `br.com.archbase:reportlenz-core` e `br.com.archbase:reportlenz-spring-boot-starter` | o do archflow |
 | `github-release` | notas e instruções de instalação | depois dos dois |
 
 **Proteções dos jobs:**
@@ -189,8 +189,8 @@ Uma tag `v<versão>` (ex.: `v0.1.0`) dispara o workflow `release`. A versão pub
 
 **Antes da primeira vez:**
 
-1. **Namespace `dev.reportlenz`:** verificar no central.sonatype.com (Namespaces → Add Namespace), com
-   o registro TXT no DNS de `reportlenz.dev`, na mesma conta do archflow.
+1. **Namespace `br.com.archbase`:** é o dos artefatos do Archbase, já verificado no Central. O token
+   (`MAVEN_CENTRAL_*`) precisa ser da conta dona desse namespace.
 2. **Segredos** neste repositório, com os mesmos valores dos outros projetos:
 
    ```bash

@@ -90,7 +90,9 @@ estão sempre ligados.
 >   - workflow Central Dry Run.
 > - Os segredos usam os nomes do archflow: `MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_TOKEN`,
 >   `GPG_PRIVATE_KEY` e `MAVEN_GPG_PASSPHRASE`.
-> - O `groupId` `dev.reportlenz` foi mantido por decisão do usuário.
+> - **`groupId`:** `br.com.archbase`, o namespace do Archbase, já verificado no Central. Foi decisão do
+>   usuário, depois que o Central recusou `dev.reportlenz`: o domínio `reportlenz.dev` não existe. Os
+>   pacotes Java continuam `dev.reportlenz.*`.
 
 - Maven Central, com sources, javadoc e assinatura GPG via `central-publishing-maven-plugin`, num job no
   mesmo `release.yml` disparado por tag.
