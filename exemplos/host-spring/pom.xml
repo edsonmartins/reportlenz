@@ -30,7 +30,7 @@
   <dependencies>
     <!-- Tudo o que a aplicação precisa para embarcar o ReportLenz -->
     <dependency>
-      <groupId>dev.reportlenz</groupId>
+      <groupId>br.com.archbase</groupId>
       <artifactId>reportlenz-spring-boot-starter</artifactId>
       <version>${reportlenz.version}</version>
     </dependency>

@@ -2,7 +2,7 @@
 #
 #   npm           @archbase/reportlenz-jrxml-core e @archbase/reportlenz-designer-react
 #                 (mesmo processo do archbase-react e do linktor-webchat-sdk)
-#   maven-central dev.reportlenz:reportlenz-core e reportlenz-spring-boot-starter
+#   maven-central br.com.archbase:reportlenz-core e reportlenz-spring-boot-starter
 #                 (mesmo processo do archflow)
 #   github-release notas + links, depois dos dois
 #
@@ -16,7 +16,7 @@
 #   MAVEN_CENTRAL_TOKEN       senha do mesmo token
 #   GPG_PRIVATE_KEY           chave privada em base64 (a do archflow)
 #   MAVEN_GPG_PASSPHRASE      passphrase da chave
-# E o namespace dev.reportlenz VERIFICADO na conta do Central.
+# E o namespace br.com.archbase (o do Archbase) na conta do Central.
 name: Release
 
 on:
@@ -106,7 +106,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   maven-central:
-    name: Publicar no Maven Central (dev.reportlenz)
+    name: Publicar no Maven Central (br.com.archbase)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     services:
@@ -154,7 +154,7 @@ jobs:
           V="${{ steps.version.outputs.VERSION }}"
           JA=""
           for a in reportlenz-core reportlenz-spring-boot-starter; do
-            URL="https://repo1.maven.org/maven2/dev/reportlenz/$a/$V/$a-$V.pom"
+            URL="https://repo1.maven.org/maven2/br/com/archbase/$a/$V/$a-$V.pom"
             if [ "$(curl -s -o /dev/null -w '%{http_code}' -m 30 "$URL")" = "200" ]; then JA="$JA $a"; fi
           done
           if [ -n "$JA" ]; then
@@ -201,7 +201,7 @@ jobs:
           echo "::notice title=Publicação enviada::Bundle validado e publicando."
           echo "Acompanhe em https://central.sonatype.com/publishing/deployments"
           for a in reportlenz-core reportlenz-spring-boot-starter; do
-            echo "  https://repo1.maven.org/maven2/dev/reportlenz/$a/${{ steps.version.outputs.VERSION }}/"
+            echo "  https://repo1.maven.org/maven2/br/com/archbase/$a/${{ steps.version.outputs.VERSION }}/"
           done
 
   github-release:
@@ -236,7 +236,7 @@ jobs:
             echo
             echo '```xml'
             echo "<dependency>"
-            echo "  <groupId>dev.reportlenz</groupId>"
+            echo "  <groupId>br.com.archbase</groupId>"
             echo "  <artifactId>reportlenz-spring-boot-starter</artifactId>"
             echo "  <version>$V</version>"
             echo "</dependency>"
