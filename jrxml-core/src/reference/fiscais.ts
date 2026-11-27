@@ -120,7 +120,14 @@ export const REFERENCIA_BOLETO: ReportTemplate = {
           campo(2, 378, 551, 16, '$F{pagador.endereco}', { blankWhenNull: true, textAdjust: 'CutText' }),
           texto(330, 398, 225, 8, 'Autenticação mecânica — FICHA DE COMPENSAÇÃO', { styleRef: 'rotulo', style: DIREITA }),
           // I2of5 de 44 posições — sem dígito extra: o DV geral já está na 5ª posição.
-          { kind: 'barcode', bounds: { x: 0, y: 406, width: 330, height: 54 }, barcodeType: 'Interleaved2Of5', expression: '$F{codigo_barras}' },
+          // Sem texto legível (ADR-023): a representação numérica é a linha digitável.
+          {
+            kind: 'barcode',
+            bounds: { x: 0, y: 406, width: 330, height: 54 },
+            barcodeType: 'Interleaved2Of5',
+            expression: '$F{codigo_barras}',
+            textPosition: 'none',
+          },
           linhaDeCorte(472),
         ],
       },
@@ -259,7 +266,15 @@ export const REFERENCIA_DANFE: ReportTemplate = {
         campo(232, 76, 96, 10, '"FOLHA " + $V{PAGE_NUMBER}', { style: { hAlign: 'Center' } }),
         moldura(330, 0, 225, 86),
         // CODE-128 (o barcode4j escolhe o subconjunto C para 44 dígitos) — SÓ a chave.
-        { kind: 'barcode', bounds: { x: 336, y: 3, width: 213, height: 34 }, barcodeType: 'Code128', expression: '$F{chave_acesso}' },
+        // Sem texto legível (ADR-023): ele não cabia e saía cortado; a chave vem
+        // formatada em 11 blocos logo abaixo, como o MOC exige.
+        {
+          kind: 'barcode',
+          bounds: { x: 336, y: 3, width: 213, height: 34 },
+          barcodeType: 'Code128',
+          expression: '$F{chave_acesso}',
+          textPosition: 'none',
+        },
         texto(332, 39, 221, 7, 'CHAVE DE ACESSO', { styleRef: 'rotulo' }),
         campo(332, 47, 221, 11, CHAVE_FORMATADA, { style: { bold: true, fontSize: 6, hAlign: 'Center' } }),
         texto(

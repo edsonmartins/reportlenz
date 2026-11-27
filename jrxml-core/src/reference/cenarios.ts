@@ -303,7 +303,8 @@ const BOLETO: Cenario[] = [
     },
     espera: {
       textos: ['Recibo do Pagador', 'FICHA DE COMPENSAÇÃO', BOLETO_TIPICO.linha, '10/12/2026', 'R$ 1.234,56', 'Açougue Três Irmãos', 'multa de 2%'],
-      ausentes: SEM_NULL,
+      // ADR-023: sem o número cru sob as barras (a linha digitável o representa).
+      ausentes: [...SEM_NULL, BOLETO_TIPICO.codigo],
       paginas: { min: 1, max: 1 },
       codigos: [{ formato: 'ITF', valor: BOLETO_TIPICO.codigo }],
     },
@@ -320,7 +321,7 @@ const BOLETO: Cenario[] = [
       vencimento: '2026-12-10',
       valor: 1234.56,
     },
-    espera: { textos: ['Recibo do Pagador', BOLETO_TIPICO.linha], ausentes: SEM_NULL, paginas: { min: 1, max: 1 }, codigos: [{ formato: 'ITF', valor: BOLETO_TIPICO.codigo }] },
+    espera: { textos: ['Recibo do Pagador', BOLETO_TIPICO.linha], ausentes: [...SEM_NULL, BOLETO_TIPICO.codigo], paginas: { min: 1, max: 1 }, codigos: [{ formato: 'ITF', valor: BOLETO_TIPICO.codigo }] },
   },
 ];
 
@@ -363,7 +364,8 @@ const DANFE: Cenario[] = [
     payload: danfe(8),
     espera: {
       textos: ['DANFE', 'CHAVE DE ACESSO', CHAVE_DANFE.replace(/(.{4})/g, '$1 ').trim(), 'Supermercado Bom Preço Ltda.', 'Produto 8 — descrição comercial', 'RECEBEMOS DE Indústria de Alimentos Exemplo S.A.'],
-      ausentes: SEM_NULL,
+      // ADR-023: a chave crua (44 dígitos colados) não aparece — só a formatada em blocos.
+      ausentes: [...SEM_NULL, CHAVE_DANFE],
       paginas: { min: 1, max: 1 },
       codigos: [{ formato: 'CODE_128', valor: CHAVE_DANFE }],
     },
@@ -381,7 +383,7 @@ const DANFE: Cenario[] = [
       destinatario: { nome: 'Destinatário' },
       produtos: [],
     },
-    espera: { textos: ['DANFE', 'Emitente', 'Destinatário'], ausentes: SEM_NULL, paginas: { min: 1, max: 1 }, codigos: [{ formato: 'CODE_128', valor: CHAVE_DANFE }] },
+    espera: { textos: ['DANFE', 'Emitente', 'Destinatário'], ausentes: [...SEM_NULL, CHAVE_DANFE], paginas: { min: 1, max: 1 }, codigos: [{ formato: 'CODE_128', valor: CHAVE_DANFE }] },
   },
   {
     nome: 'volume',
