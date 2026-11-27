@@ -7,4 +7,4 @@
       com Flyway isolado, batch/IA/limites por propriedade); render-service vira aplicação fina
 - [x] 2.4 `exemplos/host-spring`: aplicação Spring Boot 4 com segurança e Flyway próprios; testes de
       coexistência e uso do `MotorReportLenz`, no CI
-- [ ] 3.1 Publicação no Maven Central (sources/javadoc/GPG, job no release.yml) + docs
+- [x] 3.1 Publicação no Maven Central (sources/javadoc/GPG, job no release.yml) + docs

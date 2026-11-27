@@ -27,11 +27,108 @@
   <packaging>pom</packaging>
   <name>ReportLenz · parent</name>
   <description>Render JRXML 7 contract-first (Push) com a JasperReports Library 7.0.7</description>
+  <url>https://github.com/edsonmartins/reportlenz</url>
+
+  <!-- Metadados exigidos pelo Maven Central (ADR-026 §4) -->
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>ReportLenz</name>
+      <url>https://github.com/edsonmartins/reportlenz</url>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/edsonmartins/reportlenz</url>
+    <connection>scm:git:https://github.com/edsonmartins/reportlenz.git</connection>
+    <developerConnection>scm:git:git@github.com:edsonmartins/reportlenz.git</developerConnection>
+  </scm>
 
   <properties>
     <java.version>21</java.version>
     <jasperreports.version>7.0.7</jasperreports.version>
   </properties>
+
+  <!--
+    Publicação no Maven Central (ADR-026 §4): mvn -P publicacao deploy
+    Publica reportlenz-parent, reportlenz-core e reportlenz-spring-boot-starter
+    (a aplicação standalone fica de fora). Exige, do dono do namespace:
+      - groupId com namespace VERIFICADO no central.sonatype.com;
+      - token do Central em ~/.m2/settings.xml (server id "central");
+      - chave GPG (MAVEN_GPG_PASSPHRASE).
+  -->
+  <profiles>
+    <profile>
+      <id>publicacao</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.3.1</version>
+            <executions>
+              <execution>
+                <id>fontes</id>
+                <goals><goal>jar-no-fork</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+            <configuration>
+              <doclint>none</doclint>
+              <quiet>true</quiet>
+            </configuration>
+            <executions>
+              <execution>
+                <id>javadoc</id>
+                <goals><goal>jar</goal></goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <executions>
+              <execution>
+                <id>assinar</id>
+                <phase>verify</phase>
+                <goals><goal>sign</goal></goals>
+              </execution>
+            </executions>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.12.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
+              <excludeArtifacts>
+                <artifactId>reportlenz-render-service</artifactId>
+              </excludeArtifacts>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <modules>
     <module>reportlenz-core</module>

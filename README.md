@@ -9,7 +9,7 @@ relatório (LGPD, I-2/I-3).
 |---|---|
 | `jrxml-core/` | Núcleo TypeScript headless: parser/serializer do dialeto 7, contrato, validação, gates G1–G6 |
 | `jrxml-designer-react/` | Designer (React + Mantine) sobre o core |
-| `render-service/` | Preview, batch, publish, registro de templates e IA (Spring Boot 4, Java 21) |
+| `render-service/` | Backend Java (Spring Boot 4, Java 21), em três módulos: `reportlenz-core` (motor), `reportlenz-spring-boot-starter` (embarcável) e `reportlenz-app` (serviço standalone) |
 | `tools/jr7-harness/` | Gate G1: o JRXML emitido precisa carregar e compilar na Library real |
 | `deploy/` | Ambiente de homologação (compose, realm Keycloak) |
 | `docs/spec/` | Constituição, ADRs, RFCs e change packages (OpenSpec) |
@@ -108,6 +108,69 @@ exemplos/host-react/preparar.sh        # pnpm pack + npm install + build
 
 O workflow `release` testa e publica no npmjs.com com provenance. Antes, uma vez só, é preciso criar a
 organização `@reportlenz` no npm e o segredo `NPM_TOKEN` no GitHub.
+
+### Backend Java embarcável (ADR-026)
+
+O ReportLenz também roda **dentro do backend Spring Boot 4 da aplicação**:
+
+| Artefato Maven | Para quê |
+|---|---|
+| `dev.reportlenz:reportlenz-core` | Java puro: `MotorReportLenz` renderiza PDF/PNG de JRXML 7 + payload, com G7, contexto restrito e filtro de classes sempre ligados |
+| `dev.reportlenz:reportlenz-spring-boot-starter` | Auto-configuração: motor como bean, registro de templates no banco da aplicação, endpoints do designer sob `/reportlenz`, batch e IA |
+
+```xml
+<dependency>
+  <groupId>dev.reportlenz</groupId>
+  <artifactId>reportlenz-spring-boot-starter</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+```java
+@Service
+class Comprovantes {
+    private final MotorReportLenz motor;           // bean do starter
+    Comprovantes(MotorReportLenz motor) { this.motor = motor; }
+
+    byte[] pdf(String jrxml, Map<String, Object> payload) {
+        return motor.renderizarPdf(jrxml, payload);
+    }
+}
+```
+
+No front, o componente React aponta para o próprio backend:
+`<ReportLenzDesigner apiBaseUrl="https://app.empresa.com.br/reportlenz" … />`.
+
+**O starter não interfere na aplicação.**
+- A cadeia de segurança, o CORS, o limite de 413 e o tratador de erros valem só sob o prefixo.
+- O Flyway roda em instância própria, na tabela `reportlenz_schema_history`, depois do Flyway da
+  aplicação.
+- Não liga `@EnableScheduling`.
+- Se a aplicação não tem cadeia de segurança própria, o starter registra uma equivalente à padrão do
+  Spring Boot, porque a nossa desligaria a padrão.
+
+A aplicação de teste `exemplos/host-spring` prova a convivência no CI.
+
+| Propriedade | Padrão | |
+|---|---|---|
+| `reportlenz.api.prefixo` | `/reportlenz` | rotas do ReportLenz (o render-service standalone usa `""`) |
+| `reportlenz.seguranca.modo` | `keycloak` | `keycloak` (JWT + papéis do ADR-017), `aplicacao` (a aplicação protege e concede `reportlenz-*`) ou `desligada` (dev) |
+| `reportlenz.seguranca.issuer` / `jwk-set-uri` / `client-id` | — / — / `reportlenz` | realm Keycloak |
+| `reportlenz.registro.habilitado` | `true` | registro de templates no `DataSource` da aplicação |
+| `reportlenz.batch.habilitado` | `true` | lotes (exige Redis e o registro; sem Redis o boot falha dizendo o que fazer) |
+| `reportlenz.assistente.habilitado` | `true` | IA (sem chave OpenRouter responde 503) |
+| `reportlenz.cors.origens-permitidas` | vazio | origens do componente React em outra origem |
+| `reportlenz.recursos.urls-permitidas` | vazio | prefixos de URL de onde imagens podem vir |
+| `reportlenz.storage.provider` | `LOCAL` | saídas do batch: `LOCAL` ou `MINIO` (S3) |
+| `reportlenz.migracoes.tabela` | `reportlenz_schema_history` | histórico Flyway do ReportLenz |
+
+Peças do motor, como o cache de compilação e a fonte de subreports, são `@ConditionalOnMissingBean`: a
+aplicação pode trocá-las.
+
+**Publicação:** o job `maven` do `release.yml` (mesma tag `v*`) publica no Maven Central. Antes, uma vez
+só, é preciso:
+- verificar o namespace do `groupId` no Central;
+- criar os segredos `CENTRAL_USERNAME`, `CENTRAL_TOKEN`, `GPG_PRIVATE_KEY` e `GPG_PASSPHRASE`.
 
 ### Catálogo de modelos e matriz de testes (ADR-022)
 
