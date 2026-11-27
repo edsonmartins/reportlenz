@@ -1,0 +1,56 @@
+# Release dos pacotes npm (ADR-025 §5): disparado por tag v<semver> (ex.: v0.1.0).
+# Pré-requisitos (do dono do repositório):
+#   - organização @reportlenz no npmjs.com;
+#   - segredo NPM_TOKEN (token de automação com permissão de publicar em @reportlenz).
+# A versão da tag precisa ser a dos dois package.json — o job confere antes de publicar.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write   # npm provenance (atestado de origem do build)
+
+jobs:
+  npm:
+    name: publicar @reportlenz/jrxml-core e @reportlenz/designer-react
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          registry-url: https://registry.npmjs.org
+
+      - name: Conferir versão da tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for p in jrxml-core jrxml-designer-react; do
+            V=$(node -p "require('./$p/package.json').version")
+            [ "$V" = "$TAG" ] || { echo "::error::$p está em $V, tag é $TAG"; exit 1; }
+          done
+
+      - name: Conferir segredo
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: '[ -n "$NODE_AUTH_TOKEN" ] || { echo "::error::defina o segredo NPM_TOKEN (ADR-025 §5)"; exit 1; }'
+
+      - name: Build e testes
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --dir jrxml-core lint && pnpm --dir jrxml-core test && pnpm --dir jrxml-core build
+          pnpm --dir jrxml-designer-react lint && pnpm --dir jrxml-designer-react test && pnpm --dir jrxml-designer-react build:lib
+
+      - name: Publicar (core antes do designer, que depende dele)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          pnpm --dir jrxml-core publish --no-git-checks
+          pnpm --dir jrxml-designer-react publish --no-git-checks

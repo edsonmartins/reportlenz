@@ -9,7 +9,7 @@ import { ActionIcon, Alert, Button, Code, Popover, Stack, Text, Textarea, Toolti
 import { useState } from 'react';
 import type { EscopoDeExpressao } from './sugestoes';
 import { validarExpressaoInline } from './sugestoes';
-import { apiFetch } from '../auth/apiFetch';
+import { useInstancia } from '../instancia';
 
 interface GerarExpressaoIAProps {
   escopo: EscopoDeExpressao;
@@ -23,6 +23,7 @@ interface Sugerida {
 }
 
 export function GerarExpressaoIA({ escopo, onUsar }: GerarExpressaoIAProps) {
+  const instancia = useInstancia();
   const [aberto, setAberto] = useState(false);
   const [pedido, setPedido] = useState('');
   const [gerando, setGerando] = useState(false);
@@ -34,7 +35,7 @@ export function GerarExpressaoIA({ escopo, onUsar }: GerarExpressaoIAProps) {
     setErro(null);
     setSugerida(null);
     try {
-      const resposta = await apiFetch('/assist/gerar-expressao', {
+      const resposta = await instancia.api('/assist/gerar-expressao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ descricao: pedido, escopo }),

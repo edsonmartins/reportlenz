@@ -15,7 +15,8 @@ import type { ResultadoDosGates } from '@reportlenz/jrxml-core';
 import { avaliarGates, buildIntegrationPackage } from '@reportlenz/jrxml-core';
 import { useEffect, useState } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
-import { apiFetch } from '../auth/apiFetch';
+import { codenameDoRegistro, useIntegracao } from '../designer/integracao';
+import { useInstancia } from '../instancia';
 
 interface GateDoServico {
   gate: string;
@@ -36,7 +37,10 @@ interface VerificacaoDoServico {
 }
 
 export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar: () => void }) {
+  const instancia = useInstancia();
+  const integracao = useIntegracao();
   const template = useDocumentoStore((s) => s.template);
+  const codename = template ? codenameDoRegistro(integracao, template.name) : '';
   const [resultado, setResultado] = useState<ResultadoDosGates | null>(null);
   const [servico, setServico] = useState<VerificacaoDoServico | null>(null);
   const [erroDoServico, setErroDoServico] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     if (!local.jrxml) return;
     void (async () => {
       try {
-        const resposta = await apiFetch('/publish/verificar', {
+        const resposta = await instancia.api('/publish/verificar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           // codename: o G8 (ADR-020) detecta ciclo de subreports de volta a este template.
@@ -65,7 +69,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
             jrxml: local.jrxml,
             inputSchema: local.inputSchema,
             jrxmlHash: local.jrxmlHash,
-            codename: template.name,
+            codename,
           }),
         });
         if (!resposta.ok) {
@@ -88,7 +92,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
     setErroDoServico(null);
     try {
       // 1) registra/atualiza o draft no repositório (ADR-009 — versionamento conjunto).
-      const salvo = await apiFetch(`/templates/${template.name}/versoes`, {
+      const salvo = await instancia.api(`/templates/${encodeURIComponent(codename)}/versoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jrxml: resultado.jrxml, inputSchema: resultado.inputSchema }),
@@ -100,7 +104,7 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
       const versao = ((await salvo.json()) as { version: number }).version;
 
       // 2) publica — o serviço reconfere os gates; published fica IMUTÁVEL.
-      const pub = await apiFetch(`/templates/${template.name}/versoes/${versao}/publicar`, {
+      const pub = await instancia.api(`/templates/${encodeURIComponent(codename)}/versoes/${versao}/publicar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -112,15 +116,19 @@ export function PublishWizard({ aberto, onFechar }: { aberto: boolean; onFechar:
       setVersaoPublicada(versao);
 
       // 3) pacote de integração da versão publicada (RFC-002 §6).
+      // SPA: baixa o arquivo; embutido: o pacote vai no evento para a aplicação (ADR-025).
       const pacote = buildIntegrationPackage(template, { version: versao });
-      const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pacote.registro.templateName}-v${versao}.reportlenz.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      if (integracao.baixarPacoteDeIntegracao) {
+        const blob = new Blob([JSON.stringify(pacote, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${pacote.registro.templateName}-v${versao}.reportlenz.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
       setPublicado(true);
+      integracao.onPublicado?.({ codename, versao, pacoteDeIntegracao: pacote });
     } catch (e) {
       setErroDoServico(e instanceof Error ? e.message : String(e));
     }

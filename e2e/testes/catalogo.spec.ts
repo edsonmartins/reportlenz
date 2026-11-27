@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { REFERENCE_TEMPLATES, buildInputSchema, extractContract, serializeJrxml } from '@reportlenz/jrxml-core';
+import { REFERENCE_TEMPLATES } from '@reportlenz/jrxml-core';
 import { identidades, tokenDeApi } from '../apoio/keycloak';
+import { publicarPelaApi } from '../apoio/registro';
 import { abrirModelo, entrarComo } from '../apoio/sessao';
 
 const API = process.env.DESIGNER_URL ?? 'http://localhost:8080';
@@ -39,25 +40,6 @@ async function publicarPeloWizard(page: Page): Promise<void> {
   }
   await page.getByTestId('publish-confirmar').click();
   await expect(page.getByTestId('publish-ok')).toBeVisible();
-}
-
-/** Salva e publica um modelo do catálogo pela API (o que o time faria para uma dependência). */
-async function publicarPelaApi(chave: string): Promise<void> {
-  const template = REFERENCE_TEMPLATES[chave]!;
-  const token = await tokenDeApi(identidades().publicador);
-  const cabecalhos = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-  const salvo = await fetch(`${API}/templates/${template.name}/versoes`, {
-    method: 'POST',
-    headers: cabecalhos,
-    body: JSON.stringify({
-      jrxml: serializeJrxml(template),
-      inputSchema: buildInputSchema(extractContract(template), { templateName: template.name, version: 1 }),
-    }),
-  });
-  expect(salvo.status).toBe(200);
-  const { version } = (await salvo.json()) as { version: number };
-  const publicado = await fetch(`${API}/templates/${template.name}/versoes/${version}/publicar`, { method: 'POST', headers: cabecalhos });
-  expect(publicado.status).toBe(200);
 }
 
 test.describe('catálogo de modelos (ADR-022)', () => {

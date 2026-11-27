@@ -4,6 +4,7 @@
  * da PaginaCanvas.
  */
 import { useEffect } from 'react';
+import { useInstancia, type InstanciaDoDesigner } from '../instancia';
 import { useDocumentoStore } from '../store/documentoStore';
 import { useCanvasStore } from '../store/canvasStore';
 import { ESPESSURA_REGUA, Regua } from './Regua';
@@ -17,15 +18,23 @@ const MARGEM_EM_TORNO_DA_FOLHA = 24;
 const NUDGE_PT = 1;
 const NUDGE_SHIFT_PT = 10;
 
+/**
+ * Instância que recebeu o último clique no canvas (ADR-025): com dois
+ * designers na mesma página, o teclado só age no que o usuário está usando.
+ * `null` (ninguém clicou ainda) = todos ouvem — o caso de uma instância só.
+ */
+let instanciaAtiva: InstanciaDoDesigner | null = null;
+
 /** Atalhos de teclado do canvas (2.6): nudge, delete, copy/paste. */
-function useTecladoDoCanvas() {
+function useTecladoDoCanvas(instancia: InstanciaDoDesigner) {
   useEffect(() => {
     const aoTeclar = (e: KeyboardEvent) => {
       const alvo = e.target as HTMLElement | null;
       if (alvo && (['INPUT', 'TEXTAREA', 'SELECT'].includes(alvo.tagName) || alvo.isContentEditable)) {
         return; // digitação em campos não mexe no canvas
       }
-      const s = useDocumentoStore.getState();
+      if (instanciaAtiva !== null && instanciaAtiva !== instancia) return;
+      const s = instancia.documento.getState();
       if (!s.template) return;
 
       const passo = e.shiftKey ? NUDGE_SHIFT_PT : NUDGE_PT;
@@ -65,12 +74,16 @@ function useTecladoDoCanvas() {
       }
     };
     window.addEventListener('keydown', aoTeclar);
-    return () => window.removeEventListener('keydown', aoTeclar);
-  }, []);
+    return () => {
+      window.removeEventListener('keydown', aoTeclar);
+      if (instanciaAtiva === instancia) instanciaAtiva = null;
+    };
+  }, [instancia]);
 }
 
 export function Canvas() {
-  useTecladoDoCanvas();
+  const instancia = useInstancia();
+  useTecladoDoCanvas(instancia);
   const template = useDocumentoStore((s) => s.template);
   const zoom = useCanvasStore((s) => s.zoom);
   const mostrarGrid = useCanvasStore((s) => s.mostrarGrid);
@@ -81,6 +94,9 @@ export function Canvas() {
 
   return (
     <div
+      onPointerDownCapture={() => {
+        instanciaAtiva = instancia;
+      }}
       data-testid="canvas"
       style={{
         display: 'grid',

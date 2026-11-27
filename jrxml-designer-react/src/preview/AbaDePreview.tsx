@@ -9,7 +9,7 @@
  */
 import { ActionIcon, Alert, Badge, Button, Group, Loader, SegmentedControl, Select, Stack, Text, Tooltip } from '@mantine/core';
 import { serializeJrxml } from '@reportlenz/jrxml-core';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useDocumentoStore } from '../store/documentoStore';
 import { usePreviewStore, type ZoomDoPreview } from './previewStore';
 
@@ -26,54 +26,38 @@ function estiloDaPagina(zoom: ZoomDoPreview, larguraNatural: number | null): CSS
   return { ...base, width: (larguraNatural / PX_DA_IMAGEM_POR_PT) * PX_CSS_POR_PT * zoom, maxWidth: 'none' };
 }
 
-export function AbaDePreview() {
-  const template = useDocumentoStore((s) => s.template);
-  const carregando = usePreviewStore((s) => s.carregando);
-  const erro = usePreviewStore((s) => s.erro);
-  const violacoes = usePreviewStore((s) => s.violacoes);
-  const imagemUrl = usePreviewStore((s) => s.imagemUrl);
-  const totalPaginas = usePreviewStore((s) => s.totalPaginas);
-  const pagina = usePreviewStore((s) => s.pagina);
-  const zoom = usePreviewStore((s) => s.zoom);
-  const jrxmlRenderizado = usePreviewStore((s) => s.jrxmlRenderizado);
-  const definirZoom = usePreviewStore((s) => s.definirZoom);
-  const renderizar = usePreviewStore((s) => s.renderizar);
+export interface VisualizadorDePaginaProps {
+  testid: string;
+  carregando: boolean;
+  erro: string | null;
+  violacoes: string[];
+  imagemUrl: string | null;
+  totalPaginas: number;
+  pagina: number;
+  zoom: ZoomDoPreview;
+  onZoom: (zoom: ZoomDoPreview) => void;
+  onPagina: (pagina: number) => void;
+  /** Conteúdo da aplicação à esquerda da paginação (título, selos, botões). */
+  barra?: ReactNode;
+}
+
+/**
+ * Página renderizada pelo engine com zoom e paginação — sem saber de onde
+ * veio o JRXML. Usado pela aba Preview do designer e pelo
+ * `<ReportLenzPreview>` (ADR-025).
+ */
+export function VisualizadorDePagina(props: VisualizadorDePaginaProps) {
+  const { testid, carregando, erro, violacoes, imagemUrl, totalPaginas, pagina, zoom, onZoom, onPagina, barra } = props;
   const [larguraNatural, setLarguraNatural] = useState<number | null>(null);
-
-  const jrxmlAtual = useMemo(() => (template ? serializeJrxml(template) : null), [template]);
-  const desatualizado = jrxmlAtual !== null && jrxmlAtual !== jrxmlRenderizado;
-
-  // Abriu a aba com o documento diferente do último render → renderiza de novo
-  // (o usuário nunca olha um render que não corresponde ao que edita).
-  useEffect(() => {
-    if (desatualizado && !carregando) void renderizar(jrxmlRenderizado === null ? 0 : Math.min(pagina, Math.max(totalPaginas - 1, 0)));
-    // Dependência só em `desatualizado`: dispara quando o documento diverge do render.
-  }, [desatualizado]);
-
   const valorDoZoom = typeof zoom === 'number' ? 'percentual' : zoom;
 
   return (
-    <div data-testid="aba-preview" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div data-testid={testid} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Group gap="xs" px="md" py={6} style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}>
-        <Text size="sm" fw={600}>
-          Render Jasper
-        </Text>
-        <Tooltip label="Isto é o que o engine produz em produção; o canvas da aba Editor é aproximação (I-8)">
-          <Badge size="xs" color="green" variant="light">
-            verdade do engine
-          </Badge>
-        </Tooltip>
-        {desatualizado && !carregando && (
-          <Badge size="xs" color="yellow" variant="light" data-testid="preview-desatualizado">
-            desatualizado
-          </Badge>
-        )}
-        <Button size="compact-xs" variant="light" onClick={() => void renderizar(pagina)} disabled={carregando}>
-          Renderizar novamente
-        </Button>
+        {barra}
         {totalPaginas > 1 && (
           <Group gap={4}>
-            <ActionIcon size="sm" variant="subtle" aria-label="página anterior" disabled={pagina <= 0 || carregando} onClick={() => void renderizar(pagina - 1)}>
+            <ActionIcon size="sm" variant="subtle" aria-label="página anterior" disabled={pagina <= 0 || carregando} onClick={() => onPagina(pagina - 1)}>
               ‹
             </ActionIcon>
             <Text size="xs" data-testid="preview-paginacao">
@@ -84,7 +68,7 @@ export function AbaDePreview() {
               variant="subtle"
               aria-label="próxima página"
               disabled={pagina >= totalPaginas - 1 || carregando}
-              onClick={() => void renderizar(pagina + 1)}
+              onClick={() => onPagina(pagina + 1)}
             >
               ›
             </ActionIcon>
@@ -95,7 +79,7 @@ export function AbaDePreview() {
             size="xs"
             aria-label="zoom do preview"
             value={valorDoZoom}
-            onChange={(v) => definirZoom(v === 'percentual' ? 1 : v)}
+            onChange={(v) => onZoom(v === 'percentual' ? 1 : v)}
             data={[
               { value: 'largura', label: 'Ajustar à largura' },
               { value: 'pagina', label: 'Página inteira' },
@@ -109,7 +93,7 @@ export function AbaDePreview() {
               aria-label="percentual do zoom"
               data={PERCENTUAIS.map((p) => ({ value: p, label: `${p}%` }))}
               value={String(Math.round(zoom * 100))}
-              onChange={(v) => v && definirZoom(Number(v) / 100)}
+              onChange={(v) => v && onZoom(Number(v) / 100)}
               allowDeselect={false}
             />
           )}
@@ -160,5 +144,64 @@ export function AbaDePreview() {
         )}
       </div>
     </div>
+  );
+}
+
+export function AbaDePreview() {
+  const template = useDocumentoStore((s) => s.template);
+  const carregando = usePreviewStore((s) => s.carregando);
+  const erro = usePreviewStore((s) => s.erro);
+  const violacoes = usePreviewStore((s) => s.violacoes);
+  const imagemUrl = usePreviewStore((s) => s.imagemUrl);
+  const totalPaginas = usePreviewStore((s) => s.totalPaginas);
+  const pagina = usePreviewStore((s) => s.pagina);
+  const zoom = usePreviewStore((s) => s.zoom);
+  const jrxmlRenderizado = usePreviewStore((s) => s.jrxmlRenderizado);
+  const definirZoom = usePreviewStore((s) => s.definirZoom);
+  const renderizar = usePreviewStore((s) => s.renderizar);
+
+  const jrxmlAtual = useMemo(() => (template ? serializeJrxml(template) : null), [template]);
+  const desatualizado = jrxmlAtual !== null && jrxmlAtual !== jrxmlRenderizado;
+
+  // Abriu a aba com o documento diferente do último render → renderiza de novo
+  // (o usuário nunca olha um render que não corresponde ao que edita).
+  useEffect(() => {
+    if (desatualizado && !carregando) void renderizar(jrxmlRenderizado === null ? 0 : Math.min(pagina, Math.max(totalPaginas - 1, 0)));
+    // Dependência só em `desatualizado`: dispara quando o documento diverge do render.
+  }, [desatualizado]);
+
+  return (
+    <VisualizadorDePagina
+      testid="aba-preview"
+      carregando={carregando}
+      erro={erro}
+      violacoes={violacoes}
+      imagemUrl={imagemUrl}
+      totalPaginas={totalPaginas}
+      pagina={pagina}
+      zoom={zoom}
+      onZoom={definirZoom}
+      onPagina={(p) => void renderizar(p)}
+      barra={
+        <>
+          <Text size="sm" fw={600}>
+            Render Jasper
+          </Text>
+          <Tooltip label="Isto é o que o engine produz em produção; o canvas da aba Editor é aproximação (I-8)">
+            <Badge size="xs" color="green" variant="light">
+              verdade do engine
+            </Badge>
+          </Tooltip>
+          {desatualizado && !carregando && (
+            <Badge size="xs" color="yellow" variant="light" data-testid="preview-desatualizado">
+              desatualizado
+            </Badge>
+          )}
+          <Button size="compact-xs" variant="light" onClick={() => void renderizar(pagina)} disabled={carregando}>
+            Renderizar novamente
+          </Button>
+        </>
+      }
+    />
   );
 }

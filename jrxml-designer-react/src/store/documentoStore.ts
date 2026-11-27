@@ -12,7 +12,8 @@
  */
 import type { Band, Element, ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { serializeJrxml, validateContract, validateSchema } from '@reportlenz/jrxml-core';
-import { create } from 'zustand';
+import { createStore } from 'zustand/vanilla';
+import { hookDoStore } from '../instancia';
 import type { BlocoReutilizavel } from '../blocos/biblioteca';
 import type { Alinhamento } from './mutacoes';
 import {
@@ -160,7 +161,9 @@ export interface DocumentoState {
   limparAvisosDeBloco: () => void;
 }
 
-export const useDocumentoStore = create<DocumentoState>((set, get) => {
+/** Fábrica — uma por instância do designer (ADR-025 §3). */
+export function criarDocumentoStore() {
+  return createStore<DocumentoState>()((set, get) => {
   /**
    * Via ÚNICA de commit de template (2.7): registra histórico (a menos que um
    * gesto esteja aberto — o snapshot foi registrado no início do gesto),
@@ -343,3 +346,7 @@ export const useDocumentoStore = create<DocumentoState>((set, get) => {
   },
   };
 });
+}
+
+/** Hook ciente da instância; `getState` estático = instância padrão. */
+export const useDocumentoStore = hookDoStore((i) => i.documento);

@@ -84,7 +84,9 @@ public class ConfiguracaoDeSeguranca {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
+                .formLogin(AbstractHttpConfigurer::disable)
+                // CORS só para as origens de REPORTLENZ_CORS_ORIGENS (ADR-025 §4); preflight antes da autorização.
+                .cors(org.springframework.security.config.Customizer.withDefaults());
 
         if (!habilitada) {
             log.warn("[SEGURANCA] AUTENTICAÇÃO DESLIGADA (reportlenz.seguranca.habilitada=false) — "

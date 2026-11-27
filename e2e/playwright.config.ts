@@ -26,4 +26,12 @@ export default defineConfig({
     locale: 'pt-BR',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Aplicação hospedeira de teste (ADR-025): construída por exemplos/host-react/preparar.sh
+  // a partir dos tarballs dos pacotes; aqui só é servida (vite preview, porta 5300).
+  webServer: {
+    command: 'npm --prefix ../exemplos/host-react run preview',
+    url: process.env.HOST_URL ?? 'http://localhost:5300',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60_000,
+  },
 });

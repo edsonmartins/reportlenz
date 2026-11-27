@@ -101,6 +101,8 @@ services:
       REPORTLENZ_OIDC_CLIENT_ID: reportlenz
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       REPORTLENZ_RECURSOS_URLS_PERMITIDAS: ${REPORTLENZ_RECURSOS_URLS_PERMITIDAS:-}
+      # ADR-025 §4: origens das aplicações que embutem o designer com apiBaseUrl de outra origem.
+      REPORTLENZ_CORS_ORIGENS: ${REPORTLENZ_CORS_ORIGENS:-}
       OTEL_SAMPLING: ${OTEL_SAMPLING:-0}
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://localhost:4318/v1/traces}
     volumes:

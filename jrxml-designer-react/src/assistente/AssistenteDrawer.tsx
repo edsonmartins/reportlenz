@@ -12,7 +12,7 @@ import type { ParseError, ReportTemplate } from '@reportlenz/jrxml-core';
 import { useState } from 'react';
 import { useDocumentoStore, validarDocumento } from '../store/documentoStore';
 import { normalizarDraft } from './normalizarDraft';
-import { apiFetch } from '../auth/apiFetch';
+import { useInstancia } from '../instancia';
 
 interface RespostaDoAssistente {
   template: unknown;
@@ -40,6 +40,7 @@ function contarElementos(t: ReportTemplate): number {
 }
 
 export function AssistenteDrawer({ aberto, onFechar }: { aberto: boolean; onFechar: () => void }) {
+  const instancia = useInstancia();
   const [descricao, setDescricao] = useState('');
   const [refinar, setRefinar] = useState(false);
   const [gerando, setGerando] = useState(false);
@@ -52,7 +53,7 @@ export function AssistenteDrawer({ aberto, onFechar }: { aberto: boolean; onFech
     setErro(null);
     setRascunho(null);
     try {
-      const resposta = await apiFetch('/assist/gerar-template', {
+      const resposta = await instancia.api('/assist/gerar-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +84,7 @@ export function AssistenteDrawer({ aberto, onFechar }: { aberto: boolean; onFech
 
   const carregar = () => {
     if (!rascunho) return;
-    const store = useDocumentoStore.getState();
+    const store = instancia.documento.getState();
     if (store.template) {
       // Troca com UM commit: desfazer volta ao documento anterior.
       store.mutarTemplate(() => rascunho.template);

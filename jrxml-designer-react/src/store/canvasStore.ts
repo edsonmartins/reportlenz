@@ -2,7 +2,8 @@
  * Estado de VISUALIZAÇÃO do canvas (zoom, grid, réguas) — separado do
  * documento (documentoStore): mudar o zoom não é mutação do template.
  */
-import { create } from 'zustand';
+import { createStore } from 'zustand/vanilla';
+import { hookDoStore } from '../instancia';
 
 /** Guias de alinhamento ativas durante um arraste (pt, espaço da banda). */
 export interface GuiasDeSnap {
@@ -31,7 +32,9 @@ export interface CanvasState {
 export const ZOOM_MIN = 0.25;
 export const ZOOM_MAX = 4;
 
-export const useCanvasStore = create<CanvasState>((set) => ({
+/** Fábrica — uma por instância do designer (ADR-025 §3). */
+export function criarCanvasStore() {
+  return createStore<CanvasState>()((set) => ({
   zoom: 1,
   mostrarGrid: true,
   passoGridMm: 5,
@@ -54,3 +57,7 @@ export const useCanvasStore = create<CanvasState>((set) => ({
     set({ guiasDeSnap: guias });
   },
 }));
+}
+
+/** Hook ciente da instância; `getState` estático = instância padrão. */
+export const useCanvasStore = hookDoStore((i) => i.canvas);

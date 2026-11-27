@@ -99,6 +99,12 @@ headless   contrato   React      pro         governança
     sob as barras.
   - `preview-em-aba` (ADR-024): abas Editor / Preview (Jasper), com o preview em tela cheia; supersede o
     "lado a lado" da RFC-004 §7.
+  - `componente-embutivel` (ADR-025): `@reportlenz/designer-react` (npm público).
+    - Estado **por instância**: fábricas de store + `ProvedorDeInstancia`; fora de provider vale a
+      instância padrão. Em componente, use `useInstancia()` em vez de `useXStore.getState()`.
+    - Token por `getAccessToken`; OIDC só na SPA (`src/spa`, `src/auth`), fora do pacote.
+    - CORS por `REPORTLENZ_CORS_ORIGENS`.
+    - A API pública (`src/index.ts`) é contrato: mudança incompatível exige versão major.
 
   Evoluções futuras entram como novos OpenSpec change packages (§9).
 - Não avance para uma fase enquanto os critérios de aceite da anterior não estiverem verdes.
