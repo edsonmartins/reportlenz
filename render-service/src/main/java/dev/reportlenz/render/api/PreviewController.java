@@ -54,6 +54,13 @@ public class PreviewController {
 
     @PostMapping("/render/preview")
     public ResponseEntity<byte[]> preview(@RequestBody PreviewRequest request) {
+        // Corpo sem JRXML era NPE → 500; é erro do chamador (componente embutido, ADR-025).
+        if (request.jrxml() == null || request.jrxml().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(json.writeValueAsBytes(new TratadorDeErros.ErroResponse(
+                            "JRXML_AUSENTE", "o corpo do preview precisa de \"jrxml\"")));
+        }
         Map<String, Object> sampleData = request.sampleData() != null ? request.sampleData() : Map.of();
 
         // Gate de contrato (RFC-003 §3 passo 2): valida ANTES de compilar/preencher.
@@ -62,7 +69,7 @@ public class PreviewController {
         }
 
         // ADR-020 §5: subreport apontando template não publicado → 400 antes do fill.
-        if (request.jrxml() != null) {
+        {
             var indisponiveis = subreports.indisponiveis(request.jrxml());
             if (!indisponiveis.isEmpty()) {
                 return ResponseEntity.badRequest()

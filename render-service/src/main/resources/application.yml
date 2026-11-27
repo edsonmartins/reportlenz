@@ -45,6 +45,10 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 reportlenz:
+  cors:
+    # ADR-025 §4: origens das aplicações que embutem o designer com apiBaseUrl
+    # de outra origem (vírgula). Vazio = sem CORS (mesma origem / proxy).
+    origens-permitidas: ${REPORTLENZ_CORS_ORIGENS:}
   seguranca:
     # ADR-017: resource server JWT do realm Keycloak. false SÓ em dev local
     # (libera tudo, ator "dev-local"); habilitada sem issuer → boot falha.
